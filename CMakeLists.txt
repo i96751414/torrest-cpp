@@ -15,6 +15,8 @@ add_definitions(
 )
 
 add_executable(torrest
+        src/api/error_handler.cpp
+        src/api/logger.cpp
         src/settings/settings.cpp
         src/main.cpp)
 
