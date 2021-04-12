@@ -5,8 +5,11 @@
 #include "oatpp/web/server/HttpConnectionHandler.hpp"
 #include "oatpp/network/tcp/server/ConnectionProvider.hpp"
 #include "oatpp/core/macro/component.hpp"
+#include "oatpp/web/server/interceptor/AllowCorsGlobal.hpp"
 #include "oatpp-swagger/Model.hpp"
 #include "oatpp-swagger/Resources.hpp"
+
+#include "error_handler.h"
 
 #ifndef OATPP_SWAGGER_RES_PATH
 #error oatpp-swagger/res is not defined (OATPP_SWAGGER_RES_PATH)
@@ -24,6 +27,10 @@ namespace torrest {
     private:
         uint16_t mPort;
 
+        // Create ObjectMapper component to serialize/deserialize DTOs in Controller's API
+        OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, apiObjectMapper)
+        (oatpp::parser::json::mapping::ObjectMapper::createShared());
+
         // Create ConnectionProvider component which listens on the port
         OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, serverConnectionProvider)
         (oatpp::network::tcp::server::ConnectionProvider::createShared(
@@ -37,12 +44,18 @@ namespace torrest {
         OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, serverConnectionHandler)([] {
             // get Router component
             OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router);
-            return oatpp::web::server::HttpConnectionHandler::createShared(router);
-        }());
+            auto httpConnectionHandler = oatpp::web::server::HttpConnectionHandler::createShared(router);
 
-        // Create ObjectMapper component to serialize/deserialize DTOs in Controller's API
-        OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, apiObjectMapper)
-        (oatpp::parser::json::mapping::ObjectMapper::createShared());
+            OATPP_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, objectMapper);
+            httpConnectionHandler->setErrorHandler(std::make_shared<ErrorHandler>(objectMapper));
+
+            httpConnectionHandler->addRequestInterceptor(
+                    std::make_shared<oatpp::web::server::interceptor::AllowOptionsGlobal>());
+            httpConnectionHandler->addResponseInterceptor(
+                    std::make_shared<oatpp::web::server::interceptor::AllowCorsGlobal>());
+
+            return httpConnectionHandler;
+        }());
 
         // General API docs
         OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::swagger::DocumentInfo>, swaggerDocumentInfo)

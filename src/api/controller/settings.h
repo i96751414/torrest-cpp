@@ -6,6 +6,7 @@
 #include "oatpp/core/macro/component.hpp"
 
 #include "torrest.h"
+#include "api/dto/error_response.h"
 
 namespace torrest {
 
@@ -33,6 +34,8 @@ public:
         info->description = "Set settings given the provided JSON object";
         info->addConsumes<oatpp::Any>("application/json");
         info->addResponse<oatpp::Any>(Status::CODE_200, "application/json");
+        info->addResponse<Object<ErrorResponse>>(Status::CODE_400, "application/json");
+        info->addResponse<Object<ErrorResponse>>(Status::CODE_500, "application/json");
     }
 
     ENDPOINT("POST", "/settings/set", setSettings, BODY_STRING(String, body)) {
