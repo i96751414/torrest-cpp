@@ -9,12 +9,14 @@ find_package(nlohmann_json 3.9.0 REQUIRED)
 find_package(spdlog 1.8.5 REQUIRED)
 find_package(oatpp 1.2.5 REQUIRED)
 find_package(oatpp-swagger 1.2.5 REQUIRED)
+find_package(LibtorrentRasterbar 1.2.13 REQUIRED COMPONENTS torrent-rasterbar)
 
 add_definitions(
         -DOATPP_SWAGGER_RES_PATH="${oatpp-swagger_INCLUDE_DIRS}/../bin/oatpp-swagger/res"
 )
 
 add_executable(torrest
+        src/bittorrent/service.cpp
         src/api/error_handler.cpp
         src/api/logger.cpp
         src/settings/settings.cpp
@@ -27,4 +29,5 @@ target_link_libraries(torrest
         nlohmann_json::nlohmann_json
         spdlog::spdlog
         oatpp::oatpp
-        oatpp::oatpp-swagger)
+        oatpp::oatpp-swagger
+        LibtorrentRasterbar::torrent-rasterbar)

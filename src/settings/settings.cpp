@@ -5,7 +5,6 @@
 #include "utils/validation.h"
 
 namespace torrest {
-    // TODO: handle const nlohmann::json::exception &e
     Settings Settings::load(const std::string &path) {
         std::ifstream i(path);
         nlohmann::json j;
