@@ -15,7 +15,6 @@
 #include "utils/conversion.h"
 
 int main(int argc, const char *argv[]) {
-
     spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e %l [%n] [thread-%t] %v");
     spdlog::set_level(spdlog::level::debug);
     auto logger = spdlog::stdout_logger_mt("main");

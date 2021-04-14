@@ -1,17 +1,20 @@
 #ifndef TORREST_VALIDATION_H
 #define TORREST_VALIDATION_H
 
-#define _VALIDATE1(var, v1) if (!(var _GET_VALIDATOR v1)) throw torrest::validation_exception("'" #var "' " _GET_MESSAGE v1);
+#define _VALIDATE1(var, v1) if (_GET_OPERATOR v1 (var _GET_VALIDATOR v1)) throw torrest::validation_exception("'" #var "' " _GET_MESSAGE v1);
 #define _VALIDATE2(var, v1, ...) _VALIDATE1(var, v1) _VALIDATE1(var, __VA_ARGS__)
 #define _VALIDATE3(var, v1, ...) _VALIDATE1(var, v1) _VALIDATE2(var, __VA_ARGS__)
 #define _GET_MACRO(_1, _2, _3, N, ...) N
 
-#define _GET_VALIDATOR(a, b) a
-#define _GET_MESSAGE(a, b) b
+#define _GET_OPERATOR(a, b, c) a
+#define _GET_VALIDATOR(a, b, c) b
+#define _GET_MESSAGE(a, b, c) c
 
-#define LT(l) (< l, "must be less than " # l)
-#define LTE(l) (<= l, "must be less than or equal to " # l)
-#define GTE(l) (>= l, "must be greater than or equal to " # l)
+#define LT(l) (!, < l, "must be less than " # l)
+#define GT(l) (!, > l, "must be greater than " # l)
+#define LTE(l) (!, <= l, "must be less than or equal to " # l)
+#define GTE(l) (!, >= l, "must be greater than or equal to " # l)
+#define NOT_EMPTY() (, .empty(), "cannot be empty")
 #define VALIDATE(var, ...) _GET_MACRO(__VA_ARGS__, _VALIDATE3, _VALIDATE2, _VALIDATE1)(var, __VA_ARGS__)
 
 namespace torrest {

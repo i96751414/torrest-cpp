@@ -6,6 +6,7 @@
 #include "spdlog/spdlog.h"
 
 #include "settings/settings.h"
+#include "bittorrent/service.h"
 
 namespace torrest {
     class Torrest {
@@ -36,6 +37,7 @@ namespace torrest {
                 : mLogger(spdlog::stdout_logger_mt("torrest")),
                   mSettingsPath(std::move(pSettingsPath)),
                   mSettings(pSettings),
+                  mService(pSettings),
                   mIsRunning(true) {
             std::signal(SIGINT, shutdown_signal);
             std::signal(SIGKILL, shutdown_signal);
@@ -53,6 +55,7 @@ namespace torrest {
         std::shared_ptr<spdlog::logger> mLogger;
         std::string mSettingsPath;
         Settings mSettings;
+        Service mService;
         bool mIsRunning;
     };
 

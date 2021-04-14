@@ -10,6 +10,7 @@
 #include "oatpp-swagger/Resources.hpp"
 
 #include "error_handler.h"
+#include "version.h"
 
 #ifndef OATPP_SWAGGER_RES_PATH
 #error oatpp-swagger/res is not defined (OATPP_SWAGGER_RES_PATH)
@@ -62,7 +63,7 @@ namespace torrest {
         (oatpp::swagger::DocumentInfo::Builder()
                  .setTitle("Torrest API")
                  .setDescription("C++ implementation of Torrest: a torrent streaming engine with a REST api")
-                 .setVersion("1.0")
+                 .setVersion(TORREST_VERSION)
                  .setContactName("i96751414")
                  .setContactUrl("https://github.com/i96751414/torrest-cpp/")
                  .setLicenseName("MIT")
