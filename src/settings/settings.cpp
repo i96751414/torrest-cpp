@@ -53,27 +53,27 @@ namespace torrest {
 
     std::string get_user_agent(UserAgent pUserAgent) {
         switch (pUserAgent) {
-            case libtorrent:
+            case ua_libtorrent:
                 return "libtorrent/" LIBTORRENT_VERSION;
-            case libtorrent_rasterbar_1_1_0:
+            case ua_libtorrent_rasterbar_1_1_0:
                 return "libtorrent (Rasterbar) 1.1.0";
-            case bittorrent_7_5_0:
+            case ua_bittorrent_7_5_0:
                 return "BitTorrent 7.5.0";
-            case bittorrent_7_4_3:
+            case ua_bittorrent_7_4_3:
                 return "BitTorrent 7.4.3";
-            case utorrent_3_4_9:
+            case ua_utorrent_3_4_9:
                 return "µTorrent 3.4.9";
-            case utorrent_3_2_0:
+            case ua_utorrent_3_2_0:
                 return "µTorrent 3.2.0";
-            case utorrent_2_2_1:
+            case ua_utorrent_2_2_1:
                 return "µTorrent 2.2.1";
-            case transmission_2_92:
+            case ua_transmission_2_92:
                 return "Transmission 2.92";
-            case deluge_1_3_6_0:
+            case ua_deluge_1_3_6_0:
                 return "Deluge 1.3.6.0";
-            case deluge_1_3_12_0:
+            case ua_deluge_1_3_12_0:
                 return "Deluge 1.3.12.0";
-            case vuze_5_7_3_0:
+            case ua_vuze_5_7_3_0:
                 return "Vuze 5.7.3.0";
             default:
                 return "torrest/" TORREST_VERSION " libtorrent/" LIBTORRENT_VERSION;

@@ -7,36 +7,36 @@
 namespace torrest {
 
     enum UserAgent {
-        torrest_default,
-        libtorrent,
-        libtorrent_rasterbar_1_1_0,
-        bittorrent_7_5_0,
-        bittorrent_7_4_3,
-        utorrent_3_4_9,
-        utorrent_3_2_0,
-        utorrent_2_2_1,
-        transmission_2_92,
-        deluge_1_3_6_0,
-        deluge_1_3_12_0,
-        vuze_5_7_3_0,
+        ua_torrest_default,
+        ua_libtorrent,
+        ua_libtorrent_rasterbar_1_1_0,
+        ua_bittorrent_7_5_0,
+        ua_bittorrent_7_4_3,
+        ua_utorrent_3_4_9,
+        ua_utorrent_3_2_0,
+        ua_utorrent_2_2_1,
+        ua_transmission_2_92,
+        ua_deluge_1_3_6_0,
+        ua_deluge_1_3_12_0,
+        ua_vuze_5_7_3_0,
         ua_num_values
     };
 
     enum EncryptionPolicy {
-        enabled,
-        disabled,
-        forced,
+        ep_enabled,
+        ep_disabled,
+        ep_forced,
         ep_num_values
     };
 
     enum ProxyType {
-        none,
-        socks4,
-        socks5,
-        socks5_password,
-        socks_http,
-        socks_http_password,
-        i2psam,
+        pt_none,
+        pt_socks4,
+        pt_socks5,
+        pt_socks5_password,
+        pt_http,
+        pt_http_password,
+        pt_i2psam,
         pt_num_values
     };
 
@@ -50,7 +50,7 @@ namespace torrest {
         bool disable_lsd = false;
         std::string download_path = "downloads";
         std::string torrents_path = "downloads/torrents";
-        UserAgent user_agent = torrest_default;
+        UserAgent user_agent = ua_torrest_default;
         int session_save = 30;
         bool tuned_storage = false;
         bool check_available_space = true;
@@ -68,8 +68,8 @@ namespace torrest {
         int active_tracker_limit = 1600;
         int active_lsd_limit = 60;
         int active_limit = 500;
-        EncryptionPolicy encryption_policy = enabled;
-        ProxyType proxy_type = none;
+        EncryptionPolicy encryption_policy = ep_enabled;
+        ProxyType proxy_type = pt_none;
         int proxy_port = 0;
         std::string proxy_hostname;
         std::string proxy_username;

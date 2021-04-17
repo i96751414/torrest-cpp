@@ -16,10 +16,11 @@ add_definitions(
 )
 
 add_executable(torrest
+        src/utils/conversion.cpp
+        src/settings/settings.cpp
         src/bittorrent/service.cpp
         src/api/error_handler.cpp
         src/api/logger.cpp
-        src/settings/settings.cpp
         src/main.cpp)
 
 target_include_directories(torrest PRIVATE src)

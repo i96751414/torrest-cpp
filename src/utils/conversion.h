@@ -2,15 +2,12 @@
 #define TORREST_CONVERSION_H
 
 #include <string>
+#include <vector>
 
 namespace torrest {
-    uint16_t str_to_uint16(const char *str) {
-        int value(std::stoi(str));
-        if (value < 0 || value > static_cast<int>(UINT16_MAX)) {
-            throw std::runtime_error("Invalid uint16 value");
-        }
-        return static_cast<uint16_t>(value);
-    }
+    uint16_t str_to_uint16(const char *pStr);
+
+    std::string join_string_vector(const std::vector<std::string> &pVector, const std::string &pDelimiter);
 }
 
 #endif //TORREST_CONVERSION_H
