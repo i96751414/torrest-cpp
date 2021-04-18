@@ -28,6 +28,13 @@ namespace torrest {
             return mSettings.dump();
         }
 
+        void update_settings(const Settings &pSettings, bool pReset) {
+            mLogger->debug("operation=update_settings, message='Updating settings'");
+            mService.reconfigure(pSettings, pReset);
+            mSettings = pSettings;
+            mSettings.save(mSettingsPath);
+        }
+
         Torrest(Torrest const &) = delete;
 
         void operator=(Torrest const &) = delete;

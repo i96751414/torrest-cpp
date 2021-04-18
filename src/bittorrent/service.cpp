@@ -1,12 +1,17 @@
 #include "service.h"
 
 #include <thread>
+#include <experimental/filesystem>
 
 #include "spdlog/sinks/stdout_sinks.h"
-#include "libtorrent/alert.hpp"
 
 #include "utils/conversion.h"
+#include "utils/filesystem.h"
 
+#define EXT_PARTS ".parts"
+#define EXT_TORRENT ".torrent"
+#define EXT_MAGNET ".magnet"
+#define EXT_FASTRESUME ".fastresume"
 #define MAX_SINGLE_CORE_CONNECTIONS 50
 #define DEFAULT_DHT_BOOTSTRAP_NODES "router.utorrent.com:6881" \
                                     ",router.bittorrent.com:6881" \
@@ -26,16 +31,30 @@ namespace torrest {
         tos_scavenger = 0x20
     };
 
-    Service::Service(Settings pSettings)
+    Service::Service(const Settings &pSettings)
             : mLogger(spdlog::stdout_logger_mt("bittorrent")),
-              mAlertsLogger(spdlog::stdout_logger_mt("alerts")),
-              mSettings(std::move(pSettings)) {
+              mAlertsLogger(spdlog::stdout_logger_mt("alerts")) {
 
-        configure();
+        configure(pSettings);
         mSession = std::make_shared<libtorrent::session>(mSettingsPack, libtorrent::session::add_default_plugins);
     }
 
-    void Service::configure() {
+    void Service::reconfigure(const Settings &pSettings, bool pReset) {
+        mLogger->debug("operation=reconfigure, message='Reconfiguring service', reset={}", pReset);
+        std::lock_guard<std::mutex> lock(mMutex);
+        configure(pSettings);
+
+        if (pReset) {
+            mLogger->debug("operation=reconfigure, message='Resetting torrents'");
+            // TODO: Reset torrents
+        }
+    }
+
+    void Service::configure(const Settings &pSettings) {
+        std::experimental::filesystem::create_directory(pSettings.download_path);
+        std::experimental::filesystem::create_directory(pSettings.torrents_path);
+        mSettings = pSettings;
+
         mLogger->set_level(mSettings.service_log_level);
         mAlertsLogger->set_level(mSettings.alert_log_level);
         mLogger->info("operation=configure, message='Applying session settings'");
@@ -229,14 +248,46 @@ namespace torrest {
         mSettingsPack.set_bool(libtorrent::settings_pack::enable_lsd, !mSettings.disable_lsd);
     }
 
-    void Service::set_buffering_rate_limits(bool enable) {
+    void Service::set_buffering_rate_limits(bool pEnable) {
         if (mSettings.limit_after_buffering) {
-            mLogger->debug("operation=set_buffering_rate_limits, enable={}", enable);
+            mLogger->debug("operation=set_buffering_rate_limits, enable={}", pEnable);
             mSettingsPack.set_int(libtorrent::settings_pack::download_rate_limit,
-                                  enable ? mSettings.max_download_rate : 0);
+                                  pEnable ? mSettings.max_download_rate : 0);
             mSettingsPack.set_int(libtorrent::settings_pack::upload_rate_limit,
-                                  enable ? mSettings.max_upload_rate : 0);
+                                  pEnable ? mSettings.max_upload_rate : 0);
             mSession->apply_settings(mSettingsPack);
         }
+    }
+
+    inline std::string Service::get_parts_file(const std::string &pInfoHash) const {
+        return join_path(mSettings.download_path, "." + pInfoHash + EXT_PARTS);
+    }
+
+    inline std::string Service::get_fast_resume_file(const std::string &pInfoHash) const {
+        return join_path(mSettings.torrents_path, pInfoHash + EXT_FASTRESUME);
+    }
+
+    inline std::string Service::get_torrent_file(const std::string &pInfoHash) const {
+        return join_path(mSettings.torrents_path, pInfoHash + EXT_TORRENT);
+    }
+
+    inline std::string Service::get_magnet_file(const std::string &pInfoHash) const {
+        return join_path(mSettings.torrents_path, pInfoHash + EXT_MAGNET);
+    }
+
+    inline void Service::delete_parts_file(const std::string &pInfoHash) const {
+        std::experimental::filesystem::remove(get_parts_file(pInfoHash));
+    }
+
+    inline void Service::delete_fast_resume_file(const std::string &pInfoHash) const {
+        std::experimental::filesystem::remove(get_fast_resume_file(pInfoHash));
+    }
+
+    inline void Service::delete_torrent_file(const std::string &pInfoHash) const {
+        std::experimental::filesystem::remove(get_torrent_file(pInfoHash));
+    }
+
+    inline void Service::delete_magnet_file(const std::string &pInfoHash) const {
+        std::experimental::filesystem::remove(get_magnet_file(pInfoHash));
     }
 }

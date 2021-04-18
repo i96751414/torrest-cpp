@@ -32,16 +32,19 @@ public:
     ENDPOINT_INFO(setSettings) {
         info->summary = "Set settings";
         info->description = "Set settings given the provided JSON object";
+        info->queryParams.add<Boolean>("reset").description = "Reset torrents";
+        info->queryParams.add<Boolean>("reset").required = false;
         info->addConsumes<oatpp::Any>("application/json");
         info->addResponse<oatpp::Any>(Status::CODE_200, "application/json");
         info->addResponse<Object<ErrorResponse>>(Status::CODE_400, "application/json");
         info->addResponse<Object<ErrorResponse>>(Status::CODE_500, "application/json");
     }
 
-    ENDPOINT("POST", "/settings/set", setSettings, BODY_STRING(String, body)) {
-        // TODO: handle reset torrents & finish implementation
+    ENDPOINT("POST", "/settings/set", setSettings, QUERY(Boolean, reset, "reset", "false"), BODY_STRING(String, body)) {
         Settings settings = Settings::parse(body->std_str());
         settings.validate();
+
+        Torrest::get_instance().update_settings(settings, reset);
 
         auto response = createResponse(Status::CODE_200, body);
         response->putHeader(Header::CONTENT_TYPE, "application/json");
