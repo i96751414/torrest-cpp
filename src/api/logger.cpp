@@ -28,22 +28,22 @@ namespace torrest {
 
         switch (pPriority) {
             case PRIORITY_V:
-                level = spdlog::level::level_enum::trace;
+                level = spdlog::level::trace;
                 break;
             case PRIORITY_D:
-                level = spdlog::level::level_enum::debug;
+                level = spdlog::level::debug;
                 break;
             case PRIORITY_I:
-                level = spdlog::level::level_enum::info;
+                level = spdlog::level::info;
                 break;
             case PRIORITY_W:
-                level = spdlog::level::level_enum::warn;
+                level = spdlog::level::warn;
                 break;
             case PRIORITY_E:
-                level = spdlog::level::level_enum::err;
+                level = spdlog::level::err;
                 break;
             default:
-                level = spdlog::level::level_enum::debug;
+                level = spdlog::level::debug;
         }
 
         return level;

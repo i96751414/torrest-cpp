@@ -4,6 +4,7 @@
 #include <experimental/filesystem>
 
 #include "spdlog/sinks/stdout_sinks.h"
+#include <libtorrent/alert_types.hpp>
 
 #include "utils/conversion.h"
 #include "utils/filesystem.h"
@@ -33,16 +34,91 @@ namespace torrest {
 
     Service::Service(const Settings &pSettings)
             : mLogger(spdlog::stdout_logger_mt("bittorrent")),
-              mAlertsLogger(spdlog::stdout_logger_mt("alerts")) {
+              mAlertsLogger(spdlog::stdout_logger_mt("alerts")),
+              mIsRunning(true) {
 
         configure(pSettings);
         mSession = std::make_shared<libtorrent::session>(mSettingsPack, libtorrent::session::add_default_plugins);
+
+        mThreads.emplace_back(&Service::consume_alerts_handler, this);
+    }
+
+    Service::~Service() {
+        mIsRunning = false;
+        for (auto &thread : mThreads) {
+            thread.join();
+        }
+    }
+
+    void Service::consume_alerts_handler() {
+        mLogger->debug("operation=consume_alerts_handler, message='Initializing alerts consumer'");
+        libtorrent::seconds alertWaitTime{1};
+
+        while (mIsRunning.load()) {
+            if (mSession->wait_for_alert(alertWaitTime) == nullptr) {
+                continue;
+            }
+
+            std::vector<libtorrent::alert *> alerts;
+            mSession->pop_alerts(&alerts);
+
+            for (auto alert : alerts) {
+                auto alertMessage = alert->message();
+                auto alertCategory = alert->category();
+
+                switch (alert->type()) {
+                    case libtorrent::save_resume_data_alert::alert_type:
+                        handle_save_resume_data(dynamic_cast<const libtorrent::save_resume_data_alert *>(alert));
+                        break;
+                    case libtorrent::external_ip_alert::alert_type:
+                        alertMessage = std::regex_replace(alertMessage, mIpRegex, ".XX");
+                        break;
+                    case libtorrent::metadata_received_alert::alert_type:
+                        handle_metadata_received(dynamic_cast<const libtorrent::metadata_received_alert *>(alert));
+                        break;
+                    case libtorrent::state_changed_alert::alert_type:
+                        handle_state_changed(dynamic_cast<const libtorrent::state_changed_alert *>(alert));
+                        break;
+                }
+
+                spdlog::level::level_enum level;
+                if (alertCategory & libtorrent::alert::error_notification) {
+                    level = spdlog::level::err;
+                } else if (alertCategory & libtorrent::alert::connect_notification) {
+                    level = spdlog::level::debug;
+                } else if (alertCategory & libtorrent::alert::performance_warning) {
+                    level = spdlog::level::warn;
+                } else {
+                    level = spdlog::level::info;
+                }
+
+                mAlertsLogger->log(
+                        level, "operation=consume_alerts_handler, type={}, what='{}', message='{}'",
+                        alert->type(), alert->what(), alertMessage);
+            }
+        }
+
+        mLogger->debug("operation=consume_alerts_handler, message='Terminating alerts consumer'");
+    }
+
+    void Service::handle_save_resume_data(const libtorrent::save_resume_data_alert *pAlert) {
+        // TODO
+    }
+
+    void Service::handle_metadata_received(const libtorrent::metadata_received_alert *pAlert) {
+        // TODO
+    }
+
+    void Service::handle_state_changed(const libtorrent::state_changed_alert *pAlert) {
+        // TODO
     }
 
     void Service::reconfigure(const Settings &pSettings, bool pReset) {
         mLogger->debug("operation=reconfigure, message='Reconfiguring service', reset={}", pReset);
         std::lock_guard<std::mutex> lock(mMutex);
+
         configure(pSettings);
+        mSession->apply_settings(mSettingsPack);
 
         if (pReset) {
             mLogger->debug("operation=reconfigure, message='Resetting torrents'");

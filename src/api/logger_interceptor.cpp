@@ -13,11 +13,11 @@ namespace torrest {
         auto statusCode = response->getStatus().code;
 
         if (statusCode >= 500) {
-            level = spdlog::level::level_enum::err;
+            level = spdlog::level::err;
         } else if (statusCode >= 400) {
-            level = spdlog::level::level_enum::warn;
+            level = spdlog::level::warn;
         } else {
-            level = spdlog::level::level_enum::info;
+            level = spdlog::level::info;
         }
 
         auto &startingLine = request->getStartingLine();

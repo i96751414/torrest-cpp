@@ -3,6 +3,8 @@
 
 #include <regex>
 #include <mutex>
+#include <vector>
+#include <atomic>
 
 #include "spdlog/spdlog.h"
 #include "libtorrent/settings_pack.hpp"
@@ -16,9 +18,19 @@ namespace torrest {
     public:
         explicit Service(const Settings &pSettings);
 
+        ~Service();
+
         void reconfigure(const Settings &pSettings, bool pReset);
 
     private:
+        void consume_alerts_handler();
+
+        void handle_save_resume_data(const libtorrent::save_resume_data_alert *pAlert);
+
+        void handle_metadata_received(const libtorrent::metadata_received_alert *pAlert);
+
+        void handle_state_changed(const libtorrent::state_changed_alert *pAlert);
+
         void configure(const Settings &pSettings);
 
         void set_buffering_rate_limits(bool pEnable);
@@ -41,12 +53,15 @@ namespace torrest {
 
         const std::regex mPortRegex = std::regex(":\\d+$");
         const std::regex mWhiteSpaceRegex = std::regex("\\s+");
+        const std::regex mIpRegex = std::regex("\\.\\d+");
         std::shared_ptr<spdlog::logger> mLogger;
         std::shared_ptr<spdlog::logger> mAlertsLogger;
         Settings mSettings;
         libtorrent::settings_pack mSettingsPack;
         std::shared_ptr<libtorrent::session> mSession;
         std::mutex mMutex;
+        std::vector<std::thread> mThreads;
+        std::atomic<bool> mIsRunning;
     };
 
 }
