@@ -11,6 +11,7 @@
 
 #include "error_handler.h"
 #include "version.h"
+#include "logger_interceptor.h"
 
 #ifndef OATPP_SWAGGER_RES_PATH
 #error oatpp-swagger/res is not defined (OATPP_SWAGGER_RES_PATH)
@@ -54,6 +55,7 @@ namespace torrest {
                     std::make_shared<oatpp::web::server::interceptor::AllowOptionsGlobal>());
             httpConnectionHandler->addResponseInterceptor(
                     std::make_shared<oatpp::web::server::interceptor::AllowCorsGlobal>());
+            httpConnectionHandler->addResponseInterceptor(std::make_shared<LoggerInterceptor>());
 
             return httpConnectionHandler;
         }());

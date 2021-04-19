@@ -1,4 +1,3 @@
-#include <iostream>
 #include <experimental/filesystem>
 
 #include "spdlog/spdlog.h"
@@ -38,7 +37,10 @@ int main(int argc, const char *argv[]) {
 
     logger->debug("operation=main, message='Starting OATPP environment'");
     oatpp::base::Environment::init();
-    oatpp::base::Environment::setLogger(std::make_shared<torrest::ApiLogger>());
+
+    auto apiLogger = torrest::ApiLogger::get_instance();
+    apiLogger->get_logger()->set_level(settings.api_log_level);
+    oatpp::base::Environment::setLogger(apiLogger);
 
     {
         torrest::AppComponent component(port);

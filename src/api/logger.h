@@ -8,15 +8,21 @@ namespace torrest {
 
     class ApiLogger : public oatpp::base::Logger {
     public:
-        ApiLogger();
+        static std::shared_ptr<ApiLogger> get_instance();
 
         void log(v_uint32 priority, const std::string &tag, const std::string &message) override;
 
         bool isLogPriorityEnabled(v_uint32 priority) override;
 
-        void set_log_level(spdlog::level::level_enum level);
+        std::shared_ptr<spdlog::logger> get_logger();
+
+        ApiLogger(ApiLogger const &) = delete;
+
+        void operator=(ApiLogger const &) = delete;
 
     private:
+        ApiLogger();
+
         static spdlog::level::level_enum get_associated_level(v_uint32 priority);
 
         std::shared_ptr<spdlog::logger> mLogger;

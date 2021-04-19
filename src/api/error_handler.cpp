@@ -19,15 +19,17 @@ namespace torrest {
         auto status = pStatus;
         auto message = pMessage;
 
-        try {
-            throw;
-        } catch (const validation_exception &e) {
-            status = oatpp::web::protocol::http::Status::CODE_400;
-        } catch (const nlohmann::json::exception &e) {
-            status = oatpp::web::protocol::http::Status::CODE_400;
-            message = "Invalid json object";
-        } catch (...) {
-            // use the default status and message
+        if (status == oatpp::web::protocol::http::Status::CODE_500) {
+            try {
+                throw;
+            } catch (const validation_exception &e) {
+                status = oatpp::web::protocol::http::Status::CODE_400;
+            } catch (const nlohmann::json::exception &e) {
+                status = oatpp::web::protocol::http::Status::CODE_400;
+                message = "Invalid json object";
+            } catch (...) {
+                // use the default status and message
+            }
         }
 
         auto errorResponse = ErrorResponse::createShared();
