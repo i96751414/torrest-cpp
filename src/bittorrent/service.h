@@ -11,10 +11,13 @@
 #include "libtorrent/session.hpp"
 
 #include "settings/settings.h"
+#include "fwd.h"
 
 namespace torrest {
 
     class Service {
+        friend class Torrent;
+
     public:
         explicit Service(const Settings &pSettings);
 
@@ -59,6 +62,7 @@ namespace torrest {
         Settings mSettings;
         libtorrent::settings_pack mSettingsPack;
         std::shared_ptr<libtorrent::session> mSession;
+        std::vector<std::shared_ptr<Torrent>> mTorrents;
         std::mutex mMutex;
         std::vector<std::thread> mThreads;
         std::atomic<bool> mIsRunning;

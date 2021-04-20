@@ -19,6 +19,8 @@ add_executable(torrest
         src/utils/conversion.cpp
         src/settings/settings.cpp
         src/bittorrent/service.cpp
+        src/bittorrent/torrent.cpp
+        src/bittorrent/file.cpp
         src/api/error_handler.cpp
         src/api/logger.cpp
         src/api/logger_interceptor.cpp
