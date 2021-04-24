@@ -143,7 +143,15 @@ namespace torrest {
     }
 
     void Service::handle_state_changed(const libtorrent::state_changed_alert *pAlert) {
-        // TODO
+        if (pAlert->state == libtorrent::torrent_status::downloading) {
+            auto infoHash = get_info_hash(pAlert->handle.info_hash());
+            try {
+                get_torrent(infoHash)->check_available_space();
+            } catch (const std::exception &e) {
+                mLogger->error("operation=handle_state_changed, message='Failed handling state change', what='{}'",
+                               e.what());
+            }
+        }
     }
 
     void Service::reconfigure(const Settings &pSettings, bool pReset) {

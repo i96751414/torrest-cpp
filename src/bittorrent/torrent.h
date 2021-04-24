@@ -26,6 +26,7 @@ namespace torrest {
 
     class Torrent {
         friend class Service;
+
         friend class File;
 
     public:
@@ -34,6 +35,12 @@ namespace torrest {
         ~Torrent();
 
         std::string get_info_hash();
+
+        void pause();
+
+        void resume();
+
+        void check_available_space();
 
     private:
         void handle_metadata_received();
