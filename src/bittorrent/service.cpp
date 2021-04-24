@@ -4,10 +4,14 @@
 #include <experimental/filesystem>
 
 #include "spdlog/sinks/stdout_sinks.h"
-#include <libtorrent/alert_types.hpp>
+#include "libtorrent/alert_types.hpp"
+#include "libtorrent/write_resume_data.hpp"
+#include "libtorrent/torrent_info.hpp"
+#include "libtorrent/create_torrent.hpp"
 
 #include "utils/conversion.h"
 #include "utils/filesystem.h"
+#include "exceptions.h"
 
 #define EXT_PARTS ".parts"
 #define EXT_TORRENT ".torrent"
@@ -21,16 +25,17 @@
                                     ",router.silotis.us:6881" \
                                     ",dht.libtorrent.org:25401"
 
-namespace torrest {
+namespace {
 
-    enum PeerTos {
-        tos_normal = 0x00,
-        tos_min_cost = 0x02,
-        tos_max_reliability = 0x04,
-        tos_max_throughput = 0x08,
-        tos_min_delay = 0x10,
-        tos_scavenger = 0x20
-    };
+    std::string get_info_hash(libtorrent::sha1_hash const &pSha1Hash) {
+        std::stringstream ss;
+        ss << pSha1Hash;
+        return ss.str();
+    }
+
+}
+
+namespace torrest {
 
     Service::Service(const Settings &pSettings)
             : mLogger(spdlog::stdout_logger_mt("bittorrent")),
@@ -102,11 +107,39 @@ namespace torrest {
     }
 
     void Service::handle_save_resume_data(const libtorrent::save_resume_data_alert *pAlert) {
-        // TODO
+        auto infoHash = get_info_hash(pAlert->handle.info_hash());
+        mLogger->debug("operation=handle_save_resume_data, message='Saving resume data', infoHash={}", infoHash);
+
+        auto buffer = libtorrent::write_resume_data_buf(pAlert->params);
+        std::ofstream of(get_fast_resume_file(infoHash), std::ios::binary);
+        of.unsetf(std::ios::skipws);
+        of.write(buffer.data(), int(buffer.size()));
+        of.close();
     }
 
     void Service::handle_metadata_received(const libtorrent::metadata_received_alert *pAlert) {
-        // TODO
+        auto torrentFile = pAlert->handle.torrent_file();
+        auto infoHash = get_info_hash(torrentFile->info_hash());
+
+        try {
+            get_torrent(infoHash)->handle_metadata_received();
+        } catch (const std::exception &e) {
+            mLogger->error(
+                    "operation=handle_metadata_received, message='Failed handling metadata', infoHash={}, what='{}'",
+                    infoHash, e.what());
+        }
+
+        mLogger->debug("operation=handle_metadata_received, message='Saving torrent file', infoHash={}", infoHash);
+        std::vector<char> buffer;
+        libtorrent::create_torrent t(*torrentFile);
+        libtorrent::bencode(std::back_inserter(buffer), t.generate());
+        std::ofstream of(get_torrent_file(infoHash), std::ios::binary);
+        of.unsetf(std::ios::skipws);
+        of.write(buffer.data(), int(buffer.size()));
+        of.close();
+
+        mLogger->debug("operation=handle_metadata_received, message='Deleting magnet file', infoHash={}", infoHash);
+        delete_magnet_file(infoHash);
     }
 
     void Service::handle_state_changed(const libtorrent::state_changed_alert *pAlert) {
@@ -333,6 +366,44 @@ namespace torrest {
                                   pEnable ? mSettings.max_upload_rate : 0);
             mSession->apply_settings(mSettingsPack);
         }
+    }
+
+    std::vector<std::shared_ptr<Torrent>>::iterator Service::find_torrent(const std::string &pInfoHash) {
+        mLogger->debug("operation=find_torrent, infoHash={}", pInfoHash);
+        auto torrent = std::find_if(
+                mTorrents.begin(), mTorrents.end(),
+                [&pInfoHash](const std::shared_ptr<Torrent> &t) { return t->get_info_hash() == pInfoHash; });
+
+        if (torrent == mTorrents.end()) {
+            mLogger->error("operation=get_torrent, message='Unable to find torrent', infoHash={}", pInfoHash);
+            throw InvalidInfoHashException("No such info hash");
+        }
+
+        return torrent;
+    }
+
+    std::shared_ptr<Torrent> Service::get_torrent(const std::string &pInfoHash) {
+        mLogger->debug("operation=get_torrent, infoHash={}", pInfoHash);
+        std::lock_guard<std::mutex> lock(mMutex);
+        return *find_torrent(pInfoHash);
+    }
+
+    void Service::remove_torrent(const std::string &pInfoHash, bool pRemoveFiles) {
+        mLogger->debug("operation=remove_torrent, infoHash={}, removeFiles={}", pInfoHash, pRemoveFiles);
+        std::lock_guard<std::mutex> lock(mMutex);
+        auto it = find_torrent(pInfoHash);
+
+        delete_parts_file(pInfoHash);
+        delete_fast_resume_file(pInfoHash);
+        delete_torrent_file(pInfoHash);
+        delete_magnet_file(pInfoHash);
+
+        (*it)->mClosed = true;
+        mSession->remove_torrent(
+                (*it)->mHandle,
+                pRemoveFiles ? libtorrent::session_handle::delete_files : libtorrent::remove_flags_t(0));
+
+        mTorrents.erase(it);
     }
 
     inline std::string Service::get_parts_file(const std::string &pInfoHash) const {

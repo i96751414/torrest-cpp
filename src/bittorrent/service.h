@@ -11,9 +11,18 @@
 #include "libtorrent/session.hpp"
 
 #include "settings/settings.h"
-#include "fwd.h"
+#include "torrent.h"
 
 namespace torrest {
+
+    enum PeerTos {
+        tos_normal = 0x00,
+        tos_min_cost = 0x02,
+        tos_max_reliability = 0x04,
+        tos_max_throughput = 0x08,
+        tos_min_delay = 0x10,
+        tos_scavenger = 0x20
+    };
 
     class Service {
         friend class Torrent;
@@ -24,6 +33,10 @@ namespace torrest {
         ~Service();
 
         void reconfigure(const Settings &pSettings, bool pReset);
+
+        std::shared_ptr<Torrent> get_torrent(const std::string &pInfoHash);
+
+        void remove_torrent(const std::string &pInfoHash, bool pRemoveFiles);
 
     private:
         void consume_alerts_handler();
@@ -37,6 +50,8 @@ namespace torrest {
         void configure(const Settings &pSettings);
 
         void set_buffering_rate_limits(bool pEnable);
+
+        std::vector<std::shared_ptr<Torrent>>::iterator find_torrent(const std::string &pInfoHash);
 
         std::string get_parts_file(const std::string &pInfoHash) const;
 
