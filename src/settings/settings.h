@@ -120,11 +120,11 @@ namespace torrest {
                                        alert_log_level,
                                        api_log_level)
 
-        static Settings load(const std::string &path);
+        static Settings load(const std::string &pPath);
 
-        static Settings parse(const std::string &json);
+        static Settings parse(const std::string &pJson);
 
-        void save(const std::string &path);
+        void save(const std::string &pPath);
 
         std::string dump();
 

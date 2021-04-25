@@ -2,9 +2,14 @@
 #define TORREST_EXCEPTIONS_H
 
 namespace torrest {
-    class InvalidInfoHashException : public std::runtime_error {
+    class BittorrentException : public std::runtime_error {
     public:
-        explicit InvalidInfoHashException(const char *message) : std::runtime_error(message) {}
+        explicit BittorrentException(const char *message) : std::runtime_error(message) {}
+    };
+
+    class InvalidInfoHashException : public BittorrentException {
+    public:
+        explicit InvalidInfoHashException(const char *message) : BittorrentException(message) {}
     };
 }
 

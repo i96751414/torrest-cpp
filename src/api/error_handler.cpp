@@ -22,7 +22,7 @@ namespace torrest {
         if (status == oatpp::web::protocol::http::Status::CODE_500) {
             try {
                 throw;
-            } catch (const validation_exception &e) {
+            } catch (const ValidationException &e) {
                 status = oatpp::web::protocol::http::Status::CODE_400;
             } catch (const nlohmann::json::exception &e) {
                 status = oatpp::web::protocol::http::Status::CODE_400;

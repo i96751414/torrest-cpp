@@ -8,20 +8,20 @@
 #include "version.h"
 
 namespace torrest {
-    Settings Settings::load(const std::string &path) {
-        std::ifstream i(path);
+    Settings Settings::load(const std::string &pPath) {
+        std::ifstream i(pPath);
         nlohmann::json j;
         i >> j;
         return j.get<Settings>();
     }
 
-    Settings Settings::parse(const std::string &json) {
-        nlohmann::json j = nlohmann::json::parse(json);
+    Settings Settings::parse(const std::string &pJson) {
+        nlohmann::json j = nlohmann::json::parse(pJson);
         return j.get<Settings>();
     }
 
-    void Settings::save(const std::string &path) {
-        std::ofstream o(path);
+    void Settings::save(const std::string &pPath) {
+        std::ofstream o(pPath);
         nlohmann::json j = *this;
         o << std::setw(4) << j << std::endl;
     }
