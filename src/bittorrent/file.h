@@ -14,12 +14,14 @@ namespace torrest {
 
     class File {
     public:
-        File(Torrent *pTorrent, const libtorrent::file_storage &pFileStorage, libtorrent::file_index_t pIndex);
+        File(const std::shared_ptr<Torrent> &pTorrent,
+             const libtorrent::file_storage &pFileStorage,
+             libtorrent::file_index_t pIndex);
 
         void set_priority(libtorrent::download_priority_t pPriority);
 
     private:
-        Torrent *mTorrent;
+        std::shared_ptr<Torrent> mTorrent;
         std::shared_ptr<spdlog::logger> mLogger;
         libtorrent::file_index_t mIndex;
         std::int64_t mOffset;

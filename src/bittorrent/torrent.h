@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <memory>
 
 #include "spdlog/spdlog.h"
 #include "libtorrent/torrent_handle.hpp"
@@ -24,7 +25,7 @@ namespace torrest {
         buffering
     };
 
-    class Torrent {
+    class Torrent : std::enable_shared_from_this<Torrent> {
         friend class Service;
 
         friend class File;

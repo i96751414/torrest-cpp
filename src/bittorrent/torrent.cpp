@@ -40,7 +40,7 @@ namespace torrest {
 
         mFiles.clear();
         for (int i = 0; i < torrentFile->num_files(); i++) {
-            mFiles.emplace_back(std::make_shared<File>(this, files, libtorrent::file_index_t(i)));
+            mFiles.emplace_back(std::make_shared<File>(shared_from_this(), files, libtorrent::file_index_t(i)));
         }
 
         mHasMetadata = true;

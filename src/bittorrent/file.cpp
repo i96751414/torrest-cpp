@@ -4,7 +4,9 @@
 
 namespace torrest {
 
-    File::File(Torrent *pTorrent, const libtorrent::file_storage &pFileStorage, libtorrent::file_index_t pIndex)
+    File::File(const std::shared_ptr<Torrent> &pTorrent,
+               const libtorrent::file_storage &pFileStorage,
+               libtorrent::file_index_t pIndex)
             : mTorrent(pTorrent),
               mLogger(pTorrent->mLogger),
               mIndex(pIndex),
