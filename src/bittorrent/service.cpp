@@ -45,18 +45,35 @@ namespace torrest {
         configure(pSettings);
         mSession = std::make_shared<libtorrent::session>(mSettingsPack, libtorrent::session::add_default_plugins);
 
+        mThreads.emplace_back(&Service::check_save_resume_data_handler, this);
         mThreads.emplace_back(&Service::consume_alerts_handler, this);
+        mThreads.emplace_back(&Service::progress_handler, this);
     }
 
     Service::~Service() {
+        mCv.notify_all();
         mIsRunning = false;
         for (auto &thread : mThreads) {
             thread.join();
         }
     }
 
+    void Service::check_save_resume_data_handler() {
+        mLogger->debug("operation=check_save_resume_data_handler, message='Initializing handler'");
+        while (!wait_for_abort(mSettings.session_save)) {
+            if (!mTorrents.empty()) {
+                std::lock_guard<std::mutex> lock(mMutex);
+                for (auto &torrent: mTorrents) {
+                    torrent->check_save_resume_data();
+                }
+            }
+        }
+
+        mLogger->debug("operation=check_save_resume_data_handler, message='Terminating handler'");
+    }
+
     void Service::consume_alerts_handler() {
-        mLogger->debug("operation=consume_alerts_handler, message='Initializing alerts consumer'");
+        mLogger->debug("operation=consume_alerts_handler, message='Initializing handler'");
         libtorrent::seconds alertWaitTime{1};
 
         while (mIsRunning.load()) {
@@ -103,7 +120,7 @@ namespace torrest {
             }
         }
 
-        mLogger->debug("operation=consume_alerts_handler, message='Terminating alerts consumer'");
+        mLogger->debug("operation=consume_alerts_handler, message='Terminating handler'");
     }
 
     void Service::handle_save_resume_data(const libtorrent::save_resume_data_alert *pAlert) {
@@ -152,6 +169,16 @@ namespace torrest {
                                e.what());
             }
         }
+    }
+
+    void Service::progress_handler() {
+        mLogger->debug("operation=progress_handler, message='Initializing handler'");
+        std::chrono::seconds progressPeriodicity(1);
+        while (!wait_for_abort(progressPeriodicity)) {
+            // TODO
+        }
+
+        mLogger->debug("operation=progress_handler, message='Terminating handler'");
     }
 
     void Service::reconfigure(const Settings &pSettings, bool pReset) {
@@ -445,4 +472,16 @@ namespace torrest {
     inline void Service::delete_magnet_file(const std::string &pInfoHash) const {
         std::experimental::filesystem::remove(get_magnet_file(pInfoHash));
     }
+
+    bool Service::wait_for_abort(int &pSeconds) {
+        std::chrono::seconds seconds(pSeconds);
+        return wait_for_abort(seconds);
+    }
+
+    bool Service::wait_for_abort(std::chrono::seconds &pSeconds) {
+        auto until = std::chrono::steady_clock::now() + pSeconds;
+        std::unique_lock<std::mutex> lock(mCvMutex);
+        return mCv.wait_until(lock, until, [this] { return !mIsRunning.load(); });
+    }
+
 }

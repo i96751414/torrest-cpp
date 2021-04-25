@@ -66,6 +66,7 @@ namespace torrest {
     }
 
     void Torrent::check_available_space() {
+        mLogger->debug("operation=check_available_space, message='Checking available space', infoHash={}", mInfoHash);
         if (!mService->mSettings.check_available_space) {
             return;
         }
@@ -84,6 +85,13 @@ namespace torrest {
             mLogger->warn("operation=check_available_space, message='Insufficient space on {}', infoHash={}",
                           status.save_path, mInfoHash);
             pause();
+        }
+    }
+
+    void Torrent::check_save_resume_data() {
+        mLogger->trace("operation=check_save_resume_data, infoHash={}", mInfoHash);
+        if (mHandle.is_valid() && mHasMetadata.load() && mHandle.need_save_resume_data()) {
+            mHandle.save_resume_data(libtorrent::torrent_handle::save_info_dict);
         }
     }
 

@@ -43,6 +43,8 @@ namespace torrest {
 
         void check_available_space();
 
+        void check_save_resume_data();
+
     private:
         void handle_metadata_received();
 

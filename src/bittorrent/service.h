@@ -5,6 +5,7 @@
 #include <mutex>
 #include <vector>
 #include <atomic>
+#include <condition_variable>
 
 #include "spdlog/spdlog.h"
 #include "libtorrent/settings_pack.hpp"
@@ -39,7 +40,11 @@ namespace torrest {
         void remove_torrent(const std::string &pInfoHash, bool pRemoveFiles);
 
     private:
+        void check_save_resume_data_handler();
+
         void consume_alerts_handler();
+
+        void progress_handler();
 
         void handle_save_resume_data(const libtorrent::save_resume_data_alert *pAlert);
 
@@ -69,6 +74,10 @@ namespace torrest {
 
         void delete_magnet_file(const std::string &pInfoHash) const;
 
+        bool wait_for_abort(int &pSeconds);
+
+        bool wait_for_abort(std::chrono::seconds &pSeconds);
+
         const std::regex mPortRegex = std::regex(":\\d+$");
         const std::regex mWhiteSpaceRegex = std::regex("\\s+");
         const std::regex mIpRegex = std::regex("\\.\\d+");
@@ -79,6 +88,8 @@ namespace torrest {
         std::shared_ptr<libtorrent::session> mSession;
         std::vector<std::shared_ptr<Torrent>> mTorrents;
         std::mutex mMutex;
+        std::mutex mCvMutex;
+        std::condition_variable mCv;
         std::vector<std::thread> mThreads;
         std::atomic<bool> mIsRunning;
     };
