@@ -31,9 +31,7 @@ namespace torrest {
         friend class File;
 
     public:
-        Torrent(Service *pService, libtorrent::torrent_handle pHandle, std::string pInfoHash);
-
-        ~Torrent();
+        Torrent(const std::weak_ptr<Service> &pService, libtorrent::torrent_handle pHandle, std::string pInfoHash);
 
         std::string get_info_hash();
 
@@ -48,7 +46,7 @@ namespace torrest {
     private:
         void handle_metadata_received();
 
-        Service *mService;
+        std::weak_ptr<Service> mService;
         std::shared_ptr<spdlog::logger> mLogger;
         libtorrent::torrent_handle mHandle;
         std::string mInfoHash;

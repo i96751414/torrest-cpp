@@ -6,12 +6,15 @@
 #include "libtorrent/torrent_info.hpp"
 #include "service.h"
 #include "file.h"
+#include "exceptions.h"
+
+#define CHECK_SERVICE(s) if (!s) { throw torrest::InvalidServiceException("Invalid service"); }
 
 namespace torrest {
 
-    Torrent::Torrent(Service *pService, libtorrent::torrent_handle pHandle, std::string pInfoHash)
+    Torrent::Torrent(const std::weak_ptr<Service> &pService, libtorrent::torrent_handle pHandle, std::string pInfoHash)
             : mService(pService),
-              mLogger(pService->mLogger),
+              mLogger(pService.lock()->mLogger),
               mHandle(std::move(pHandle)),
               mInfoHash(std::move(pInfoHash)),
               mHasMetadata(false),
@@ -28,10 +31,6 @@ namespace torrest {
         }
     }
 
-    Torrent::~Torrent() {
-        mClosed = true;
-    }
-
     void Torrent::handle_metadata_received() {
         mLogger->debug("operation=handle_metadata_received");
         std::lock_guard<std::mutex> lock(mMutex);
@@ -40,7 +39,7 @@ namespace torrest {
 
         mFiles.clear();
         for (int i = 0; i < torrentFile->num_files(); i++) {
-            mFiles.emplace_back(std::make_shared<File>(shared_from_this(), files, libtorrent::file_index_t(i)));
+            mFiles.emplace_back(std::make_shared<File>(weak_from_this(), files, libtorrent::file_index_t(i)));
         }
 
         mHasMetadata = true;
@@ -67,7 +66,10 @@ namespace torrest {
 
     void Torrent::check_available_space() {
         mLogger->debug("operation=check_available_space, message='Checking available space', infoHash={}", mInfoHash);
-        if (!mService->mSettings.check_available_space) {
+        auto service = mService.lock();
+        CHECK_SERVICE(service)
+
+        if (!service->mSettings.check_available_space) {
             return;
         }
 
@@ -80,7 +82,7 @@ namespace torrest {
             return;
         }
 
-        auto spaceInfo = std::experimental::filesystem::space(mService->mSettings.download_path);
+        auto spaceInfo = std::experimental::filesystem::space(service->mSettings.download_path);
         if (spaceInfo.free < status.total - status.total_done) {
             mLogger->warn("operation=check_available_space, message='Insufficient space on {}', infoHash={}",
                           status.save_path, mInfoHash);

@@ -2,6 +2,7 @@
 #define TORREST_TORREST_H
 
 #include <csignal>
+#include <atomic>
 
 #include "spdlog/spdlog.h"
 
@@ -21,7 +22,7 @@ namespace torrest {
         }
 
         bool is_running() const {
-            return mIsRunning;
+            return mIsRunning.load();
         }
 
         std::string dump_settings() {
@@ -30,7 +31,7 @@ namespace torrest {
 
         void update_settings(const Settings &pSettings, bool pReset) {
             mLogger->debug("operation=update_settings, message='Updating settings'");
-            mService.reconfigure(pSettings, pReset);
+            mService->reconfigure(pSettings, pReset);
             mSettings = pSettings;
             mSettings.save(mSettingsPath);
         }
@@ -42,9 +43,9 @@ namespace torrest {
     private:
         explicit Torrest(std::string pSettingsPath, const Settings &pSettings)
                 : mLogger(spdlog::stdout_logger_mt("torrest")),
+                  mService(std::make_shared<Service>(pSettings)),
                   mSettingsPath(std::move(pSettingsPath)),
                   mSettings(pSettings),
-                  mService(pSettings),
                   mIsRunning(true) {
             std::signal(SIGINT, shutdown_signal);
             std::signal(SIGKILL, shutdown_signal);
@@ -60,10 +61,10 @@ namespace torrest {
         static Torrest *mInstance;
 
         std::shared_ptr<spdlog::logger> mLogger;
+        std::shared_ptr<Service> mService;
         std::string mSettingsPath;
         Settings mSettings;
-        Service mService;
-        bool mIsRunning;
+        std::atomic<bool> mIsRunning;
     };
 
     Torrest *Torrest::mInstance = nullptr;

@@ -3,13 +3,19 @@
 
 namespace torrest {
     class BittorrentException : public std::runtime_error {
-    public:
-        explicit BittorrentException(const char *message) : std::runtime_error(message) {}
+        using std::runtime_error::runtime_error;
+    };
+
+    class InvalidServiceException : public BittorrentException {
+        using BittorrentException::BittorrentException;
     };
 
     class InvalidInfoHashException : public BittorrentException {
-    public:
-        explicit InvalidInfoHashException(const char *message) : BittorrentException(message) {}
+        using BittorrentException::BittorrentException;
+    };
+
+    class InvalidTorrentException : public BittorrentException {
+        using BittorrentException::BittorrentException;
     };
 }
 

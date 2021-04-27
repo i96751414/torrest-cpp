@@ -6,6 +6,7 @@
 #include <vector>
 #include <atomic>
 #include <condition_variable>
+#include <memory>
 
 #include "spdlog/spdlog.h"
 #include "libtorrent/settings_pack.hpp"
@@ -25,7 +26,7 @@ namespace torrest {
         tos_scavenger = 0x20
     };
 
-    class Service {
+    class Service : std::enable_shared_from_this<Service> {
         friend class Torrent;
 
     public:
