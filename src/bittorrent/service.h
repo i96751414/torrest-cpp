@@ -40,6 +40,12 @@ namespace torrest {
 
         void remove_torrent(const std::string &pInfoHash, bool pRemoveFiles);
 
+        std::string add_magnet(const std::string &pMagnet, bool pDownload);
+
+        std::string add_torrent_data(const std::vector<char> &pData, bool pDownload);
+
+        std::string add_torrent_file(const std::string &pFile, bool pDownload);
+
     private:
         void check_save_resume_data_handler();
 
@@ -57,7 +63,23 @@ namespace torrest {
 
         void set_buffering_rate_limits(bool pEnable);
 
-        std::vector<std::shared_ptr<Torrent>>::iterator find_torrent(const std::string &pInfoHash);
+        void remove_torrents();
+
+        void add_torrent_with_params(libtorrent::add_torrent_params &pTorrentParams,
+                                     const std::string &pInfoHash,
+                                     bool pIsResumeData,
+                                     bool pDownload);
+
+        std::string add_magnet(const std::string &pMagnet, bool pDownload, bool pSaveMagnet);
+
+        void add_torrent_with_resume_data(const std::string &pFile);
+
+        void load_torrent_files();
+
+        std::vector<std::shared_ptr<Torrent>>::iterator find_torrent(const std::string &pInfoHash,
+                                                                     bool pMustFind = true);
+
+        bool has_torrent(const std::string &pInfoHash);
 
         std::string get_parts_file(const std::string &pInfoHash) const;
 
@@ -88,7 +110,8 @@ namespace torrest {
         libtorrent::settings_pack mSettingsPack;
         std::shared_ptr<libtorrent::session> mSession;
         std::vector<std::shared_ptr<Torrent>> mTorrents;
-        std::mutex mMutex;
+        std::mutex mTorrentsMutex;
+        std::mutex mServiceMutex;
         std::mutex mCvMutex;
         std::condition_variable mCv;
         std::vector<std::thread> mThreads;

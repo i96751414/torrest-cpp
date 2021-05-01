@@ -10,7 +10,6 @@
 #include "torrest.h"
 #include "api/app_component.h"
 #include "api/controller/settings.h"
-#include "api/logger.h"
 #include "utils/conversion.h"
 
 int main(int argc, const char *argv[]) {

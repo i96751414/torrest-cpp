@@ -8,6 +8,8 @@
 #include "libtorrent/write_resume_data.hpp"
 #include "libtorrent/torrent_info.hpp"
 #include "libtorrent/create_torrent.hpp"
+#include "libtorrent/magnet_uri.hpp"
+#include "libtorrent/read_resume_data.hpp"
 
 #include "utils/conversion.h"
 #include "utils/filesystem.h"
@@ -17,6 +19,7 @@
 #define EXT_TORRENT ".torrent"
 #define EXT_MAGNET ".magnet"
 #define EXT_FASTRESUME ".fastresume"
+#define MAX_FILES_PER_TORRENT 1000
 #define MAX_SINGLE_CORE_CONNECTIONS 50
 #define DEFAULT_DHT_BOOTSTRAP_NODES "router.utorrent.com:6881" \
                                     ",router.bittorrent.com:6881" \
@@ -37,6 +40,28 @@ namespace {
 
 namespace torrest {
 
+    struct Magnet {
+        std::string magnet;
+        bool download{};
+    };
+
+    std::ostream &operator<<(std::ostream &os, const Magnet &pMagnet) {
+        auto size = pMagnet.magnet.size();
+        os.write(reinterpret_cast<const char *>(&size), sizeof(size));
+        os.write(pMagnet.magnet.data(), int(size));
+        os.write(reinterpret_cast<const char *>(&pMagnet.download), sizeof(pMagnet.download));
+        return os;
+    }
+
+    std::istream &operator>>(std::istream &is, Magnet &pMagnet) {
+        std::string::size_type size;
+        is.read(reinterpret_cast<char *>(&size), sizeof(size));
+        pMagnet.magnet.resize(size);
+        is.read(&pMagnet.magnet[0], int(size));
+        is.read(reinterpret_cast<char *>(&pMagnet.download), sizeof(pMagnet.download));
+        return is;
+    }
+
     Service::Service(const Settings &pSettings)
             : mLogger(spdlog::stdout_logger_mt("bittorrent")),
               mAlertsLogger(spdlog::stdout_logger_mt("alerts")),
@@ -44,6 +69,7 @@ namespace torrest {
 
         configure(pSettings);
         mSession = std::make_shared<libtorrent::session>(mSettingsPack, libtorrent::session::add_default_plugins);
+        load_torrent_files();
 
         mThreads.emplace_back(&Service::check_save_resume_data_handler, this);
         mThreads.emplace_back(&Service::consume_alerts_handler, this);
@@ -51,8 +77,8 @@ namespace torrest {
     }
 
     Service::~Service() {
-        mCv.notify_all();
         mIsRunning = false;
+        mCv.notify_all();
         for (auto &thread : mThreads) {
             thread.join();
         }
@@ -62,7 +88,7 @@ namespace torrest {
         mLogger->debug("operation=check_save_resume_data_handler, message='Initializing handler'");
         while (!wait_for_abort(mSettings.session_save)) {
             if (!mTorrents.empty()) {
-                std::lock_guard<std::mutex> lock(mMutex);
+                std::lock_guard<std::mutex> lock(mTorrentsMutex);
                 for (auto &torrent: mTorrents) {
                     torrent->check_save_resume_data();
                 }
@@ -131,7 +157,6 @@ namespace torrest {
         std::ofstream of(get_fast_resume_file(infoHash), std::ios::binary);
         of.unsetf(std::ios::skipws);
         of.write(buffer.data(), int(buffer.size()));
-        of.close();
     }
 
     void Service::handle_metadata_received(const libtorrent::metadata_received_alert *pAlert) {
@@ -153,7 +178,6 @@ namespace torrest {
         std::ofstream of(get_torrent_file(infoHash), std::ios::binary);
         of.unsetf(std::ios::skipws);
         of.write(buffer.data(), int(buffer.size()));
-        of.close();
 
         mLogger->debug("operation=handle_metadata_received, message='Deleting magnet file', infoHash={}", infoHash);
         delete_magnet_file(infoHash);
@@ -183,14 +207,15 @@ namespace torrest {
 
     void Service::reconfigure(const Settings &pSettings, bool pReset) {
         mLogger->debug("operation=reconfigure, message='Reconfiguring service', reset={}", pReset);
-        std::lock_guard<std::mutex> lock(mMutex);
+        std::lock_guard<std::mutex> lock(mServiceMutex);
 
         configure(pSettings);
         mSession->apply_settings(mSettingsPack);
 
         if (pReset) {
             mLogger->debug("operation=reconfigure, message='Resetting torrents'");
-            // TODO: Reset torrents
+            remove_torrents();
+            load_torrent_files();
         }
     }
 
@@ -403,13 +428,220 @@ namespace torrest {
         }
     }
 
-    std::vector<std::shared_ptr<Torrent>>::iterator Service::find_torrent(const std::string &pInfoHash) {
+    void Service::remove_torrents() {
+        mLogger->debug("operation=remove_torrents, message='Removing all torrents'");
+        for (auto it = mTorrents.begin(); it != mTorrents.end(); it = mTorrents.erase(it)) {
+            (*it)->mClosed = true;
+            mSession->remove_torrent((*it)->mHandle);
+        }
+    }
+
+    void Service::add_torrent_with_params(libtorrent::add_torrent_params &pTorrentParams,
+                                          const std::string &pInfoHash,
+                                          bool pIsResumeData,
+                                          bool pDownload) {
+        mLogger->debug("operation=add_torrent_with_params, message='Adding torrent', infoHash={}", pInfoHash);
+
+        if (has_torrent(pInfoHash)) {
+            throw DuplicateTorrentException("Torrent was previously added", pInfoHash);
+        }
+
+        if (!pIsResumeData) {
+            mLogger->debug("operation=add_torrent_with_params, message='Setting params', infoHash={}", pInfoHash);
+            pTorrentParams.save_path = mSettings.download_path;
+            pTorrentParams.flags |= libtorrent::torrent_flags::sequential_download;
+        }
+
+        if (!pDownload) {
+            mLogger->debug("operation=add_torrent_with_params, message='Disabling download', infoHash={}", pInfoHash);
+            for (int i = MAX_FILES_PER_TORRENT; i > 0; i--) {
+                pTorrentParams.file_priorities.push_back(libtorrent::download_priority_t(0));
+            }
+        }
+
+        libtorrent::error_code errorCode;
+        auto handle = mSession->add_torrent(pTorrentParams, errorCode);
+        if (errorCode.failed() || !handle.is_valid()) {
+            mLogger->error("operation=add_torrent_with_params, message='{}', infoHash={}",
+                           errorCode.message(), pInfoHash);
+            throw LoadTorrentException(errorCode.message());
+        }
+
+        mTorrents.emplace_back(std::make_shared<Torrent>(weak_from_this(), handle, pInfoHash));
+    }
+
+    std::string Service::add_magnet(const std::string &pMagnet, bool pDownload, bool pSaveMagnet) {
+        mLogger->debug("operation=add_magnet, message='Adding magnet', magnet='{}', download={}, saveMagnet={}",
+                       pMagnet, pDownload, pSaveMagnet);
+        libtorrent::add_torrent_params torrentParams;
+        libtorrent::error_code errorCode;
+        libtorrent::parse_magnet_uri(pMagnet, torrentParams, errorCode);
+        if (errorCode.failed()) {
+            mLogger->error("operation=add_magnet, message='Failed parsing magnet: {}'", errorCode.message());
+            throw LoadTorrentException(errorCode.message());
+        }
+
+        auto infoHash = get_info_hash(torrentParams.info_hash);
+        std::lock_guard<std::mutex> lock(mTorrentsMutex);
+        add_torrent_with_params(torrentParams, infoHash, false, pDownload);
+
+        if (pSaveMagnet) {
+            std::ofstream of(get_magnet_file(infoHash), std::ios::binary);
+            of << Magnet{pMagnet, pDownload};
+        }
+
+        return infoHash;
+    }
+
+    std::string Service::add_magnet(const std::string &pMagnet, bool pDownload) {
+        return add_magnet(pMagnet, pDownload, true);
+    }
+
+    std::string Service::add_torrent_data(const std::vector<char> &pData, bool pDownload) {
+        mLogger->debug("operation=add_torrent_data, message='Adding torrent data', download={}", pDownload);
+        libtorrent::error_code errorCode;
+        libtorrent::add_torrent_params torrentParams;
+        torrentParams.ti = std::make_shared<libtorrent::torrent_info>(pData.data(), int(pData.size()), errorCode);
+        if (errorCode.failed()) {
+            mLogger->error("operation=add_torrent_data, message='Failed adding torrent data: {}'", errorCode.message());
+            throw LoadTorrentException(errorCode.message());
+        }
+
+        auto infoHash = get_info_hash(torrentParams.ti->info_hash());
+        std::lock_guard<std::mutex> lock(mTorrentsMutex);
+        add_torrent_with_params(torrentParams, infoHash, false, pDownload);
+        std::ofstream of(get_torrent_file(infoHash), std::ios::binary);
+        of.write(pData.data(), int(pData.size()));
+
+        return infoHash;
+    }
+
+    std::string Service::add_torrent_file(const std::string &pFile, bool pDownload) {
+        mLogger->debug("operation=add_torrent_file, message='Adding torrent file', download={}", pDownload);
+        libtorrent::error_code errorCode;
+        libtorrent::add_torrent_params torrentParams;
+        torrentParams.ti = std::make_shared<libtorrent::torrent_info>(pFile, errorCode);
+        if (errorCode.failed()) {
+            mLogger->error("operation=add_torrent_file, message='Failed adding torrent file: {}'", errorCode.message());
+            throw LoadTorrentException(errorCode.message());
+        }
+
+        auto infoHash = get_info_hash(torrentParams.ti->info_hash());
+        std::lock_guard<std::mutex> lock(mTorrentsMutex);
+        add_torrent_with_params(torrentParams, infoHash, false, pDownload);
+
+        auto destPath = get_torrent_file(infoHash);
+        if (!std::experimental::filesystem::equivalent(pFile, destPath)) {
+            std::experimental::filesystem::copy_file(pFile, destPath);
+        }
+
+        return infoHash;
+    }
+
+    void Service::add_torrent_with_resume_data(const std::string &pFile) {
+        mLogger->debug("operation=add_torrent_with_resume_data");
+        std::ifstream ifs(pFile, std::ios::binary);
+        ifs.unsetf(std::ios::skipws);
+        std::vector<char> resumeData{std::istream_iterator<char>(ifs), std::istream_iterator<char>()};
+
+        libtorrent::error_code errorCode;
+        auto torrentParams = libtorrent::read_resume_data(resumeData, errorCode);
+        if (errorCode.failed()) {
+            mLogger->error("operation=add_torrent_with_resume_data, message='{}'", errorCode.message());
+            throw LoadTorrentException(errorCode.message());
+        }
+
+        auto infoHash = get_info_hash(torrentParams.info_hash);
+        std::lock_guard<std::mutex> lock(mTorrentsMutex);
+        add_torrent_with_params(torrentParams, infoHash, true, true);
+    }
+
+    void Service::load_torrent_files() {
+        mLogger->debug("operation=load_torrent_files, message='Loading torrent files'");
+        std::vector<std::string> fastResumeFiles;
+        std::vector<std::string> torrentFiles;
+        std::vector<std::string> magnetFiles;
+
+        for (auto &p : std::experimental::filesystem::directory_iterator(mSettings.torrents_path)) {
+            if (std::experimental::filesystem::is_regular_file(p.path())) {
+                auto ext = p.path().extension();
+                if (ext == EXT_FASTRESUME) {
+                    fastResumeFiles.emplace_back(p.path().string());
+                } else if (ext == EXT_TORRENT) {
+                    torrentFiles.emplace_back(p.path().string());
+                } else if (ext == EXT_MAGNET) {
+                    magnetFiles.emplace_back(p.path().string());
+                }
+            }
+        }
+
+        for (auto &f : fastResumeFiles) {
+            try {
+                add_torrent_with_resume_data(f);
+            } catch (const BittorrentException &e) {
+                mLogger->error("operation=load_torrent_files, message='Failed adding torrent with resume data'"
+                               ", what='{}', file='{}'", e.what(), f);
+                std::experimental::filesystem::remove(f);
+            }
+        }
+
+        for (auto &f : torrentFiles) {
+            try {
+                add_torrent_file(f, false);
+            } catch (const LoadTorrentException &e) {
+                mLogger->error("operation=load_torrent_files, message='Failed loading torrent', what='{}', file='{}'",
+                               e.what(), f);
+                std::experimental::filesystem::remove(f);
+            } catch (const BittorrentException &e) {
+                mLogger->error("operation=load_torrent_files, message='Failed adding torrent', what='{}', file='{}'",
+                               e.what(), f);
+            }
+        }
+
+        for (auto &f : magnetFiles) {
+            Magnet m;
+            try {
+                std::ifstream ifs(f, std::ios::binary);
+                ifs >> m;
+            } catch (const std::exception &e) {
+                mLogger->error("operation=load_torrent_files, message='Failed parsing magnet file', what='{}'",
+                               e.what());
+                continue;
+            }
+
+            try {
+                add_magnet(m.magnet, m.download, false);
+            } catch (const DuplicateTorrentException &e) {
+                mLogger->debug("operation=load_torrent_files, message='Deleting duplicate magnet', infoHash={}",
+                               e.get_info_hash());
+                delete_magnet_file(e.get_info_hash());
+            } catch (const BittorrentException &e) {
+                mLogger->error("operation=load_torrent_files, message='Failed adding magnet', what='{}', file='{}'",
+                               e.what(), f);
+                std::experimental::filesystem::remove(f);
+            }
+        }
+
+        for (auto &p : std::experimental::filesystem::directory_iterator(mSettings.download_path)) {
+            if (p.path().extension() == EXT_PARTS && std::experimental::filesystem::is_regular_file(p.path())) {
+                auto infoHash = p.path().stem().string();
+                if (!has_torrent(infoHash)) {
+                    mLogger->debug("operation=load_torrent_files, message='Cleaning stale parts', infoHash={}",
+                                   infoHash);
+                    std::experimental::filesystem::remove(p.path());
+                }
+            }
+        }
+    }
+
+    std::vector<std::shared_ptr<Torrent>>::iterator Service::find_torrent(const std::string &pInfoHash,
+                                                                          bool pMustFind) {
         mLogger->debug("operation=find_torrent, infoHash={}", pInfoHash);
         auto torrent = std::find_if(
                 mTorrents.begin(), mTorrents.end(),
                 [&pInfoHash](const std::shared_ptr<Torrent> &t) { return t->get_info_hash() == pInfoHash; });
 
-        if (torrent == mTorrents.end()) {
+        if (pMustFind && torrent == mTorrents.end()) {
             mLogger->error("operation=get_torrent, message='Unable to find torrent', infoHash={}", pInfoHash);
             throw InvalidInfoHashException("No such info hash");
         }
@@ -417,15 +649,19 @@ namespace torrest {
         return torrent;
     }
 
+    bool Service::has_torrent(const std::string &pInfoHash) {
+        return find_torrent(pInfoHash, false) != mTorrents.end();
+    }
+
     std::shared_ptr<Torrent> Service::get_torrent(const std::string &pInfoHash) {
         mLogger->debug("operation=get_torrent, infoHash={}", pInfoHash);
-        std::lock_guard<std::mutex> lock(mMutex);
+        std::lock_guard<std::mutex> lock(mTorrentsMutex);
         return *find_torrent(pInfoHash);
     }
 
     void Service::remove_torrent(const std::string &pInfoHash, bool pRemoveFiles) {
         mLogger->debug("operation=remove_torrent, infoHash={}, removeFiles={}", pInfoHash, pRemoveFiles);
-        std::lock_guard<std::mutex> lock(mMutex);
+        std::lock_guard<std::mutex> lock(mTorrentsMutex);
         auto it = find_torrent(pInfoHash);
 
         delete_parts_file(pInfoHash);

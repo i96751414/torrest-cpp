@@ -45,7 +45,7 @@ namespace torrest {
         mHasMetadata = true;
     }
 
-    std::string Torrent::get_info_hash() {
+    const std::string &Torrent::get_info_hash() const {
         return mInfoHash;
     }
 
