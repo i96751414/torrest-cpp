@@ -33,8 +33,6 @@ namespace torrest {
     public:
         Torrent(const std::weak_ptr<Service> &pService, libtorrent::torrent_handle pHandle, std::string pInfoHash);
 
-        const std::string &get_info_hash() const;
-
         void pause();
 
         void resume();
@@ -42,6 +40,10 @@ namespace torrest {
         void check_available_space();
 
         void check_save_resume_data();
+
+        const std::string &get_info_hash() const {
+            return mInfoHash;
+        }
 
     private:
         void handle_metadata_received();

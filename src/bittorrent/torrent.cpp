@@ -45,10 +45,6 @@ namespace torrest {
         mHasMetadata = true;
     }
 
-    const std::string &Torrent::get_info_hash() const {
-        return mInfoHash;
-    }
-
     void Torrent::pause() {
         mLogger->debug("operation=pause, message='Pausing torrent', infoHash={}", mInfoHash);
         std::lock_guard<std::mutex> lock(mMutex);

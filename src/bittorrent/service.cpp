@@ -624,7 +624,7 @@ namespace torrest {
 
         for (auto &p : std::experimental::filesystem::directory_iterator(mSettings.download_path)) {
             if (p.path().extension() == EXT_PARTS && std::experimental::filesystem::is_regular_file(p.path())) {
-                auto infoHash = p.path().stem().string();
+                auto infoHash = ltrim_copy(p.path().stem().string(), ".");
                 if (!has_torrent(infoHash)) {
                     mLogger->debug("operation=load_torrent_files, message='Cleaning stale parts', infoHash={}",
                                    infoHash);
@@ -709,12 +709,11 @@ namespace torrest {
         std::experimental::filesystem::remove(get_magnet_file(pInfoHash));
     }
 
-    bool Service::wait_for_abort(int &pSeconds) {
-        std::chrono::seconds seconds(pSeconds);
-        return wait_for_abort(seconds);
+    bool Service::wait_for_abort(const int &pSeconds) {
+        return wait_for_abort(std::chrono::seconds(pSeconds));
     }
 
-    bool Service::wait_for_abort(std::chrono::seconds &pSeconds) {
+    bool Service::wait_for_abort(const std::chrono::seconds &pSeconds) {
         auto until = std::chrono::steady_clock::now() + pSeconds;
         std::unique_lock<std::mutex> lock(mCvMutex);
         return mCv.wait_until(lock, until, [this] { return !mIsRunning.load(); });

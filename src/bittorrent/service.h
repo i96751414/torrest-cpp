@@ -97,9 +97,9 @@ namespace torrest {
 
         void delete_magnet_file(const std::string &pInfoHash) const;
 
-        bool wait_for_abort(int &pSeconds);
+        bool wait_for_abort(const int &pSeconds);
 
-        bool wait_for_abort(std::chrono::seconds &pSeconds);
+        bool wait_for_abort(const std::chrono::seconds &pSeconds);
 
         const std::regex mPortRegex = std::regex(":\\d+$");
         const std::regex mWhiteSpaceRegex = std::regex("\\s+");
