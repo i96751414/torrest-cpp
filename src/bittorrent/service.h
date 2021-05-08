@@ -17,15 +17,6 @@
 
 namespace torrest {
 
-    enum PeerTos {
-        tos_normal = 0x00,
-        tos_min_cost = 0x02,
-        tos_max_reliability = 0x04,
-        tos_max_throughput = 0x08,
-        tos_min_delay = 0x10,
-        tos_scavenger = 0x20
-    };
-
     class Service : std::enable_shared_from_this<Service> {
         friend class Torrent;
 

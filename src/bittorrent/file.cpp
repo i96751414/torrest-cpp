@@ -41,4 +41,36 @@ namespace torrest {
         }
         torrent->mHandle.file_priority(mIndex, pPriority);
     }
+
+    std::int64_t File::get_completed() {
+        mLogger->trace("operation=get_completed");
+        auto torrent = mTorrent.lock();
+        CHECK_TORRENT(torrent)
+
+        std::vector<std::int64_t> file_progress;
+        torrent->mHandle.file_progress(file_progress, libtorrent::torrent_handle::piece_granularity);
+        return file_progress.at(int(mIndex));
+    }
+
+    double File::get_progress() {
+        mLogger->trace("operation=get_progress");
+        return 100.0 * static_cast<double>(get_completed()) / static_cast<double>(mSize);
+    }
+
+    State File::get_state() {
+        mLogger->trace("operation=get_state");
+        auto torrent = mTorrent.lock();
+        CHECK_TORRENT(torrent)
+
+        auto state = torrent->get_state();
+        if (state == downloading) {
+            if (mBuffering.load()) {
+                state = buffering;
+            } else if (mPriority.load() == libtorrent::dont_download || get_completed() == mSize) {
+                state = finished;
+            }
+        }
+
+        return state;
+    }
 }

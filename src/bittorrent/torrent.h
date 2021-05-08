@@ -9,21 +9,9 @@
 #include "libtorrent/torrent_handle.hpp"
 
 #include "fwd.h"
+#include "enums.h"
 
 namespace torrest {
-
-    enum Status {
-        queued,
-        checking,
-        finding,
-        downloading,
-        finished,
-        seeding,
-        allocating,
-        checking_resume_data,
-        paused,
-        buffering
-    };
 
     class Torrent : std::enable_shared_from_this<Torrent> {
         friend class Service;
@@ -41,6 +29,10 @@ namespace torrest {
 
         void check_save_resume_data();
 
+        State get_state();
+
+        double get_files_progress();
+
         const std::string &get_info_hash() const {
             return mInfoHash;
         }
@@ -55,6 +47,7 @@ namespace torrest {
         std::string mDefaultName;
         std::vector<std::shared_ptr<File>> mFiles;
         std::mutex mMutex;
+        std::mutex mFilesMutex;
         std::atomic<bool> mPaused{};
         std::atomic<bool> mHasMetadata;
         std::atomic<bool> mClosed;

@@ -33,7 +33,7 @@ namespace torrest {
 
     void Torrent::handle_metadata_received() {
         mLogger->debug("operation=handle_metadata_received");
-        std::lock_guard<std::mutex> lock(mMutex);
+        std::lock_guard<std::mutex> lock(mFilesMutex);
         auto torrentFile = mHandle.torrent_file();
         auto files = torrentFile->files();
 
@@ -58,6 +58,73 @@ namespace torrest {
         std::lock_guard<std::mutex> lock(mMutex);
         mHandle.set_flags(libtorrent::torrent_flags::auto_managed);
         mPaused = false;
+    }
+
+    State Torrent::get_state() {
+        mLogger->trace("operation=get_state");
+        if (mPaused.load()) {
+            return paused;
+        }
+        auto flags = mHandle.flags();
+        if (flags & libtorrent::torrent_flags::paused && flags & libtorrent::torrent_flags::auto_managed) {
+            return queued;
+        }
+        if (!mHasMetadata.load()) {
+            return finding;
+        }
+
+        State state = queued;
+        auto torrentState = mHandle.status().state;
+
+        switch (torrentState) {
+            case libtorrent::torrent_status::checking_files:
+                state = checking;
+                break;
+            case libtorrent::torrent_status::downloading_metadata:
+                state = finding;
+                break;
+            case libtorrent::torrent_status::downloading:
+                state = downloading;
+                break;
+            case libtorrent::torrent_status::finished:
+                state = finished;
+                break;
+            case libtorrent::torrent_status::seeding:
+                state = seeding;
+                break;
+            case libtorrent::torrent_status::checking_resume_data:
+                state = checking_resume_data;
+                break;
+            case libtorrent::torrent_status::unused_enum_for_backwards_compatibility_allocating:
+                state = allocating;
+                break;
+            default:
+                mLogger->warn("operation=get_state, message='Unknown torrent state', torrentState={}", torrentState);
+        }
+
+        return state;
+    }
+
+    double Torrent::get_files_progress() {
+        mLogger->trace("operation=get_files_progress");
+        std::lock_guard<std::mutex> lock(mFilesMutex);
+        std::vector<std::int64_t> file_progress;
+        mHandle.file_progress(file_progress, libtorrent::torrent_handle::piece_granularity);
+
+        std::int64_t total = 0;
+        std::int64_t completed = 0;
+
+        for (auto &file : mFiles) {
+            total += file->mSize;
+            completed += file_progress.at(int(file->mIndex));
+        }
+
+        if (total == 0) {
+            return 100;
+        }
+
+        double progress = 100.0 * static_cast<double>(completed) / static_cast<double>(total);
+        return progress > 100 ? 100 : progress;
     }
 
     void Torrent::check_available_space() {

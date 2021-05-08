@@ -9,16 +9,25 @@
 #include "libtorrent/file_storage.hpp"
 
 #include "fwd.h"
+#include "enums.h"
 
 namespace torrest {
 
     class File {
+        friend class Torrent;
+
     public:
         File(const std::weak_ptr<Torrent> &pTorrent,
              const libtorrent::file_storage &pFileStorage,
              libtorrent::file_index_t pIndex);
 
         void set_priority(libtorrent::download_priority_t pPriority);
+
+        std::int64_t get_completed();
+
+        double get_progress();
+
+        State get_state();
 
     private:
         std::weak_ptr<Torrent> mTorrent;
