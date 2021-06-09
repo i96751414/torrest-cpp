@@ -40,6 +40,8 @@ namespace torrest {
     private:
         void handle_metadata_received();
 
+        std::int64_t get_bytes_missing(const std::vector<libtorrent::piece_index_t> &pPieces);
+
         std::weak_ptr<Service> mService;
         std::shared_ptr<spdlog::logger> mLogger;
         libtorrent::torrent_handle mHandle;

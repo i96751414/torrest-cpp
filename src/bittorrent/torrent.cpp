@@ -160,4 +160,31 @@ namespace torrest {
         }
     }
 
+    std::int64_t Torrent::get_bytes_missing(const std::vector<libtorrent::piece_index_t> &pPieces) {
+        mLogger->debug("operation=get_bytes_missing");
+        auto torrentFile = mHandle.torrent_file();
+        std::int64_t missing = 0;
+
+        for (auto &piece : pPieces) {
+            if (!mHandle.have_piece(piece)) {
+                missing += torrentFile->piece_size(piece);
+            }
+        }
+
+        if (missing > 0) {
+            std::vector<libtorrent::partial_piece_info> queue;
+            mHandle.get_download_queue(queue);
+
+            for (auto &qPiece: queue) {
+                if (std::find(pPieces.begin(), pPieces.end(), qPiece.piece_index) != pPieces.end()) {
+                    for (int i = 0; i < qPiece.blocks_in_piece; i++) {
+                        missing -= qPiece.blocks[i].bytes_progress;
+                    }
+                }
+            }
+        }
+
+        return missing;
+    }
+
 }

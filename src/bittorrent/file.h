@@ -14,6 +14,8 @@
 namespace torrest {
 
     class File {
+        friend class Service;
+
         friend class Torrent;
 
     public:
@@ -30,6 +32,8 @@ namespace torrest {
         State get_state();
 
     private:
+        std::int64_t get_buffer_bytes_missing();
+
         std::weak_ptr<Torrent> mTorrent;
         std::shared_ptr<spdlog::logger> mLogger;
         libtorrent::file_index_t mIndex;
@@ -41,6 +45,7 @@ namespace torrest {
         std::mutex mMutex;
         std::atomic<libtorrent::download_priority_t> mPriority;
         std::atomic<bool> mBuffering;
+        std::vector<libtorrent::piece_index_t> mBufferPieces;
     };
 
 }

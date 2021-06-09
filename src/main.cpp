@@ -54,6 +54,7 @@ int main(int argc, const char *argv[]) {
         // Add swagger
         auto swaggerController = oatpp::swagger::Controller::createShared(docEndpoints);
         swaggerController->addEndpointsToRouter(router);
+        logger->debug("operation=main, message='Swagger available at http://localhost:{}/swagger/ui'", port);
 
         OATPP_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, connectionHandler);
         OATPP_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, connectionProvider);

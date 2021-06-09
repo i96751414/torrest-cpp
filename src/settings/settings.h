@@ -74,7 +74,7 @@ namespace torrest {
         std::string proxy_hostname;
         std::string proxy_username;
         std::string proxy_password;
-        int64_t buffer_size = 20 * 1024 * 1024;
+        std::int64_t buffer_size = 20 * 1024 * 1024;
         int piece_wait_timeout = 60;
         spdlog::level::level_enum service_log_level = spdlog::level::info;
         spdlog::level::level_enum alert_log_level = spdlog::level::critical;

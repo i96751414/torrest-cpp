@@ -65,7 +65,11 @@ namespace torrest {
     Service::Service(const Settings &pSettings)
             : mLogger(spdlog::stdout_logger_mt("bittorrent")),
               mAlertsLogger(spdlog::stdout_logger_mt("alerts")),
-              mIsRunning(true) {
+              mIsRunning(true),
+              mRateLimited(true),
+              mDownloadRate(0),
+              mUploadRate(0),
+              mProgress(0) {
 
         configure(pSettings);
         mSession = std::make_shared<libtorrent::session>(mSettingsPack, libtorrent::session::add_default_plugins);
@@ -199,10 +203,78 @@ namespace torrest {
         mLogger->debug("operation=progress_handler, message='Initializing handler'");
         std::chrono::seconds progressPeriodicity(1);
         while (!wait_for_abort(progressPeriodicity)) {
-            // TODO
+            if (!mSession->is_paused()) {
+                update_progress();
+            }
         }
 
         mLogger->debug("operation=progress_handler, message='Terminating handler'");
+    }
+
+    void Service::update_progress() {
+        std::int64_t total_download_rate = 0;
+        std::int64_t total_upload_rate = 0;
+        std::int64_t total_wanted_done = 0;
+        std::int64_t total_wanted = 0;
+        bool has_files_buffering = false;
+
+        std::lock_guard<std::mutex> lock(mTorrentsMutex);
+        for (auto &torrent: mTorrents) {
+            if (torrent->mPaused.load() || !torrent->mHasMetadata.load() || !torrent->mHandle.is_valid()) {
+                continue;
+            }
+
+            // Check files buffering state
+            for (auto &file: torrent->mFiles) {
+                if (file->mBuffering.load()) {
+                    std::lock_guard<std::mutex> fLock(file->mMutex);
+                    if (file->get_buffer_bytes_missing() == 0) {
+                        file->mBuffering = false;
+                    } else {
+                        has_files_buffering = true;
+                    }
+                }
+            }
+
+            auto status = torrent->mHandle.status();
+            total_download_rate += status.download_rate;
+            total_upload_rate += status.upload_rate;
+
+            if (status.progress < 1) {
+                total_wanted += status.total_wanted;
+                total_wanted_done += status.total_wanted_done;
+            } else {
+                auto seeding_time = (status.progress == 1 && status.seeding_duration == std::chrono::seconds::zero())
+                                    ? status.finished_duration : status.seeding_duration;
+                auto download_time = status.active_duration - seeding_time;
+
+                if (mSettings.seed_time_limit > 0 && seeding_time >= std::chrono::seconds(mSettings.seed_time_limit)) {
+                    mLogger->info("operation=update_progress, message='Seeding time limit reached', infoHash={}",
+                                  torrent->mInfoHash);
+                    torrent->pause();
+                } else if (mSettings.seed_time_ratio_limit > 0
+                           && download_time > std::chrono::seconds::zero()
+                           && seeding_time * 100 / download_time >= mSettings.seed_time_ratio_limit) {
+                    mLogger->info("operation=update_progress, message='Seeding time ratio reached', infoHash={}",
+                                  torrent->mInfoHash);
+                    torrent->pause();
+                } else if (mSettings.share_ratio_limit > 0
+                           && status.all_time_download > 0
+                           && status.all_time_upload * 100 / status.all_time_download >= mSettings.share_ratio_limit) {
+                    mLogger->info("operation=update_progress, message='Share ratio reached', infoHash={}",
+                                  torrent->mInfoHash);
+                    torrent->pause();
+                }
+            }
+        }
+
+        std::lock_guard<std::mutex> sLock(mServiceMutex);
+        set_buffering_rate_limits(!has_files_buffering);
+
+        mDownloadRate = total_download_rate;
+        mUploadRate = total_upload_rate;
+        mProgress = total_wanted > 0
+                    ? 100 * static_cast<double>(total_wanted_done) / static_cast<double>(total_wanted) : 100;
     }
 
     void Service::reconfigure(const Settings &pSettings, bool pReset) {
@@ -214,6 +286,7 @@ namespace torrest {
 
         if (pReset) {
             mLogger->debug("operation=reconfigure, message='Resetting torrents'");
+            std::lock_guard<std::mutex> tLock(mTorrentsMutex);
             remove_torrents();
             load_torrent_files();
         }
@@ -239,8 +312,6 @@ namespace torrest {
         mSettingsPack.set_bool(libtorrent::settings_pack::announce_to_all_trackers, true);
         mSettingsPack.set_bool(libtorrent::settings_pack::announce_to_all_tiers, true);
         mSettingsPack.set_int(libtorrent::settings_pack::connection_speed, 500);
-        mSettingsPack.set_int(libtorrent::settings_pack::download_rate_limit, 0);
-        mSettingsPack.set_int(libtorrent::settings_pack::upload_rate_limit, 0);
         mSettingsPack.set_int(libtorrent::settings_pack::choking_algorithm,
                               libtorrent::settings_pack::fixed_slots_choker);
         mSettingsPack.set_int(libtorrent::settings_pack::share_ratio_limit, 0);
@@ -284,10 +355,9 @@ namespace torrest {
         }
 #endif
 
-        if (!mSettings.limit_after_buffering) {
-            mSettingsPack.set_int(libtorrent::settings_pack::download_rate_limit, mSettings.max_download_rate);
-            mSettingsPack.set_int(libtorrent::settings_pack::upload_rate_limit, mSettings.max_upload_rate);
-        }
+        mSettingsPack.set_int(libtorrent::settings_pack::download_rate_limit, mSettings.max_download_rate);
+        mSettingsPack.set_int(libtorrent::settings_pack::upload_rate_limit, mSettings.max_upload_rate);
+        mRateLimited = true;
 
         mSettingsPack.set_int(libtorrent::settings_pack::share_ratio_limit,
                               mSettings.share_ratio_limit > 0 ? mSettings.share_ratio_limit : 200);
@@ -418,13 +488,14 @@ namespace torrest {
     }
 
     void Service::set_buffering_rate_limits(bool pEnable) {
-        if (mSettings.limit_after_buffering) {
+        if (mSettings.limit_after_buffering && mRateLimited.load() != pEnable) {
             mLogger->debug("operation=set_buffering_rate_limits, enable={}", pEnable);
             mSettingsPack.set_int(libtorrent::settings_pack::download_rate_limit,
                                   pEnable ? mSettings.max_download_rate : 0);
             mSettingsPack.set_int(libtorrent::settings_pack::upload_rate_limit,
                                   pEnable ? mSettings.max_upload_rate : 0);
             mSession->apply_settings(mSettingsPack);
+            mRateLimited = pEnable;
         }
     }
 
@@ -482,7 +553,6 @@ namespace torrest {
         }
 
         auto infoHash = get_info_hash(torrentParams.info_hash);
-        std::lock_guard<std::mutex> lock(mTorrentsMutex);
         add_torrent_with_params(torrentParams, infoHash, false, pDownload);
 
         if (pSaveMagnet) {
@@ -494,6 +564,7 @@ namespace torrest {
     }
 
     std::string Service::add_magnet(const std::string &pMagnet, bool pDownload) {
+        std::lock_guard<std::mutex> lock(mTorrentsMutex);
         return add_magnet(pMagnet, pDownload, true);
     }
 
@@ -516,26 +587,33 @@ namespace torrest {
         return infoHash;
     }
 
-    std::string Service::add_torrent_file(const std::string &pFile, bool pDownload) {
-        mLogger->debug("operation=add_torrent_file, message='Adding torrent file', download={}", pDownload);
+    std::string Service::add_torrent_file(const std::string &pFile, bool pDownload, bool pSaveFile) {
+        mLogger->debug("operation=add_torrent_file, message='Adding torrent file', download={}, saveFile={}",
+                       pDownload, pSaveFile);
         libtorrent::error_code errorCode;
         libtorrent::add_torrent_params torrentParams;
         torrentParams.ti = std::make_shared<libtorrent::torrent_info>(pFile, errorCode);
         if (errorCode.failed()) {
-            mLogger->error("operation=add_torrent_file, message='Failed adding torrent file: {}'", errorCode.message());
+            mLogger->error("operation=add_torrent_file, message='Failed adding torrent: {}'", errorCode.message());
             throw LoadTorrentException(errorCode.message());
         }
 
         auto infoHash = get_info_hash(torrentParams.ti->info_hash());
-        std::lock_guard<std::mutex> lock(mTorrentsMutex);
         add_torrent_with_params(torrentParams, infoHash, false, pDownload);
 
-        auto destPath = get_torrent_file(infoHash);
-        if (!std::experimental::filesystem::equivalent(pFile, destPath)) {
-            std::experimental::filesystem::copy_file(pFile, destPath);
+        if (pSaveFile) {
+            auto destPath = get_torrent_file(infoHash);
+            if (!std::experimental::filesystem::equivalent(pFile, destPath)) {
+                std::experimental::filesystem::copy_file(pFile, destPath);
+            }
         }
 
         return infoHash;
+    }
+
+    std::string Service::add_torrent_file(const std::string &pFile, bool pDownload) {
+        std::lock_guard<std::mutex> lock(mTorrentsMutex);
+        return add_torrent_file(pFile, pDownload, true);
     }
 
     void Service::add_torrent_with_resume_data(const std::string &pFile) {
@@ -552,7 +630,6 @@ namespace torrest {
         }
 
         auto infoHash = get_info_hash(torrentParams.info_hash);
-        std::lock_guard<std::mutex> lock(mTorrentsMutex);
         add_torrent_with_params(torrentParams, infoHash, true, true);
     }
 
@@ -587,7 +664,7 @@ namespace torrest {
 
         for (auto &f : torrentFiles) {
             try {
-                add_torrent_file(f, false);
+                add_torrent_file(f, false, false);
             } catch (const LoadTorrentException &e) {
                 mLogger->error("operation=load_torrent_files, message='Failed loading torrent', what='{}', file='{}'",
                                e.what(), f);
@@ -659,6 +736,11 @@ namespace torrest {
         return *find_torrent(pInfoHash);
     }
 
+    std::vector<std::shared_ptr<Torrent>> Service::get_torrents() {
+        mLogger->debug("operation=get_torrents");
+        return mTorrents;
+    }
+
     void Service::remove_torrent(const std::string &pInfoHash, bool pRemoveFiles) {
         mLogger->debug("operation=remove_torrent, infoHash={}, removeFiles={}", pInfoHash, pRemoveFiles);
         std::lock_guard<std::mutex> lock(mTorrentsMutex);
@@ -675,6 +757,16 @@ namespace torrest {
                 pRemoveFiles ? libtorrent::session_handle::delete_files : libtorrent::remove_flags_t(0));
 
         mTorrents.erase(it);
+    }
+
+    void Service::pause() {
+        mLogger->debug("operation=pause, message='Pausing service'");
+        mSession->pause();
+    }
+
+    void Service::resume() {
+        mLogger->debug("operation=resume, message='Resuming service'");
+        mSession->resume();
     }
 
     inline std::string Service::get_parts_file(const std::string &pInfoHash) const {

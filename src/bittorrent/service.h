@@ -14,6 +14,7 @@
 
 #include "settings/settings.h"
 #include "torrent.h"
+#include "file.h"
 
 namespace torrest {
 
@@ -29,6 +30,8 @@ namespace torrest {
 
         std::shared_ptr<Torrent> get_torrent(const std::string &pInfoHash);
 
+        std::vector<std::shared_ptr<Torrent>> get_torrents();
+
         void remove_torrent(const std::string &pInfoHash, bool pRemoveFiles);
 
         std::string add_magnet(const std::string &pMagnet, bool pDownload);
@@ -37,12 +40,18 @@ namespace torrest {
 
         std::string add_torrent_file(const std::string &pFile, bool pDownload);
 
+        void pause();
+
+        void resume();
+
     private:
         void check_save_resume_data_handler();
 
         void consume_alerts_handler();
 
         void progress_handler();
+
+        void update_progress();
 
         void handle_save_resume_data(const libtorrent::save_resume_data_alert *pAlert);
 
@@ -60,6 +69,8 @@ namespace torrest {
                                      const std::string &pInfoHash,
                                      bool pIsResumeData,
                                      bool pDownload);
+
+        std::string add_torrent_file(const std::string &pFile, bool pDownload, bool pSaveFile);
 
         std::string add_magnet(const std::string &pMagnet, bool pDownload, bool pSaveMagnet);
 
@@ -107,6 +118,10 @@ namespace torrest {
         std::condition_variable mCv;
         std::vector<std::thread> mThreads;
         std::atomic<bool> mIsRunning;
+        std::atomic<bool> mRateLimited;
+        std::int64_t mDownloadRate;
+        std::int64_t mUploadRate;
+        double mProgress;
     };
 
 }

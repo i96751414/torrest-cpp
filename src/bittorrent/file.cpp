@@ -73,4 +73,11 @@ namespace torrest {
 
         return state;
     }
+
+    std::int64_t File::get_buffer_bytes_missing() {
+        mLogger->trace("operation=get_buffer_bytes_missing");
+        auto torrent = mTorrent.lock();
+        CHECK_TORRENT(torrent)
+        return torrent->get_bytes_missing(mBufferPieces);
+    }
 }
