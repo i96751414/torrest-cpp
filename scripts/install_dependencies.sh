@@ -146,7 +146,7 @@ fi
 
 if requires "boost"; then
   echo "- Downloading boost ${BOOST_VERSION}"
-  download "https://dl.bintray.com/boostorg/release/${BOOST_VERSION}/source/boost_${BOOST_VERSION//./_}.tar.gz"
+  download "https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VERSION}/source/boost_${BOOST_VERSION//./_}.tar.gz"
   echo "- Building boost ${BOOST_VERSION}"
   ./bootstrap.sh --prefix="${PREFIX}"
   echo "${BOOST_CONFIG}" >user-config.jam
