@@ -1,13 +1,15 @@
 #!/bin/bash
 set -eo pipefail
 
+scripts_path=$(dirname "$(readlink -f "$0")")
+env_path="${scripts_path}/versions.env"
+
 : "${SUDO:=sudo}"
 : "${CXX_STANDARD:=14}"
 : "${PREFIX:=/usr/local}"
 : "${BOOST_CONFIG:="using gcc ;"}"
 
 function usage() {
-  [ -n "$1" ] && echo "Invalid option/argument provided: $1"
   cat <<EOF
 Usage: $(basename "${0}") [OPTIONS]
 
@@ -31,10 +33,23 @@ optional arguments:
   --boost           Build and install boost
   --libtorrent      Build and install libtorrent
   -s, --static      Do a static build
+  -e, --env         Path of file containing versions environment variables (default: ${env_path})
   -h, --help        Show this message
 
 EOF
-  [ -n "$1" ] && exit 1 || exit 0
+  exit "$1"
+}
+
+function invalidOpt() {
+  echo "Invalid option/argument provided: $1"
+  usage 1
+}
+
+function validateFile() {
+  if [ ! -f "${1}" ]; then
+    echo "${2} requires a valid file"
+    usage 1
+  fi
 }
 
 function checkRequirement() {
@@ -53,21 +68,18 @@ static=false
 
 while [ $# -gt 0 ]; do
   case "$1" in
-  -h | --help) usage ;;
+  -h | --help) usage 0 ;;
   -s | --static) static=true ;;
-  --*)
-    [[ "${1:2}" =~ ^(${allowed_opts})$ ]] || usage "$1" && declare "${1//-/}"=true
-    all=false
-    ;;
-  *) usage "$1" ;;
+  -e | --env) validateFile "$2" "$1" && shift && env_path="$1" ;;
+  --*) [[ "${1:2}" =~ ^(${allowed_opts})$ ]] || invalidOpt "$1" && declare "${1//-/}"=true && all=false ;;
+  *) invalidOpt "$1" ;;
   esac
   shift
 done
 
 checkRequirement cmake
-
-scripts_path=$(dirname "$(readlink -f "$0")")
-source "${scripts_path}/versions.env"
+# shellcheck source=versions.env
+source "${env_path}"
 
 tmp_dir=$(mktemp -d /tmp/torrest-build-XXXXXXXXXXX)
 trap 'rm -rf "${tmp_dir}"' EXIT
