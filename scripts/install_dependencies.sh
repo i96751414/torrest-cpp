@@ -81,7 +81,7 @@ function requires() {
 }
 
 function download() {
-  wget -qO- "$1" | tar -C "${tmp_dir}" --strip=1 -xz
+  wget --no-check-certificate -qO- "$1" | tar -C "${tmp_dir}" --strip=1 -xz
 }
 
 function cleanup() {
