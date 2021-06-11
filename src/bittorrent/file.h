@@ -5,7 +5,8 @@
 #include <atomic>
 
 #include "spdlog/spdlog.h"
-#include <libtorrent/download_priority.hpp>
+#include "libtorrent/download_priority.hpp"
+#include "libtorrent/torrent_info.hpp"
 #include "libtorrent/file_storage.hpp"
 
 #include "fwd.h"
@@ -31,8 +32,17 @@ namespace torrest {
 
         State get_state();
 
+        void buffer(std::int64_t pStartBufferSize, std::int64_t pEndBufferSize);
+
     private:
         std::int64_t get_buffer_bytes_missing();
+
+        std::pair<libtorrent::piece_index_t, libtorrent::piece_index_t>
+        get_pieces_indexes(std::int64_t pOffset, std::int64_t pLength) const;
+
+        void add_buffer_pieces(std::int64_t pOffset, std::int64_t pLength);
+
+        bool verify_buffering_state();
 
         std::weak_ptr<Torrent> mTorrent;
         std::shared_ptr<spdlog::logger> mLogger;
@@ -46,6 +56,7 @@ namespace torrest {
         std::atomic<libtorrent::download_priority_t> mPriority;
         std::atomic<bool> mBuffering;
         std::vector<libtorrent::piece_index_t> mBufferPieces;
+        std::int64_t mBufferSize;
     };
 
 }

@@ -19,7 +19,8 @@ namespace torrest {
               mName(pFileStorage.file_name(pIndex)),
               mPieceLength(pFileStorage.piece_length()),
               mPriority(pTorrent.lock()->mHandle.file_priority(pIndex)),
-              mBuffering(false) {
+              mBuffering(false),
+              mBufferSize(0) {
         if (mPriority.load() == libtorrent::dont_download) {
             // Make sure we don't have individual pieces downloading
             // previously set by Buffer
@@ -31,8 +32,8 @@ namespace torrest {
         auto torrent = mTorrent.lock();
         CHECK_TORRENT(torrent)
 
-        mLogger->debug("operation=set_priority, message='Setting file priority', priority={}, infoHash={}",
-                       to_string(pPriority), torrent->mInfoHash);
+        mLogger->debug("operation=set_priority, message='Setting file priority', priority={}, infoHash={}, index={}",
+                       to_string(pPriority), torrent->mInfoHash, to_string(mIndex));
         std::lock_guard<std::mutex> lock(mMutex);
 
         mPriority = pPriority;
@@ -79,5 +80,66 @@ namespace torrest {
         auto torrent = mTorrent.lock();
         CHECK_TORRENT(torrent)
         return torrent->get_bytes_missing(mBufferPieces);
+    }
+
+    bool File::verify_buffering_state() {
+        bool buffering = false;
+
+        if (mBuffering.load()) {
+            std::lock_guard<std::mutex> lock(mMutex);
+            if (mBuffering.load() && get_buffer_bytes_missing() == 0) {
+                mBuffering = false;
+            } else {
+                buffering = true;
+            }
+        }
+
+        return buffering;
+    }
+
+    std::pair<libtorrent::piece_index_t, libtorrent::piece_index_t>
+    File::get_pieces_indexes(std::int64_t pOffset, std::int64_t pLength) const {
+        mLogger->trace("operation=get_pieces_indexes, index={}, offset={}, length={}",
+                       to_string(mIndex), pOffset, pLength);
+        return std::pair<libtorrent::piece_index_t, libtorrent::piece_index_t>(
+                (mOffset + pOffset) / mPieceLength, (mOffset + pOffset + pLength - 1) / mPieceLength);
+    }
+
+    void File::add_buffer_pieces(std::int64_t pOffset, std::int64_t pLength) {
+        mLogger->trace("operation=add_buffer_pieces, index={}, offset={}, length={}",
+                       to_string(mIndex), pOffset, pLength);
+        auto torrent = mTorrent.lock();
+        CHECK_TORRENT(torrent)
+        auto torrent_file = torrent->mHandle.torrent_file();
+        auto pieces = get_pieces_indexes(pOffset, pLength);
+
+        for (auto piece = pieces.first; piece <= pieces.second; piece++) {
+            torrent->mHandle.piece_priority(piece, libtorrent::top_priority);
+            torrent->mHandle.set_piece_deadline(piece, 0);
+            mBufferSize += torrent_file->piece_size(piece);
+            mBufferPieces.push_back(piece);
+        }
+    }
+
+    void File::buffer(std::int64_t pStartBufferSize, std::int64_t pEndBufferSize) {
+        mLogger->debug("operation=buffer, index={}, startBufferSize={}, endBufferSize={}",
+                       to_string(mIndex), pStartBufferSize, pEndBufferSize);
+
+        auto start_buffer_size = std::max(pStartBufferSize, 0L);
+        auto end_buffer_size = std::max(pEndBufferSize, 0L);
+
+        std::lock_guard<std::mutex> lock(mMutex);
+
+        mBufferSize = 0;
+        mBufferPieces.clear();
+
+        if (mSize > start_buffer_size + end_buffer_size) {
+            add_buffer_pieces(0, start_buffer_size);
+            add_buffer_pieces(mSize - end_buffer_size, end_buffer_size);
+        } else {
+            add_buffer_pieces(0, mSize);
+        }
+
+        mBuffering = mBufferSize > 0;
     }
 }

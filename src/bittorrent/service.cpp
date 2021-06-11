@@ -226,13 +226,8 @@ namespace torrest {
 
             // Check files buffering state
             for (auto &file: torrent->mFiles) {
-                if (file->mBuffering.load()) {
-                    std::lock_guard<std::mutex> fLock(file->mMutex);
-                    if (file->get_buffer_bytes_missing() == 0) {
-                        file->mBuffering = false;
-                    } else {
-                        has_files_buffering = true;
-                    }
+                if (file->verify_buffering_state()) {
+                    has_files_buffering = true;
                 }
             }
 
