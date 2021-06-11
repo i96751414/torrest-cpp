@@ -12,9 +12,11 @@
 
 namespace torrest {
 
-    Torrent::Torrent(const std::weak_ptr<Service> &pService, libtorrent::torrent_handle pHandle, std::string pInfoHash)
+    Torrent::Torrent(const std::shared_ptr<Service> &pService,
+                     libtorrent::torrent_handle pHandle,
+                     std::string pInfoHash)
             : mService(pService),
-              mLogger(pService.lock()->mLogger),
+              mLogger(pService->mLogger),
               mHandle(std::move(pHandle)),
               mInfoHash(std::move(pInfoHash)),
               mHasMetadata(false),
@@ -39,7 +41,7 @@ namespace torrest {
 
         mFiles.clear();
         for (int i = 0; i < torrentFile->num_files(); i++) {
-            mFiles.emplace_back(std::make_shared<File>(weak_from_this(), files, libtorrent::file_index_t(i)));
+            mFiles.emplace_back(std::make_shared<File>(shared_from_this(), files, libtorrent::file_index_t(i)));
         }
 
         mHasMetadata = true;

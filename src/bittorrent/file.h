@@ -20,7 +20,7 @@ namespace torrest {
         friend class Torrent;
 
     public:
-        File(const std::weak_ptr<Torrent> &pTorrent,
+        File(const std::shared_ptr<Torrent> &pTorrent,
              const libtorrent::file_storage &pFileStorage,
              libtorrent::file_index_t pIndex);
 

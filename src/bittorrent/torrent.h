@@ -13,13 +13,13 @@
 
 namespace torrest {
 
-    class Torrent : std::enable_shared_from_this<Torrent> {
+    class Torrent : public std::enable_shared_from_this<Torrent> {
         friend class Service;
 
         friend class File;
 
     public:
-        Torrent(const std::weak_ptr<Service> &pService, libtorrent::torrent_handle pHandle, std::string pInfoHash);
+        Torrent(const std::shared_ptr<Service> &pService, libtorrent::torrent_handle pHandle, std::string pInfoHash);
 
         void pause();
 

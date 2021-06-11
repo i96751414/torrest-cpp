@@ -18,7 +18,7 @@
 
 namespace torrest {
 
-    class Service : std::enable_shared_from_this<Service> {
+    class Service : public std::enable_shared_from_this<Service> {
         friend class Torrent;
 
     public:

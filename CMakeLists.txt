@@ -4,6 +4,8 @@ project(torrest
         HOMEPAGE_URL "https://github.com/i96751414/torrest-cpp")
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(nlohmann_json 3.9.0 REQUIRED)
 find_package(spdlog 1.8.5 REQUIRED)

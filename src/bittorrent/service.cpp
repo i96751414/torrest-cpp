@@ -533,7 +533,7 @@ namespace torrest {
             throw LoadTorrentException(errorCode.message());
         }
 
-        mTorrents.emplace_back(std::make_shared<Torrent>(weak_from_this(), handle, pInfoHash));
+        mTorrents.emplace_back(std::make_shared<Torrent>(shared_from_this(), handle, pInfoHash));
     }
 
     std::string Service::add_magnet(const std::string &pMagnet, bool pDownload, bool pSaveMagnet) {

@@ -7,18 +7,18 @@
 
 namespace torrest {
 
-    File::File(const std::weak_ptr<Torrent> &pTorrent,
+    File::File(const std::shared_ptr<Torrent> &pTorrent,
                const libtorrent::file_storage &pFileStorage,
                libtorrent::file_index_t pIndex)
             : mTorrent(pTorrent),
-              mLogger(pTorrent.lock()->mLogger),
+              mLogger(pTorrent->mLogger),
               mIndex(pIndex),
               mOffset(pFileStorage.file_offset(pIndex)),
               mSize(pFileStorage.file_size(pIndex)),
               mPath(pFileStorage.file_path(pIndex)),
               mName(pFileStorage.file_name(pIndex)),
               mPieceLength(pFileStorage.piece_length()),
-              mPriority(pTorrent.lock()->mHandle.file_priority(pIndex)),
+              mPriority(pTorrent->mHandle.file_priority(pIndex)),
               mBuffering(false),
               mBufferSize(0) {
         if (mPriority.load() == libtorrent::dont_download) {
