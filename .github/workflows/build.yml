@@ -16,9 +16,10 @@ jobs:
 
       - name: Build
         run: |
-          mkdir cmake-build
-          docker run --rm -v "$(pwd):/build" -w "/build" i96751414/libtorrent-cpp:latest \
-            cmake --build cmake-build --target torrest
+          docker run --rm -v "$(pwd):/build" -w "/build" i96751414/libtorrent-cpp:latest bash -c '\
+            cmake -B cmake-build -DCMAKE_BUILD_TYPE=Debug && \
+            cmake --build cmake-build --target torrest -- -j "$(nproc)" \
+          '
 
       - name: Upload torrest artifact
         uses: actions/upload-artifact@v2
