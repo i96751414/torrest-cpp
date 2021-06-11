@@ -24,4 +24,5 @@ jobs:
       - name: Upload torrest artifact
         uses: actions/upload-artifact@v2
         with:
+          name: torrest-linux-x64-debug
           path: cmake-build/torrest
