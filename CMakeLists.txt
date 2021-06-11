@@ -11,7 +11,7 @@ find_package(nlohmann_json 3.9.0 REQUIRED)
 find_package(spdlog 1.8.5 REQUIRED)
 find_package(oatpp 1.2.5 REQUIRED)
 find_package(oatpp-swagger 1.2.5 REQUIRED)
-find_package(LibtorrentRasterbar 1.2.13 REQUIRED COMPONENTS torrent-rasterbar)
+find_package(LibtorrentRasterbar 1.2.14 REQUIRED COMPONENTS torrent-rasterbar)
 
 add_definitions(
         -DOATPP_SWAGGER_RES_PATH="${oatpp-swagger_INCLUDE_DIRS}/../bin/oatpp-swagger/res"
