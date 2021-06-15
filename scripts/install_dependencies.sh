@@ -4,10 +4,15 @@ set -eo pipefail
 scripts_path=$(dirname "$(readlink -f "$0")")
 env_path="${scripts_path}/versions.env"
 
-: "${SUDO:=sudo}"
 : "${CXX_STANDARD:=14}"
 : "${PREFIX:=/usr/local}"
 : "${BOOST_CONFIG:="using gcc ;"}"
+
+if [ -z "${CMD}" ] && [ "$(id -u)" != 0 ]; then
+  if command -v sudo &>/dev/null; then
+    CMD=sudo
+  fi
+fi
 
 function usage() {
   cat <<EOF
@@ -17,10 +22,10 @@ Script for building and install necessary dependencies in order to compile torre
 If no arguments are provided, all dependencies are built and installed.
 
 Additional environment variables can also be passed, such as:
-  SUDO (default: ${SUDO})
-  CXX_STANDARD (default: ${CXX_STANDARD})
-  PREFIX (default: ${PREFIX})
-  BOOST_CONFIG (default: "${BOOST_CONFIG}")
+  CMD (default: automatic)
+  CXX_STANDARD (default: 14)
+  PREFIX (default: /usr/local)
+  BOOST_CONFIG (default: "using gcc ;")
   OPENSSL_PLATFORM (default: not set)
   OPENSSL_CROSS_COMPILE (default: not set)
 
@@ -97,7 +102,7 @@ function download() {
 }
 
 function cleanup() {
-  ${SUDO} rm -rf "${tmp_dir:?}/"*
+  ${CMD} rm -rf "${tmp_dir:?}/"*
 }
 
 function buildCmake() {
@@ -108,7 +113,7 @@ function buildCmake() {
   [ "${static}" == true ] && cmake_options+=(-DBUILD_SHARED_LIBS=OFF) || cmake_options+=(-DBUILD_SHARED_LIBS=ON)
   cmake "${cmake_options[@]}" "$@"
   cmake --build "${cmake_build_dir}" -j"$(nproc)"
-  ${SUDO} cmake --install "${cmake_build_dir}"
+  ${CMD} cmake --install "${cmake_build_dir}"
 }
 
 if requires "nlohmann-json"; then
@@ -152,7 +157,7 @@ if requires "openssl"; then
     ./config threads no-shared --prefix="${PREFIX}"
   fi
   make -j"$(nproc)"
-  ${SUDO} make install
+  ${CMD} make install
   cleanup
 fi
 
@@ -165,7 +170,7 @@ if requires "boost"; then
   boost_options=(--with-date_time --with-system --with-chrono --with-random --prefix="${PREFIX}"
     --user-config=user-config.jam variant=release threading=multi cxxflags=-std=c++"${CXX_STANDARD}")
   [ "${static}" == true ] && boost_options+=(link=static)
-  ${SUDO} ./b2 "${boost_options[@]}" install
+  ${CMD} ./b2 "${boost_options[@]}" install
   cleanup
 fi
 

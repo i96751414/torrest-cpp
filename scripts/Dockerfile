@@ -17,4 +17,4 @@ RUN wget "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/c
 ENV PATH="/usr/bin/cmake/bin:${PATH}"
 
 COPY install_dependencies.sh versions.env /tmp/
-RUN SUDO=" " /tmp/install_dependencies.sh && rm /tmp/*
+RUN /tmp/install_dependencies.sh && rm /tmp/*
