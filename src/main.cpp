@@ -10,7 +10,13 @@
 #include "torrest.h"
 #include "api/app_component.h"
 #include "api/controller/settings.h"
+#include "api/controller/service.h"
 #include "utils/conversion.h"
+
+#define ADD_CONTROLLER(name, type, router, doc) \
+    auto name = std::make_shared<type>();       \
+    name->addEndpointsToRouter(router);         \
+    doc->pushBackAll(name->getEndpoints());
 
 int main(int argc, const char *argv[]) {
     spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e %l [%n] [thread-%t] %v");
@@ -47,9 +53,8 @@ int main(int argc, const char *argv[]) {
         auto docEndpoints = oatpp::swagger::Controller::Endpoints::createShared();
 
         // Add all controllers
-        auto settingsController = std::make_shared<torrest::SettingsController>();
-        settingsController->addEndpointsToRouter(router);
-        docEndpoints->pushBackAll(settingsController->getEndpoints());
+        ADD_CONTROLLER(settingsController, torrest::SettingsController, router, docEndpoints)
+        ADD_CONTROLLER(serviceController, torrest::ServiceController, router, docEndpoints)
 
         // Add swagger
         auto swaggerController = oatpp::swagger::Controller::createShared(docEndpoints);

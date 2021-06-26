@@ -18,6 +18,14 @@
 
 namespace torrest {
 
+    struct ServiceStatus {
+        double progress;
+        std::int64_t download_rate;
+        std::int64_t upload_rate;
+        int num_torrents;
+        bool paused;
+    };
+
     class Service : public std::enable_shared_from_this<Service> {
         friend class Torrent;
 
@@ -39,6 +47,8 @@ namespace torrest {
         std::string add_torrent_data(const std::vector<char> &pData, bool pDownload);
 
         std::string add_torrent_file(const std::string &pFile, bool pDownload);
+
+        ServiceStatus get_status();
 
         void pause();
 

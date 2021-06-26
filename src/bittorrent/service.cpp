@@ -754,6 +754,18 @@ namespace torrest {
         mTorrents.erase(it);
     }
 
+    ServiceStatus Service::get_status() {
+        mLogger->trace("operation=get_status");
+        std::lock_guard<std::mutex> lock(mServiceMutex);
+        return ServiceStatus{
+                .progress=mProgress,
+                .download_rate=mDownloadRate,
+                .upload_rate=mUploadRate,
+                .num_torrents=static_cast<int>(mTorrents.size()),
+                .paused=mSession->is_paused(),
+        };
+    }
+
     void Service::pause() {
         mLogger->debug("operation=pause, message='Pausing service'");
         mSession->pause();

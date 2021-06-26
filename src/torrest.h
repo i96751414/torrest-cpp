@@ -36,6 +36,10 @@ namespace torrest {
             mSettings.save(mSettingsPath);
         }
 
+        std::shared_ptr<Service> get_service() {
+            return mService;
+        }
+
         Torrest(Torrest const &) = delete;
 
         void operator=(Torrest const &) = delete;
