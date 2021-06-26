@@ -18,6 +18,11 @@ class ErrorResponse : public oatpp::DTO {
 
     DTO_FIELD(String, error);
 
+    static oatpp::data::mapping::type::DTOWrapper<ErrorResponse> create(const oatpp::String &pError) {
+        auto response = ErrorResponse::createShared();
+        response->error = pError;
+        return response;
+    }
 };
 
 #include OATPP_CODEGEN_END(DTO)

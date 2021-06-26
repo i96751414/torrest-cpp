@@ -19,13 +19,13 @@ namespace torrest {
         friend class File;
 
     public:
-        Torrent(const std::shared_ptr<Service> &pService, libtorrent::torrent_handle pHandle, std::string pInfoHash);
+        Torrent(libtorrent::torrent_handle pHandle, std::string pInfoHash, std::shared_ptr<spdlog::logger> pLogger);
 
         void pause();
 
         void resume();
 
-        void check_available_space();
+        void check_available_space(const std::string &pPath);
 
         void check_save_resume_data();
 
@@ -42,7 +42,6 @@ namespace torrest {
 
         std::int64_t get_bytes_missing(const std::vector<libtorrent::piece_index_t> &pPieces);
 
-        std::weak_ptr<Service> mService;
         std::shared_ptr<spdlog::logger> mLogger;
         libtorrent::torrent_handle mHandle;
         std::string mInfoHash;

@@ -188,10 +188,10 @@ namespace torrest {
     }
 
     void Service::handle_state_changed(const libtorrent::state_changed_alert *pAlert) {
-        if (pAlert->state == libtorrent::torrent_status::downloading) {
+        if (mSettings.check_available_space && pAlert->state == libtorrent::torrent_status::downloading) {
             auto infoHash = get_info_hash(pAlert->handle.info_hash());
             try {
-                get_torrent(infoHash)->check_available_space();
+                get_torrent(infoHash)->check_available_space(mSettings.download_path);
             } catch (const std::exception &e) {
                 mLogger->error("operation=handle_state_changed, message='Failed handling state change', what='{}'",
                                e.what());
@@ -533,7 +533,11 @@ namespace torrest {
             throw LoadTorrentException(errorCode.message());
         }
 
-        mTorrents.emplace_back(std::make_shared<Torrent>(shared_from_this(), handle, pInfoHash));
+        auto torrent = std::make_shared<Torrent>(handle, pInfoHash, mLogger);
+        if (pTorrentParams.ti != nullptr && pTorrentParams.ti->is_valid()) {
+            torrent->handle_metadata_received();
+        }
+        mTorrents.emplace_back(torrent);
     }
 
     std::string Service::add_magnet(const std::string &pMagnet, bool pDownload, bool pSaveMagnet) {

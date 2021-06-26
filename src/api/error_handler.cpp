@@ -32,11 +32,8 @@ namespace torrest {
             }
         }
 
-        auto errorResponse = ErrorResponse::createShared();
-        errorResponse->error = message;
-
         auto response = oatpp::web::protocol::http::outgoing::ResponseFactory::createResponse(
-                status, errorResponse, mObjectMapper);
+                status, ErrorResponse::create(message), mObjectMapper);
 
         for (const auto &header : pHeaders.getAll()) {
             response->putHeader(header.first.toString(), header.second.toString());

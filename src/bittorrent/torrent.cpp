@@ -1,22 +1,19 @@
 #include "torrent.h"
 
 #include <experimental/filesystem>
+#include <utility>
 
 #include "libtorrent/torrent_status.hpp"
 #include "libtorrent/torrent_info.hpp"
 #include "service.h"
 #include "file.h"
-#include "exceptions.h"
-
-#define CHECK_SERVICE(s) if (!s) { throw torrest::InvalidServiceException("Invalid service"); }
 
 namespace torrest {
 
-    Torrent::Torrent(const std::shared_ptr<Service> &pService,
-                     libtorrent::torrent_handle pHandle,
-                     std::string pInfoHash)
-            : mService(pService),
-              mLogger(pService->mLogger),
+    Torrent::Torrent(libtorrent::torrent_handle pHandle,
+                     std::string pInfoHash,
+                     std::shared_ptr<spdlog::logger> pLogger)
+            : mLogger(std::move(pLogger)),
               mHandle(std::move(pHandle)),
               mInfoHash(std::move(pInfoHash)),
               mHasMetadata(false),
@@ -27,10 +24,6 @@ namespace torrest {
 
         mPaused = (flags & libtorrent::torrent_flags::paused) && !(flags & libtorrent::torrent_flags::auto_managed);
         mDefaultName = status.name.empty() ? mInfoHash : status.name;
-
-        if (status.has_metadata) {
-            handle_metadata_received();
-        }
     }
 
     void Torrent::handle_metadata_received() {
@@ -129,14 +122,8 @@ namespace torrest {
         return progress > 100 ? 100 : progress;
     }
 
-    void Torrent::check_available_space() {
+    void Torrent::check_available_space(const std::string &pPath) {
         mLogger->debug("operation=check_available_space, message='Checking available space', infoHash={}", mInfoHash);
-        auto service = mService.lock();
-        CHECK_SERVICE(service)
-
-        if (!service->mSettings.check_available_space) {
-            return;
-        }
 
         auto status = mHandle.status(libtorrent::torrent_handle::query_accurate_download_counters
                                      | libtorrent::torrent_handle::query_save_path
@@ -147,7 +134,7 @@ namespace torrest {
             return;
         }
 
-        auto spaceInfo = std::experimental::filesystem::space(service->mSettings.download_path);
+        auto spaceInfo = std::experimental::filesystem::space(pPath);
         if (spaceInfo.free < status.total - status.total_done) {
             mLogger->warn("operation=check_available_space, message='Insufficient space on {}', infoHash={}",
                           status.save_path, mInfoHash);

@@ -26,9 +26,7 @@ namespace torrest {
         bool paused;
     };
 
-    class Service : public std::enable_shared_from_this<Service> {
-        friend class Torrent;
-
+    class Service {
     public:
         explicit Service(const Settings &pSettings);
 

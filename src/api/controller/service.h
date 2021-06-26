@@ -8,6 +8,10 @@
 #include "torrest.h"
 #include "api/dto/message_response.h"
 #include "api/dto/status_response.h"
+#include "api/dto/new_torrent_response.h"
+#include "api/dto/error_response.h"
+#include "utils/conversion.h"
+#include "bittorrent/exceptions.h"
 
 namespace torrest {
 
@@ -55,6 +59,57 @@ public:
         auto response = createDtoResponse(Status::CODE_200, MessageResponse::create("Service resumed"));
         response->putHeader(Header::CONTENT_TYPE, "application/json");
         return response;
+    }
+
+    ENDPOINT_INFO(addMagnet) {
+        info->summary = "Add magnet";
+        info->description = "Add magnet to the service";
+        info->queryParams.add<String>("uri").description = "The magnet URI";
+        info->queryParams.add<String>("uri").required = true;
+        info->queryParams.add<Boolean>("download").description = "Start download after adding magnet";
+        info->queryParams.add<Boolean>("download").required = false;
+        info->queryParams.add<Boolean>("ignore_duplicate").description = "Ignore if duplicate";
+        info->queryParams.add<Boolean>("ignore_duplicate").required = false;
+        info->addResponse<Object<NewTorrentResponse>>(Status::CODE_200, "application/json");
+        info->addResponse<Object<ErrorResponse>>(Status::CODE_400, "application/json");
+        info->addResponse<Object<ErrorResponse>>(Status::CODE_500, "application/json");
+    }
+
+    ENDPOINT("GET", "/add/magnet", addMagnet,
+             QUERY(String, uri, "uri"),
+             QUERY(Boolean, download, "download", "false"),
+             QUERY(Boolean, ignoreDuplicate, "ignore_duplicate", "false")) {
+
+        auto magnet = unescape_string(uri->std_str());
+        std::shared_ptr<OutgoingResponse> response;
+
+        if (magnet.compare(0, 7, "magnet:") == 0) {
+            response = handle_duplicate_torrent(
+                    [magnet, download] { return Torrest::get_instance().get_service()->add_magnet(magnet, download); },
+                    ignoreDuplicate);
+        } else {
+            response = createDtoResponse(Status::CODE_400, ErrorResponse::create("Invalid magnet provided"));
+        }
+
+        response->putHeader(Header::CONTENT_TYPE, "application/json");
+        return response;
+    }
+
+    std::shared_ptr<OutgoingResponse>
+    handle_duplicate_torrent(const std::function<std::string(void)> &pFun, bool pIgnoreDuplicate) {
+        std::string infoHash;
+
+        if (pIgnoreDuplicate) {
+            try {
+                infoHash = pFun();
+            } catch (const DuplicateTorrentException &e) {
+                infoHash = e.get_info_hash();
+            }
+        } else {
+            infoHash = pFun();
+        }
+
+        return createDtoResponse(Status::CODE_200, NewTorrentResponse::create(infoHash));
     }
 };
 
