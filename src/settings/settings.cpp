@@ -8,6 +8,7 @@
 #include "version.h"
 
 namespace torrest {
+
     Settings Settings::load(const std::string &pPath) {
         std::ifstream i(pPath);
         nlohmann::json j;
@@ -79,4 +80,5 @@ namespace torrest {
                 return "torrest/" TORREST_VERSION " libtorrent/" LIBTORRENT_VERSION;
         }
     }
+
 }

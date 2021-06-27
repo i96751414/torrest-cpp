@@ -5,7 +5,7 @@
 #include "oatpp/core/Types.hpp"
 #include "oatpp/core/data/mapping/type/Object.hpp"
 
-namespace torrest {
+namespace torrest { namespace api {
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
@@ -27,6 +27,6 @@ class MessageResponse : public oatpp::DTO {
 
 #include OATPP_CODEGEN_END(DTO)
 
-}
+}}
 
 #endif //TORREST_MESSAGE_RESPONSE_H

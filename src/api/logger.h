@@ -4,7 +4,7 @@
 #include "oatpp/core/base/Environment.hpp"
 #include "spdlog/spdlog.h"
 
-namespace torrest {
+namespace torrest { namespace api {
 
     class ApiLogger : public oatpp::base::Logger {
     public:
@@ -28,6 +28,6 @@ namespace torrest {
         std::shared_ptr<spdlog::logger> mLogger;
     };
 
-}
+}}
 
 #endif //TORREST_LOGGER_H

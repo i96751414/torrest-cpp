@@ -17,7 +17,7 @@
 #include "utils/conversion.h"
 #include "bittorrent/exceptions.h"
 
-namespace torrest {
+namespace torrest { namespace api {
 
 #include OATPP_CODEGEN_BEGIN(ApiController)
 
@@ -128,7 +128,7 @@ public:
         if (pIgnoreDuplicate) {
             try {
                 infoHash = pFun();
-            } catch (const DuplicateTorrentException &e) {
+            } catch (const bittorrent::DuplicateTorrentException &e) {
                 infoHash = e.get_info_hash();
             }
         } else {
@@ -141,6 +141,6 @@ public:
 
 #include OATPP_CODEGEN_END(ApiController)
 
-}
+}}
 
 #endif //TORREST_SERVICE_CONTROLLER_H

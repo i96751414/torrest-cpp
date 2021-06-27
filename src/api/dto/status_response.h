@@ -7,7 +7,7 @@
 
 #include "bittorrent/service.h"
 
-namespace torrest {
+namespace torrest { namespace api {
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
@@ -44,7 +44,7 @@ class StatusResponse : public oatpp::DTO {
 
     DTO_FIELD(Boolean, is_paused);
 
-    static oatpp::data::mapping::type::DTOWrapper<StatusResponse> create(const ServiceStatus &pStatus) {
+    static oatpp::data::mapping::type::DTOWrapper<StatusResponse> create(const bittorrent::ServiceStatus &pStatus) {
         auto status = StatusResponse::createShared();
         status->progress = pStatus.progress;
         status->download_rate = pStatus.download_rate;
@@ -57,6 +57,6 @@ class StatusResponse : public oatpp::DTO {
 
 #include OATPP_CODEGEN_END(DTO)
 
-}
+}}
 
 #endif //TORREST_STATUS_RESPONSE_H

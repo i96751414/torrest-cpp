@@ -16,7 +16,7 @@
 #include "torrent.h"
 #include "file.h"
 
-namespace torrest {
+namespace torrest { namespace bittorrent {
 
     struct ServiceStatus {
         double progress;
@@ -132,6 +132,6 @@ namespace torrest {
         double mProgress;
     };
 
-}
+}}
 
 #endif //TORREST_SERVICE_H

@@ -4,7 +4,7 @@
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/Types.hpp"
 
-namespace torrest {
+namespace torrest { namespace api {
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
@@ -27,6 +27,6 @@ class ErrorResponse : public oatpp::DTO {
 
 #include OATPP_CODEGEN_END(DTO)
 
-}
+}}
 
 #endif //TORREST_ERROR_RESPONSE_H

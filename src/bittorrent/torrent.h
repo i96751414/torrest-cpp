@@ -11,7 +11,7 @@
 #include "fwd.h"
 #include "enums.h"
 
-namespace torrest {
+namespace torrest { namespace bittorrent {
 
     class Torrent : public std::enable_shared_from_this<Torrent> {
         friend class Service;
@@ -54,6 +54,6 @@ namespace torrest {
         std::atomic<bool> mClosed;
     };
 
-}
+}}
 
 #endif //TORREST_TORRENT_H

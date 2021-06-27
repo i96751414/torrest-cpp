@@ -5,6 +5,7 @@
 #include <vector>
 
 namespace torrest {
+
     uint16_t str_to_uint16(const char *pStr);
 
     std::string join_string_vector(const std::vector<std::string> &pVector, const std::string &pDelimiter);
@@ -19,6 +20,7 @@ namespace torrest {
     inline std::string ltrim_copy(std::string pStr, const char *pChars = " \t\n\r\f\v") {
         return ltrim(pStr, pChars);
     }
+
 }
 
 #endif //TORREST_CONVERSION_H

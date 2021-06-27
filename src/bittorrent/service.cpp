@@ -38,7 +38,7 @@ namespace {
 
 }
 
-namespace torrest {
+namespace torrest { namespace bittorrent {
 
     struct Magnet {
         std::string magnet;
@@ -822,4 +822,4 @@ namespace torrest {
         return mCv.wait_until(lock, until, [this] { return !mIsRunning.load(); });
     }
 
-}
+}}

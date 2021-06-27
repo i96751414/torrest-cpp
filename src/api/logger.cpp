@@ -2,7 +2,7 @@
 
 #include "spdlog/sinks/stdout_sinks.h"
 
-namespace torrest {
+namespace torrest { namespace api {
 
     std::shared_ptr<ApiLogger> ApiLogger::get_instance() {
         static std::shared_ptr<ApiLogger> instance{new ApiLogger};
@@ -48,4 +48,5 @@ namespace torrest {
 
         return level;
     }
-}
+
+}}

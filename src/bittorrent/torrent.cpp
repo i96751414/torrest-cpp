@@ -8,7 +8,7 @@
 #include "service.h"
 #include "file.h"
 
-namespace torrest {
+namespace torrest { namespace bittorrent {
 
     Torrent::Torrent(libtorrent::torrent_handle pHandle,
                      std::string pInfoHash,
@@ -176,4 +176,4 @@ namespace torrest {
         return missing;
     }
 
-}
+}}

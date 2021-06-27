@@ -10,6 +10,7 @@
 #include "bittorrent/service.h"
 
 namespace torrest {
+
     class Torrest {
     public:
         static void initialize(const std::string &pSettingsPath, const Settings &pSettings) {
@@ -36,7 +37,7 @@ namespace torrest {
             mSettings.save(mSettingsPath);
         }
 
-        std::shared_ptr<Service> get_service() {
+        std::shared_ptr<bittorrent::Service> get_service() {
             return mService;
         }
 
@@ -47,7 +48,7 @@ namespace torrest {
     private:
         explicit Torrest(std::string pSettingsPath, const Settings &pSettings)
                 : mLogger(spdlog::stdout_logger_mt("torrest")),
-                  mService(std::make_shared<Service>(pSettings)),
+                  mService(std::make_shared<bittorrent::Service>(pSettings)),
                   mSettingsPath(std::move(pSettingsPath)),
                   mSettings(pSettings),
                   mIsRunning(true) {
@@ -65,13 +66,14 @@ namespace torrest {
         static Torrest *mInstance;
 
         std::shared_ptr<spdlog::logger> mLogger;
-        std::shared_ptr<Service> mService;
+        std::shared_ptr<bittorrent::Service> mService;
         std::string mSettingsPath;
         Settings mSettings;
         std::atomic<bool> mIsRunning;
     };
 
     Torrest *Torrest::mInstance = nullptr;
+
 }
 
 #endif //TORREST_TORREST_H

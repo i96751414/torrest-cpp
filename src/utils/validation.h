@@ -18,10 +18,12 @@
 #define VALIDATE(var, ...) _GET_MACRO(__VA_ARGS__, _VALIDATE3, _VALIDATE2, _VALIDATE1)(var, __VA_ARGS__)
 
 namespace torrest {
+
     class ValidationException : public std::runtime_error {
     public:
         explicit ValidationException(const char *message) : std::runtime_error(message) {}
     };
+
 }
 
 #endif //TORREST_VALIDATION_H

@@ -6,7 +6,7 @@
 #include "api/dto/error_response.h"
 #include "utils/validation.h"
 
-namespace torrest {
+namespace torrest { namespace api {
 
     ErrorHandler::ErrorHandler(std::shared_ptr<oatpp::data::mapping::ObjectMapper> pObjectMapper)
             : mObjectMapper(std::move(pObjectMapper)) {}
@@ -42,4 +42,4 @@ namespace torrest {
         return response;
     }
 
-}
+}}

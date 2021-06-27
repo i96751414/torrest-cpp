@@ -1,7 +1,7 @@
 #ifndef TORREST_ENUMS_H
 #define TORREST_ENUMS_H
 
-namespace torrest {
+namespace torrest { namespace bittorrent {
 
     enum PeerTos {
         tos_normal = 0x00,
@@ -25,6 +25,6 @@ namespace torrest {
         buffering
     };
 
-}
+}}
 
 #endif //TORREST_ENUMS_H

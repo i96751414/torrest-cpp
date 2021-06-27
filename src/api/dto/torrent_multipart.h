@@ -4,7 +4,7 @@
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp-swagger/Types.hpp"
 
-namespace torrest {
+namespace torrest { namespace api {
 
 #include OATPP_CODEGEN_BEGIN(DTO)
 
@@ -21,6 +21,6 @@ class TorrentMultipart : public oatpp::DTO {
 
 #include OATPP_CODEGEN_END(DTO)
 
-}
+}}
 
 #endif //TORREST_TORRENT_MULTIPART_H

@@ -9,7 +9,7 @@
 #include "api/dto/error_response.h"
 #include "api/logger.h"
 
-namespace torrest {
+namespace torrest { namespace api {
 
 #include OATPP_CODEGEN_BEGIN(ApiController)
 
@@ -56,6 +56,6 @@ public:
 
 #include OATPP_CODEGEN_END(ApiController)
 
-}
+}}
 
 #endif //TORREST_SETTINGS_CONTROLLER_H

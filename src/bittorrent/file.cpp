@@ -3,9 +3,9 @@
 #include "torrent.h"
 #include "exceptions.h"
 
-#define CHECK_TORRENT(t) if (!t) { throw torrest::InvalidTorrentException("Invalid torrent"); }
+#define CHECK_TORRENT(t) if (!t) { throw torrest::bittorrent::InvalidTorrentException("Invalid torrent"); }
 
-namespace torrest {
+namespace torrest { namespace bittorrent {
 
     File::File(const std::shared_ptr<Torrent> &pTorrent,
                const libtorrent::file_storage &pFileStorage,
@@ -142,4 +142,5 @@ namespace torrest {
 
         mBuffering = mBufferSize > 0;
     }
-}
+
+}}

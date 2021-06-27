@@ -43,18 +43,18 @@ int main(int argc, const char *argv[]) {
     logger->debug("operation=main, message='Starting OATPP environment'");
     oatpp::base::Environment::init();
 
-    auto apiLogger = torrest::ApiLogger::get_instance();
+    auto apiLogger = torrest::api::ApiLogger::get_instance();
     apiLogger->get_logger()->set_level(settings.api_log_level);
     oatpp::base::Environment::setLogger(apiLogger);
 
     {
-        torrest::AppComponent component(port);
+        torrest::api::AppComponent component(port);
         OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router);
         auto docEndpoints = oatpp::swagger::Controller::Endpoints::createShared();
 
         // Add all controllers
-        ADD_CONTROLLER(settingsController, torrest::SettingsController, router, docEndpoints)
-        ADD_CONTROLLER(serviceController, torrest::ServiceController, router, docEndpoints)
+        ADD_CONTROLLER(settingsController, torrest::api::SettingsController, router, docEndpoints)
+        ADD_CONTROLLER(serviceController, torrest::api::ServiceController, router, docEndpoints)
 
         // Add swagger
         auto swaggerController = oatpp::swagger::Controller::createShared(docEndpoints);

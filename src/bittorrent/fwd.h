@@ -1,7 +1,7 @@
 #ifndef TORREST_FWD_H
 #define TORREST_FWD_H
 
-namespace torrest {
+namespace torrest { namespace bittorrent {
 
     class Service;
 
@@ -9,6 +9,6 @@ namespace torrest {
 
     class File;
 
-}
+}}
 
 #endif //TORREST_FWD_H

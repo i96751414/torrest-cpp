@@ -4,6 +4,7 @@
 #include <sstream>
 
 namespace torrest {
+
     uint16_t str_to_uint16(const char *pStr) {
         int value(std::stoi(pStr));
         if (value < 0 || value > static_cast<int>(UINT16_MAX)) {
@@ -66,4 +67,5 @@ namespace torrest {
         }
         return ret;
     }
+
 }

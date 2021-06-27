@@ -12,7 +12,7 @@
 #include "fwd.h"
 #include "enums.h"
 
-namespace torrest {
+namespace torrest { namespace bittorrent {
 
     class File {
         friend class Service;
@@ -59,6 +59,6 @@ namespace torrest {
         std::int64_t mBufferSize;
     };
 
-}
+}}
 
 #endif //TORREST_FILE_H

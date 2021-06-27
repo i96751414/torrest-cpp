@@ -1,7 +1,8 @@
 #ifndef TORREST_EXCEPTIONS_H
 #define TORREST_EXCEPTIONS_H
 
-namespace torrest {
+namespace torrest { namespace bittorrent {
+
     class BittorrentException : public std::runtime_error {
         using std::runtime_error::runtime_error;
     };
@@ -35,6 +36,7 @@ namespace torrest {
     class LoadTorrentException : public BittorrentException {
         using BittorrentException::BittorrentException;
     };
-}
+
+}}
 
 #endif //TORREST_EXCEPTIONS_H

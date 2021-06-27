@@ -4,7 +4,7 @@
 #include "oatpp/web/server/handler/ErrorHandler.hpp"
 #include "oatpp/core/data/mapping/ObjectMapper.hpp"
 
-namespace torrest {
+namespace torrest { namespace api {
 
     class ErrorHandler : public oatpp::web::server::handler::ErrorHandler {
     public:
@@ -19,6 +19,6 @@ namespace torrest {
         std::shared_ptr<oatpp::data::mapping::ObjectMapper> mObjectMapper;
     };
 
-}
+}}
 
 #endif //TORREST_ERROR_HANDLER_H

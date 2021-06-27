@@ -3,7 +3,7 @@
 
 #include "oatpp/web/server/interceptor/ResponseInterceptor.hpp"
 
-namespace torrest {
+namespace torrest { namespace api {
 
     class LoggerInterceptor : public oatpp::web::server::interceptor::ResponseInterceptor {
     public:
@@ -14,6 +14,6 @@ namespace torrest {
                                                     const std::shared_ptr<OutgoingResponse> &response) override;
     };
 
-}
+}}
 
 #endif //TORREST_LOGGER_INTERCEPTOR_H

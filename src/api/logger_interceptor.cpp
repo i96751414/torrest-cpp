@@ -4,7 +4,7 @@
 
 #include "logger.h"
 
-namespace torrest {
+namespace torrest { namespace api {
 
     std::shared_ptr<LoggerInterceptor::OutgoingResponse>
     LoggerInterceptor::intercept(const std::shared_ptr<IncomingRequest> &request,
@@ -28,4 +28,4 @@ namespace torrest {
         return response;
     }
 
-}
+}}
