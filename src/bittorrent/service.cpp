@@ -567,11 +567,11 @@ namespace torrest {
         return add_magnet(pMagnet, pDownload, true);
     }
 
-    std::string Service::add_torrent_data(const std::vector<char> &pData, bool pDownload) {
+    std::string Service::add_torrent_data(const char *pData, int pSize, bool pDownload) {
         mLogger->debug("operation=add_torrent_data, message='Adding torrent data', download={}", pDownload);
         libtorrent::error_code errorCode;
         libtorrent::add_torrent_params torrentParams;
-        torrentParams.ti = std::make_shared<libtorrent::torrent_info>(pData.data(), int(pData.size()), errorCode);
+        torrentParams.ti = std::make_shared<libtorrent::torrent_info>(pData, pSize, errorCode);
         if (errorCode.failed()) {
             mLogger->error("operation=add_torrent_data, message='Failed adding torrent data: {}'", errorCode.message());
             throw LoadTorrentException(errorCode.message());
@@ -581,7 +581,7 @@ namespace torrest {
         std::lock_guard<std::mutex> lock(mTorrentsMutex);
         add_torrent_with_params(torrentParams, infoHash, false, pDownload);
         std::ofstream of(get_torrent_file(infoHash), std::ios::binary);
-        of.write(pData.data(), int(pData.size()));
+        of.write(pData, pSize);
 
         return infoHash;
     }

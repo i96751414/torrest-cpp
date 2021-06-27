@@ -42,7 +42,7 @@ namespace torrest {
 
         std::string add_magnet(const std::string &pMagnet, bool pDownload);
 
-        std::string add_torrent_data(const std::vector<char> &pData, bool pDownload);
+        std::string add_torrent_data(const char *pData, int pSize, bool pDownload);
 
         std::string add_torrent_file(const std::string &pFile, bool pDownload);
 

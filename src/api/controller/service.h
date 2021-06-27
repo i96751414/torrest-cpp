@@ -4,12 +4,16 @@
 #include "oatpp/web/server/api/ApiController.hpp"
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/macro/component.hpp"
+#include "oatpp/web/mime/multipart/Reader.hpp"
+#include "oatpp/web/mime/multipart/PartList.hpp"
+#include "oatpp/web/mime/multipart/InMemoryPartReader.hpp"
 
 #include "torrest.h"
 #include "api/dto/message_response.h"
 #include "api/dto/status_response.h"
 #include "api/dto/new_torrent_response.h"
 #include "api/dto/error_response.h"
+#include "api/dto/torrent_multipart.h"
 #include "utils/conversion.h"
 #include "bittorrent/exceptions.h"
 
@@ -29,10 +33,8 @@ public:
     }
 
     ENDPOINT("GET", "/status", status) {
-        auto response = createDtoResponse(Status::CODE_200, StatusResponse::create(
+        return createDtoResponse(Status::CODE_200, StatusResponse::create(
                 Torrest::get_instance().get_service()->get_status()));
-        response->putHeader(Header::CONTENT_TYPE, "application/json");
-        return response;
     }
 
     ENDPOINT_INFO(pause) {
@@ -43,9 +45,7 @@ public:
 
     ENDPOINT("GET", "/pause", pause) {
         Torrest::get_instance().get_service()->pause();
-        auto response = createDtoResponse(Status::CODE_200, MessageResponse::create("Service paused"));
-        response->putHeader(Header::CONTENT_TYPE, "application/json");
-        return response;
+        return createDtoResponse(Status::CODE_200, MessageResponse::create("Service paused"));
     }
 
     ENDPOINT_INFO(resume) {
@@ -56,9 +56,7 @@ public:
 
     ENDPOINT("GET", "/resume", resume) {
         Torrest::get_instance().get_service()->resume();
-        auto response = createDtoResponse(Status::CODE_200, MessageResponse::create("Service resumed"));
-        response->putHeader(Header::CONTENT_TYPE, "application/json");
-        return response;
+        return createDtoResponse(Status::CODE_200, MessageResponse::create("Service resumed"));
     }
 
     ENDPOINT_INFO(addMagnet) {
@@ -81,18 +79,46 @@ public:
              QUERY(Boolean, ignoreDuplicate, "ignore_duplicate", "false")) {
 
         auto magnet = unescape_string(uri->std_str());
-        std::shared_ptr<OutgoingResponse> response;
+        OATPP_ASSERT_HTTP(magnet.compare(0, 7, "magnet:") == 0, Status::CODE_400, "Invalid magnet provided")
 
-        if (magnet.compare(0, 7, "magnet:") == 0) {
-            response = handle_duplicate_torrent(
-                    [magnet, download] { return Torrest::get_instance().get_service()->add_magnet(magnet, download); },
-                    ignoreDuplicate);
-        } else {
-            response = createDtoResponse(Status::CODE_400, ErrorResponse::create("Invalid magnet provided"));
-        }
+        return handle_duplicate_torrent(
+                [magnet, download] { return Torrest::get_instance().get_service()->add_magnet(magnet, download); },
+                ignoreDuplicate);
+    }
 
-        response->putHeader(Header::CONTENT_TYPE, "application/json");
-        return response;
+    ENDPOINT_INFO(addTorrent) {
+        info->summary = "Add torrent file";
+        info->description = "Add torrent file to the service";
+        info->queryParams.add<Boolean>("download").description = "Start download after adding magnet";
+        info->queryParams.add<Boolean>("download").required = false;
+        info->queryParams.add<Boolean>("ignore_duplicate").description = "Ignore if duplicate";
+        info->queryParams.add<Boolean>("ignore_duplicate").required = false;
+        info->addConsumes<Object<TorrentMultipart>>("multipart/form-data");
+        info->addResponse<Object<NewTorrentResponse>>(Status::CODE_200, "application/json");
+        info->addResponse<Object<ErrorResponse>>(Status::CODE_400, "application/json");
+        info->addResponse<Object<ErrorResponse>>(Status::CODE_500, "application/json");
+    }
+
+    ENDPOINT("POST", "/add/torrent", addTorrent,
+             REQUEST(std::shared_ptr<IncomingRequest>, request),
+             QUERY(Boolean, download, "download", "false"),
+             QUERY(Boolean, ignoreDuplicate, "ignore_duplicate", "false")) {
+
+        auto multipart = std::make_shared<oatpp::web::mime::multipart::PartList>(request->getHeaders());
+        auto memoryReader = oatpp::web::mime::multipart::createInMemoryPartReader(20 * 1024 * 1024);
+        oatpp::web::mime::multipart::Reader multipartReader(multipart.get());
+        multipartReader.setPartReader("torrent", memoryReader);
+        request->transferBody(&multipartReader);
+
+        auto torrent = multipart->getNamedPart("torrent");
+        OATPP_ASSERT_HTTP(torrent, Status::CODE_400, "torrent file needs to be provided")
+
+        return handle_duplicate_torrent(
+                [torrent, download] {
+                    return Torrest::get_instance().get_service()->add_torrent_data(
+                            torrent->getInMemoryData()->c_str(),
+                            int(torrent->getInMemoryData()->getSize()), download);
+                }, ignoreDuplicate);
     }
 
     std::shared_ptr<OutgoingResponse>
