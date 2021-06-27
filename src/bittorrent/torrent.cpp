@@ -139,28 +139,6 @@ namespace torrest { namespace bittorrent {
         return state;
     }
 
-    double Torrent::get_files_progress() {
-        mLogger->trace("operation=get_files_progress");
-        std::lock_guard<std::mutex> lock(mFilesMutex);
-        std::vector<std::int64_t> file_progress;
-        mHandle.file_progress(file_progress, libtorrent::torrent_handle::piece_granularity);
-
-        std::int64_t total = 0;
-        std::int64_t completed = 0;
-
-        for (auto &file : mFiles) {
-            total += file->mSize;
-            completed += file_progress.at(int(file->mIndex));
-        }
-
-        if (total == 0) {
-            return 100;
-        }
-
-        double progress = 100.0 * static_cast<double>(completed) / static_cast<double>(total);
-        return progress > 100 ? 100 : progress;
-    }
-
     void Torrent::check_available_space(const std::string &pPath) {
         mLogger->debug("operation=check_available_space, message='Checking available space', infoHash={}", mInfoHash);
 

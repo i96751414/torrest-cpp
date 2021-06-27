@@ -1,8 +1,7 @@
 #ifndef TORREST_ERROR_RESPONSE_H
 #define TORREST_ERROR_RESPONSE_H
 
-#include "oatpp/core/macro/codegen.hpp"
-#include "oatpp/core/Types.hpp"
+#include "api/dto/utils.h"
 
 namespace torrest { namespace api {
 
@@ -12,11 +11,7 @@ class ErrorResponse : public oatpp::DTO {
 
     DTO_INIT(ErrorResponse, DTO)
 
-    DTO_FIELD_INFO(error) {
-        info->description = "Error message";
-    }
-
-    DTO_FIELD(String, error);
+    FIELD(String, error, "Error message")
 
     static oatpp::data::mapping::type::DTOWrapper<ErrorResponse> create(const oatpp::String &pError) {
         auto response = ErrorResponse::createShared();

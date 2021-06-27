@@ -63,8 +63,6 @@ namespace torrest { namespace bittorrent {
 
         State get_state();
 
-        double get_files_progress();
-
         const std::string &get_info_hash() const {
             return mInfoHash;
         }

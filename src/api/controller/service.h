@@ -10,7 +10,7 @@
 
 #include "torrest.h"
 #include "api/dto/message_response.h"
-#include "api/dto/status_response.h"
+#include "api/dto/service_status.h"
 #include "api/dto/new_torrent_response.h"
 #include "api/dto/error_response.h"
 #include "api/dto/torrent_multipart.h"
@@ -29,11 +29,11 @@ public:
     ENDPOINT_INFO(status) {
         info->summary = "Status";
         info->description = "Get the service status";
-        info->addResponse<Object<StatusResponse>>(Status::CODE_200, "application/json");
+        info->addResponse<Object<ServiceStatus>>(Status::CODE_200, "application/json");
     }
 
     ENDPOINT("GET", "/status", status) {
-        return createDtoResponse(Status::CODE_200, StatusResponse::create(
+        return createDtoResponse(Status::CODE_200, ServiceStatus::create(
                 Torrest::get_instance().get_service()->get_status()));
     }
 
