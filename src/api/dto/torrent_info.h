@@ -2,7 +2,6 @@
 #define TORREST_TORRENT_INFO_H
 
 #include "api/dto/utils.h"
-#include "api/dto/torrent_status.h"
 
 namespace torrest { namespace api {
 
@@ -17,14 +16,11 @@ class TorrentInfo : public oatpp::DTO {
 
     FIELD(Int64, size, "Torrent total size")
 
-    FIELD(Object<TorrentStatus>, status, "Torrent status")
-
     static oatpp::data::mapping::type::DTOWrapper<TorrentInfo> create(const bittorrent::TorrentInfo &pInfo) {
         auto info = TorrentInfo::createShared();
         info->info_hash = pInfo.info_hash.c_str();
         info->name = pInfo.name.c_str();
         info->size = pInfo.size;
-        info->status = nullptr;
         return info;
     }
 };

@@ -7,10 +7,6 @@ namespace torrest { namespace bittorrent {
         using std::runtime_error::runtime_error;
     };
 
-    class InvalidServiceException : public BittorrentException {
-        using BittorrentException::BittorrentException;
-    };
-
     class InvalidInfoHashException : public BittorrentException {
         using BittorrentException::BittorrentException;
     };

@@ -5,6 +5,7 @@
 
 #include "api/dto/error_response.h"
 #include "utils/validation.h"
+#include "bittorrent/exceptions.h"
 
 namespace torrest { namespace api {
 
@@ -27,6 +28,8 @@ namespace torrest { namespace api {
             } catch (const nlohmann::json::exception &e) {
                 status = oatpp::web::protocol::http::Status::CODE_400;
                 message = "Invalid json object";
+            } catch (const bittorrent::InvalidInfoHashException &e) {
+                status = oatpp::web::protocol::http::Status::CODE_404;
             } catch (...) {
                 // use the default status and message
             }
