@@ -7,6 +7,7 @@
 
 #include "torrest.h"
 #include "api/dto/torrent_info_status.h"
+#include "api/dto/file_info_status.h"
 
 namespace torrest { namespace api {
 
@@ -105,6 +106,32 @@ public:
     ENDPOINT("GET", "/torrents/{infoHash}/status", torrentStatus, PATH(String, infoHash, "infoHash")) {
         return createDtoResponse(Status::CODE_200, TorrentStatus::create(
                 Torrest::get_instance().get_service()->get_torrent(infoHash->std_str())->get_status()));
+    }
+
+    ENDPOINT_INFO(torrentFiles) {
+        info->summary = "Torrent files";
+        info->description = "Get torrent files";
+        info->pathParams.add<String>("infoHash").description = "Torrent info hash";
+        info->queryParams.add<Boolean>("status").description = "Get files status";
+        info->queryParams.add<Boolean>("status").required = false;
+        info->addResponse<List<Object<FileInfoStatus>>>(Status::CODE_200, "application/json");
+        info->addResponse<Object<ErrorResponse>>(Status::CODE_404, "application/json");
+        info->addResponse<Object<ErrorResponse>>(Status::CODE_500, "application/json");
+    }
+
+    ENDPOINT("GET", "/torrents/{infoHash}/files", torrentFiles,
+             PATH(String, infoHash, "infoHash"),
+             QUERY(Boolean, status, "status", "false")) {
+        auto files = Torrest::get_instance().get_service()->get_torrent(infoHash->std_str())->get_files();
+        auto responseList = oatpp::List<Object<FileInfoStatus>>::createShared();
+        for (auto &file : files) {
+            auto info = FileInfoStatus::create(file->get_info());
+            if (status) {
+                info->status = FileStatus::create(file->get_status());
+            }
+            responseList->push_back(info);
+        }
+        return createDtoResponse(Status::CODE_200, responseList);
     }
 };
 

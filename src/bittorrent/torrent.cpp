@@ -7,6 +7,7 @@
 #include "libtorrent/torrent_info.hpp"
 #include "service.h"
 #include "file.h"
+#include "exceptions.h"
 
 namespace torrest { namespace bittorrent {
 
@@ -137,6 +138,15 @@ namespace torrest { namespace bittorrent {
         }
 
         return state;
+    }
+
+    std::vector<std::shared_ptr<File>> Torrent::get_files() {
+        mLogger->trace("operation=get_files");
+        if (!mHasMetadata.load()) {
+            throw NoMetadataException("No metadata");
+        }
+        std::lock_guard<std::mutex> lock(mFilesMutex);
+        return mFiles;
     }
 
     void Torrent::check_available_space(const std::string &pPath) {

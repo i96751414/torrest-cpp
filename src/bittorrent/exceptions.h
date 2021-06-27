@@ -15,6 +15,10 @@ namespace torrest { namespace bittorrent {
         using BittorrentException::BittorrentException;
     };
 
+    class NoMetadataException : public BittorrentException {
+        using BittorrentException::BittorrentException;
+    };
+
     class DuplicateTorrentException : public BittorrentException {
     public:
         DuplicateTorrentException(const char *pMessage, std::string pInfoHash)

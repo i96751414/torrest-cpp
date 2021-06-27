@@ -28,6 +28,31 @@ namespace torrest { namespace bittorrent {
         }
     }
 
+    FileInfo File::get_info() {
+        mLogger->trace("operation=get_info");
+        return FileInfo{
+                .id=int(mIndex),
+                .length=mSize,
+                .path=mPath,
+                .name=mName,
+        };
+    }
+
+    FileStatus File::get_status() {
+        mLogger->trace("operation=get_status");
+        std::lock_guard<std::mutex> lock(mMutex);
+        auto completed = get_completed();
+        return FileStatus{
+                .total=mSize,
+                .total_done=completed,
+                .progress=get_progress(completed),
+                .priority=std::uint8_t(mPriority.load()),
+                .buffering_total=mBufferSize,
+                .buffering_progress=get_buffering_progress(),
+                .state=get_state(completed),
+        };
+    }
+
     void File::set_priority(libtorrent::download_priority_t pPriority) {
         auto torrent = mTorrent.lock();
         CHECK_TORRENT(torrent)
@@ -53,13 +78,13 @@ namespace torrest { namespace bittorrent {
         return file_progress.at(int(mIndex));
     }
 
-    double File::get_progress() {
-        mLogger->trace("operation=get_progress");
-        return 100.0 * static_cast<double>(get_completed()) / static_cast<double>(mSize);
+    double File::get_progress(std::int64_t pCompleted) {
+        mLogger->trace("operation=get_progress, completed={}", pCompleted);
+        return 100.0 * static_cast<double>(pCompleted) / static_cast<double>(mSize);
     }
 
-    State File::get_state() {
-        mLogger->trace("operation=get_state");
+    State File::get_state(std::int64_t pCompleted) {
+        mLogger->trace("operation=get_state, completed={}", pCompleted);
         auto torrent = mTorrent.lock();
         CHECK_TORRENT(torrent)
 
@@ -67,7 +92,7 @@ namespace torrest { namespace bittorrent {
         if (state == downloading) {
             if (mBuffering.load()) {
                 state = buffering;
-            } else if (mPriority.load() == libtorrent::dont_download || get_completed() == mSize) {
+            } else if (mPriority.load() == libtorrent::dont_download || pCompleted == mSize) {
                 state = finished;
             }
         }
@@ -80,6 +105,17 @@ namespace torrest { namespace bittorrent {
         auto torrent = mTorrent.lock();
         CHECK_TORRENT(torrent)
         return torrent->get_bytes_missing(mBufferPieces);
+    }
+
+    std::int64_t File::get_buffer_bytes_completed() {
+        mLogger->trace("operation=get_buffer_bytes_completed");
+        return mBufferSize - get_buffer_bytes_missing();
+    }
+
+    double File::get_buffering_progress() {
+        mLogger->trace("operation=get_buffering_progress");
+        return mBufferSize == 0 || !mBuffering.load()
+               ? 100 : 100 * static_cast<double>(get_buffer_bytes_completed()) / static_cast<double>(mBufferSize);
     }
 
     bool File::verify_buffering_state() {
