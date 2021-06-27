@@ -737,6 +737,7 @@ namespace torrest { namespace bittorrent {
 
     std::vector<std::shared_ptr<Torrent>> Service::get_torrents() {
         mLogger->debug("operation=get_torrents");
+        std::lock_guard<std::mutex> lock(mTorrentsMutex);
         return mTorrents;
     }
 

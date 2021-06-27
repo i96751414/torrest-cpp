@@ -55,6 +55,45 @@ namespace torrest { namespace bittorrent {
         mPaused = false;
     }
 
+    TorrentInfo Torrent::get_info() {
+        mLogger->trace("operation=get_info");
+        auto torrentFile = mHandle.torrent_file();
+        return TorrentInfo{
+                .info_hash=mInfoHash,
+                .name=torrentFile ? torrentFile->name() : mDefaultName,
+                .size=torrentFile ? torrentFile->total_size() : 0,
+        };
+    }
+
+    TorrentStatus Torrent::get_status() {
+        mLogger->trace("operation=get_status");
+        std::lock_guard<std::mutex> lock(mMutex);
+        auto status = mHandle.status();
+        auto peers = status.num_peers - status.num_seeds;
+
+        return TorrentStatus{
+                .total=status.total,
+                .total_done=status.total_done,
+                .total_wanted=status.total_wanted,
+                .total_wanted_done=status.total_wanted_done,
+                .progress=status.progress * 100,
+                .download_rate=status.download_rate,
+                .upload_rate=status.upload_rate,
+                .paused=mPaused.load(),
+                .has_metadata=mHasMetadata.load(),
+                .state=get_state(),
+                .seeders=status.num_seeds,
+                .seeders_total=(status.num_complete < 0 ? status.num_seeds : status.num_complete),
+                .peers=peers,
+                .peers_total=(status.num_incomplete < 0 ? peers : status.num_incomplete),
+                .seeding_time=status.seeding_duration.count(),
+                .finished_time=status.finished_duration.count(),
+                .active_time=status.active_duration.count(),
+                .all_time_download=status.all_time_download,
+                .all_time_upload=status.all_time_upload,
+        };
+    }
+
     State Torrent::get_state() {
         mLogger->trace("operation=get_state");
         if (mPaused.load()) {
