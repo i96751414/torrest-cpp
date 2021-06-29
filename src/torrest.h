@@ -14,16 +14,26 @@ namespace torrest {
     class Torrest {
     public:
         static void initialize(const std::string &pSettingsPath, const Settings &pSettings) {
+            assert(mInstance == nullptr);
             static Torrest instance(pSettingsPath, pSettings);
             mInstance = &instance;
+            std::signal(SIGINT, shutdown_signal);
+            std::signal(SIGKILL, shutdown_signal);
+            std::signal(SIGTERM, shutdown_signal);
         }
 
         static Torrest &get_instance() {
+            assert(mInstance);
             return *mInstance;
         }
 
         bool is_running() const {
             return mIsRunning.load();
+        }
+
+        void shutdown() {
+            mLogger->trace("operation=shutdown");
+            mIsRunning = false;
         }
 
         std::string dump_settings() {
@@ -51,16 +61,13 @@ namespace torrest {
                   mService(std::make_shared<bittorrent::Service>(pSettings)),
                   mSettingsPath(std::move(pSettingsPath)),
                   mSettings(pSettings),
-                  mIsRunning(true) {
-            std::signal(SIGINT, shutdown_signal);
-            std::signal(SIGKILL, shutdown_signal);
-            std::signal(SIGTERM, shutdown_signal);
-        };
+                  mIsRunning(true) {}
 
         static void shutdown_signal(int signum) {
+            assert(mInstance);
             mInstance->mLogger->debug(
                     "operation=shutdown_signal, message='Received shutdown signal', signum={}", signum);
-            mInstance->mIsRunning = false;
+            mInstance->shutdown();
         }
 
         static Torrest *mInstance;

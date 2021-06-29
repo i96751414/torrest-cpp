@@ -15,6 +15,7 @@ find_package(LibtorrentRasterbar 1.2.14 REQUIRED COMPONENTS torrent-rasterbar)
 
 add_definitions(
         -DOATPP_SWAGGER_RES_PATH="${oatpp-swagger_INCLUDE_DIRS}/../bin/oatpp-swagger/res"
+        -DTORREST_ENABLE_SHUTDOWN
 )
 
 add_executable(torrest
