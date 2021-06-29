@@ -53,6 +53,8 @@ namespace torrest { namespace bittorrent {
 
         void resume();
 
+        void set_priority(libtorrent::download_priority_t pPriority);
+
         void check_available_space(const std::string &pPath);
 
         void check_save_resume_data();

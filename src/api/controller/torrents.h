@@ -133,6 +133,38 @@ public:
         }
         return createDtoResponse(Status::CODE_200, responseList);
     }
+
+    ENDPOINT_INFO(torrentDownload) {
+        info->summary = "Download";
+        info->description = "Download all torrent files";
+        info->pathParams.add<String>("infoHash").description = "Torrent info hash";
+        info->addResponse<Object<MessageResponse>>(Status::CODE_200, "application/json");
+        info->addResponse<Object<ErrorResponse>>(Status::CODE_404, "application/json");
+        info->addResponse<Object<ErrorResponse>>(Status::CODE_500, "application/json");
+    }
+
+    ENDPOINT("GET", "/torrents/{infoHash}/download", torrentDownload,
+             PATH(String, infoHash, "infoHash")) {
+        Torrest::get_instance().get_service()->get_torrent(infoHash->std_str())->set_priority(
+                libtorrent::default_priority);
+        return createDtoResponse(Status::CODE_200, MessageResponse::create("Torrent downloading"));
+    }
+
+    ENDPOINT_INFO(torrentStopDownload) {
+        info->summary = "Stop download";
+        info->description = "Stop downloading all torrent files";
+        info->pathParams.add<String>("infoHash").description = "Torrent info hash";
+        info->addResponse<Object<MessageResponse>>(Status::CODE_200, "application/json");
+        info->addResponse<Object<ErrorResponse>>(Status::CODE_404, "application/json");
+        info->addResponse<Object<ErrorResponse>>(Status::CODE_500, "application/json");
+    }
+
+    ENDPOINT("GET", "/torrents/{infoHash}/stop", torrentStopDownload,
+             PATH(String, infoHash, "infoHash")) {
+        Torrest::get_instance().get_service()->get_torrent(infoHash->std_str())->set_priority(
+                libtorrent::dont_download);
+        return createDtoResponse(Status::CODE_200, MessageResponse::create("Stopped torrent download"));
+    }
 };
 
 #include OATPP_CODEGEN_END(ApiController)

@@ -56,6 +56,17 @@ namespace torrest { namespace bittorrent {
         mPaused = false;
     }
 
+    void Torrent::set_priority(libtorrent::download_priority_t pPriority) {
+        mLogger->debug("operation=set_priority, priority={}", to_string(pPriority));
+        if (!mHasMetadata.load()) {
+            throw NoMetadataException("No metadata");
+        }
+        std::lock_guard<std::mutex> lock(mFilesMutex);
+        for (auto &file : mFiles) {
+            file->set_priority(pPriority);
+        }
+    }
+
     TorrentInfo Torrent::get_info() {
         mLogger->trace("operation=get_info");
         auto torrentFile = mHandle.torrent_file();
