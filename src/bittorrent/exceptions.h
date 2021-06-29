@@ -11,6 +11,10 @@ namespace torrest { namespace bittorrent {
         using BittorrentException::BittorrentException;
     };
 
+    class InvalidFileIndexException : public BittorrentException {
+        using BittorrentException::BittorrentException;
+    };
+
     class InvalidTorrentException : public BittorrentException {
         using BittorrentException::BittorrentException;
     };

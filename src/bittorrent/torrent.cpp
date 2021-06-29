@@ -160,6 +160,18 @@ namespace torrest { namespace bittorrent {
         return mFiles;
     }
 
+    std::shared_ptr<File> Torrent::get_file(int pIndex) {
+        mLogger->trace("operation=get_file, index={}", pIndex);
+        if (!mHasMetadata.load()) {
+            throw NoMetadataException("No metadata");
+        }
+        std::lock_guard<std::mutex> lock(mFilesMutex);
+        if (pIndex < 0 || pIndex >= mFiles.size()) {
+            throw InvalidFileIndexException("No such file index");
+        }
+        return mFiles.at(pIndex);
+    }
+
     void Torrent::check_available_space(const std::string &pPath) {
         mLogger->debug("operation=check_available_space, message='Checking available space', infoHash={}", mInfoHash);
 
@@ -188,7 +200,7 @@ namespace torrest { namespace bittorrent {
     }
 
     std::int64_t Torrent::get_bytes_missing(const std::vector<libtorrent::piece_index_t> &pPieces) {
-        mLogger->debug("operation=get_bytes_missing");
+        mLogger->trace("operation=get_bytes_missing");
         auto torrentFile = mHandle.torrent_file();
         std::int64_t missing = 0;
 

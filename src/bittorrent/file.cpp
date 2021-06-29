@@ -62,9 +62,9 @@ namespace torrest { namespace bittorrent {
         std::lock_guard<std::mutex> lock(mMutex);
 
         mPriority = pPriority;
-        if (pPriority == libtorrent::dont_download) {
-            mBuffering = false;
-        }
+        mBuffering = false;
+        mBufferSize = 0;
+        mBufferPieces.clear();
         torrent->mHandle.file_priority(mIndex, pPriority);
     }
 
@@ -123,10 +123,12 @@ namespace torrest { namespace bittorrent {
 
         if (mBuffering.load()) {
             std::lock_guard<std::mutex> lock(mMutex);
-            if (mBuffering.load() && get_buffer_bytes_missing() == 0) {
-                mBuffering = false;
-            } else {
-                buffering = true;
+            if (mBuffering.load()) {
+                if (get_buffer_bytes_missing() == 0) {
+                    mBuffering = false;
+                } else {
+                    buffering = true;
+                }
             }
         }
 

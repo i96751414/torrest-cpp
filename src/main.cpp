@@ -12,6 +12,7 @@
 #include "api/controller/settings.h"
 #include "api/controller/service.h"
 #include "api/controller/torrents.h"
+#include "api/controller/files.h"
 #include "utils/conversion.h"
 
 #define ADD_CONTROLLER(name, type, router, doc) \
@@ -57,6 +58,7 @@ int main(int argc, const char *argv[]) {
         ADD_CONTROLLER(settingsController, torrest::api::SettingsController, router, docEndpoints)
         ADD_CONTROLLER(serviceController, torrest::api::ServiceController, router, docEndpoints)
         ADD_CONTROLLER(torrentsController, torrest::api::TorrentsController, router, docEndpoints)
+        ADD_CONTROLLER(filesController, torrest::api::FilesController, router, docEndpoints)
 
         // Add swagger
         auto swaggerController = oatpp::swagger::Controller::createShared(docEndpoints);

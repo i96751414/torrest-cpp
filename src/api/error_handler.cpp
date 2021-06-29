@@ -30,6 +30,8 @@ namespace torrest { namespace api {
                 message = "Invalid json object";
             } catch (const bittorrent::InvalidInfoHashException &e) {
                 status = oatpp::web::protocol::http::Status::CODE_404;
+            } catch (const bittorrent::InvalidFileIndexException &e) {
+                status = oatpp::web::protocol::http::Status::CODE_404;
             } catch (...) {
                 // use the default status and message
             }
