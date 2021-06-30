@@ -350,9 +350,11 @@ namespace torrest { namespace bittorrent {
         }
 #endif
 
-        mSettingsPack.set_int(libtorrent::settings_pack::download_rate_limit, mSettings.max_download_rate);
-        mSettingsPack.set_int(libtorrent::settings_pack::upload_rate_limit, mSettings.max_upload_rate);
-        mRateLimited = true;
+        if (!mSettings.limit_after_buffering || mRateLimited.load()) {
+            mSettingsPack.set_int(libtorrent::settings_pack::download_rate_limit, mSettings.max_download_rate);
+            mSettingsPack.set_int(libtorrent::settings_pack::upload_rate_limit, mSettings.max_upload_rate);
+            mRateLimited = true;
+        }
 
         mSettingsPack.set_int(libtorrent::settings_pack::share_ratio_limit,
                               mSettings.share_ratio_limit > 0 ? mSettings.share_ratio_limit : 200);
