@@ -3,6 +3,7 @@
 
 #include <csignal>
 #include <atomic>
+#include <mutex>
 
 #include "spdlog/spdlog.h"
 
@@ -37,11 +38,13 @@ namespace torrest {
         }
 
         std::string dump_settings() {
+            std::lock_guard<std::mutex> lock(mMutex);
             return mSettings.dump();
         }
 
         void update_settings(const Settings &pSettings, bool pReset) {
             mLogger->debug("operation=update_settings, message='Updating settings'");
+            std::lock_guard<std::mutex> lock(mMutex);
             mService->reconfigure(pSettings, pReset);
             mSettings = pSettings;
             mSettings.save(mSettingsPath);
@@ -72,6 +75,7 @@ namespace torrest {
 
         static Torrest *mInstance;
 
+        std::mutex mMutex;
         std::shared_ptr<spdlog::logger> mLogger;
         std::shared_ptr<bittorrent::Service> mService;
         std::string mSettingsPath;

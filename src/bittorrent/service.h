@@ -15,6 +15,7 @@
 #include "settings/settings.h"
 #include "torrent.h"
 #include "file.h"
+#include "settings.h"
 
 namespace torrest { namespace bittorrent {
 
@@ -34,9 +35,9 @@ namespace torrest { namespace bittorrent {
 
         void reconfigure(const Settings &pSettings, bool pReset);
 
-        std::shared_ptr<Torrent> get_torrent(const std::string &pInfoHash);
+        std::shared_ptr<Torrent> get_torrent(const std::string &pInfoHash) const;
 
-        std::vector<std::shared_ptr<Torrent>> get_torrents();
+        std::vector<std::shared_ptr<Torrent>> get_torrents() const;
 
         void remove_torrent(const std::string &pInfoHash, bool pRemoveFiles);
 
@@ -46,7 +47,7 @@ namespace torrest { namespace bittorrent {
 
         std::string add_torrent_file(const std::string &pFile, bool pDownload);
 
-        ServiceStatus get_status();
+        ServiceStatus get_status() const;
 
         void pause();
 
@@ -86,10 +87,10 @@ namespace torrest { namespace bittorrent {
 
         void load_torrent_files();
 
-        std::vector<std::shared_ptr<Torrent>>::iterator find_torrent(const std::string &pInfoHash,
-                                                                     bool pMustFind = true);
+        std::vector<std::shared_ptr<Torrent>>::const_iterator find_torrent(const std::string &pInfoHash,
+                                                                           bool pMustFind = true) const;
 
-        bool has_torrent(const std::string &pInfoHash);
+        bool has_torrent(const std::string &pInfoHash) const;
 
         std::string get_parts_file(const std::string &pInfoHash) const;
 
@@ -116,20 +117,20 @@ namespace torrest { namespace bittorrent {
         const std::regex mIpRegex = std::regex("\\.\\d+");
         std::shared_ptr<spdlog::logger> mLogger;
         std::shared_ptr<spdlog::logger> mAlertsLogger;
-        Settings mSettings;
         libtorrent::settings_pack mSettingsPack;
         std::shared_ptr<libtorrent::session> mSession;
         std::vector<std::shared_ptr<Torrent>> mTorrents;
-        std::mutex mTorrentsMutex;
-        std::mutex mServiceMutex;
-        std::mutex mCvMutex;
+        mutable std::mutex mTorrentsMutex;
+        mutable std::mutex mServiceMutex;
+        mutable std::mutex mCvMutex;
         std::condition_variable mCv;
         std::vector<std::thread> mThreads;
         std::atomic<bool> mIsRunning;
-        std::atomic<bool> mRateLimited;
         std::int64_t mDownloadRate;
         std::int64_t mUploadRate;
         double mProgress;
+        bool mRateLimited;
+        ServiceSettings mSettings;
     };
 
 }}

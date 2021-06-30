@@ -67,7 +67,7 @@ namespace torrest { namespace bittorrent {
         }
     }
 
-    TorrentInfo Torrent::get_info() {
+    TorrentInfo Torrent::get_info() const {
         mLogger->trace("operation=get_info");
         auto torrentFile = mHandle.torrent_file();
         return TorrentInfo{
@@ -77,7 +77,7 @@ namespace torrest { namespace bittorrent {
         };
     }
 
-    TorrentStatus Torrent::get_status() {
+    TorrentStatus Torrent::get_status() const {
         mLogger->trace("operation=get_status");
         std::lock_guard<std::mutex> lock(mMutex);
         auto status = mHandle.status();
@@ -106,7 +106,7 @@ namespace torrest { namespace bittorrent {
         };
     }
 
-    State Torrent::get_state() {
+    State Torrent::get_state() const {
         mLogger->trace("operation=get_state");
         if (mPaused.load()) {
             return paused;
@@ -151,7 +151,7 @@ namespace torrest { namespace bittorrent {
         return state;
     }
 
-    std::vector<std::shared_ptr<File>> Torrent::get_files() {
+    std::vector<std::shared_ptr<File>> Torrent::get_files() const {
         mLogger->trace("operation=get_files");
         if (!mHasMetadata.load()) {
             throw NoMetadataException("No metadata");
@@ -160,7 +160,7 @@ namespace torrest { namespace bittorrent {
         return mFiles;
     }
 
-    std::shared_ptr<File> Torrent::get_file(int pIndex) {
+    std::shared_ptr<File> Torrent::get_file(int pIndex) const {
         mLogger->trace("operation=get_file, index={}", pIndex);
         if (!mHasMetadata.load()) {
             throw NoMetadataException("No metadata");
@@ -192,14 +192,14 @@ namespace torrest { namespace bittorrent {
         }
     }
 
-    void Torrent::check_save_resume_data() {
+    void Torrent::check_save_resume_data() const {
         mLogger->trace("operation=check_save_resume_data, infoHash={}", mInfoHash);
         if (mHandle.is_valid() && mHasMetadata.load() && mHandle.need_save_resume_data()) {
             mHandle.save_resume_data(libtorrent::torrent_handle::save_info_dict);
         }
     }
 
-    std::int64_t Torrent::get_bytes_missing(const std::vector<libtorrent::piece_index_t> &pPieces) {
+    std::int64_t Torrent::get_bytes_missing(const std::vector<libtorrent::piece_index_t> &pPieces) const {
         mLogger->trace("operation=get_bytes_missing");
         auto torrentFile = mHandle.torrent_file();
         std::int64_t missing = 0;

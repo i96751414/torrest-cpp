@@ -21,13 +21,13 @@ namespace torrest {
         return j.get<Settings>();
     }
 
-    void Settings::save(const std::string &pPath) {
+    void Settings::save(const std::string &pPath) const {
         std::ofstream o(pPath);
         nlohmann::json j = *this;
         o << std::setw(4) << j << std::endl;
     }
 
-    std::string Settings::dump() {
+    std::string Settings::dump() const {
         nlohmann::json j = *this;
         return j.dump(4);
     }

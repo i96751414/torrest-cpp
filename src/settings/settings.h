@@ -124,9 +124,9 @@ namespace torrest {
 
         static Settings parse(const std::string &pJson);
 
-        void save(const std::string &pPath);
+        void save(const std::string &pPath) const;
 
-        std::string dump();
+        std::string dump() const;
 
         void validate() const;
     };

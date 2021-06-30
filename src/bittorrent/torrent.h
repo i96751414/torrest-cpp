@@ -57,17 +57,17 @@ namespace torrest { namespace bittorrent {
 
         void check_available_space(const std::string &pPath);
 
-        void check_save_resume_data();
+        void check_save_resume_data() const;
 
-        TorrentInfo get_info();
+        TorrentInfo get_info() const;
 
-        TorrentStatus get_status();
+        TorrentStatus get_status() const;
 
-        State get_state();
+        State get_state() const;
 
-        std::vector<std::shared_ptr<File>> get_files();
+        std::vector<std::shared_ptr<File>> get_files() const;
 
-        std::shared_ptr<File> get_file(int pIndex);
+        std::shared_ptr<File> get_file(int pIndex) const;
 
         const std::string &get_info_hash() const {
             return mInfoHash;
@@ -76,15 +76,15 @@ namespace torrest { namespace bittorrent {
     private:
         void handle_metadata_received();
 
-        std::int64_t get_bytes_missing(const std::vector<libtorrent::piece_index_t> &pPieces);
+        std::int64_t get_bytes_missing(const std::vector<libtorrent::piece_index_t> &pPieces) const;
 
         std::shared_ptr<spdlog::logger> mLogger;
         libtorrent::torrent_handle mHandle;
         std::string mInfoHash;
         std::string mDefaultName;
         std::vector<std::shared_ptr<File>> mFiles;
-        std::mutex mMutex;
-        std::mutex mFilesMutex;
+        mutable std::mutex mMutex;
+        mutable std::mutex mFilesMutex;
         std::atomic<bool> mPaused{};
         std::atomic<bool> mHasMetadata;
         std::atomic<bool> mClosed;

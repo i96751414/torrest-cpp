@@ -41,22 +41,22 @@ namespace torrest { namespace bittorrent {
              const libtorrent::file_storage &pFileStorage,
              libtorrent::file_index_t pIndex);
 
-        FileInfo get_info();
+        FileInfo get_info() const;
 
-        FileStatus get_status();
+        FileStatus get_status() const;
 
         void set_priority(libtorrent::download_priority_t pPriority);
 
-        std::int64_t get_completed();
+        std::int64_t get_completed() const;
 
         void buffer(std::int64_t pStartBufferSize, std::int64_t pEndBufferSize);
 
     private:
-        std::int64_t get_buffer_bytes_missing();
+        std::int64_t get_buffer_bytes_missing() const;
 
-        std::int64_t get_buffer_bytes_completed();
+        std::int64_t get_buffer_bytes_completed() const;
 
-        double get_buffering_progress();
+        double get_buffering_progress() const;
 
         std::pair<libtorrent::piece_index_t, libtorrent::piece_index_t>
         get_pieces_indexes(std::int64_t pOffset, std::int64_t pLength) const;
@@ -65,9 +65,9 @@ namespace torrest { namespace bittorrent {
 
         bool verify_buffering_state();
 
-        State get_state(std::int64_t pCompleted);
+        State get_state(std::int64_t pCompleted) const;
 
-        double get_progress(std::int64_t pCompleted);
+        double get_progress(std::int64_t pCompleted) const;
 
         std::weak_ptr<Torrent> mTorrent;
         std::shared_ptr<spdlog::logger> mLogger;
@@ -77,7 +77,7 @@ namespace torrest { namespace bittorrent {
         std::string mPath;
         std::string mName;
         int mPieceLength;
-        std::mutex mMutex;
+        mutable std::mutex mMutex;
         std::atomic<libtorrent::download_priority_t> mPriority;
         std::atomic<bool> mBuffering;
         std::vector<libtorrent::piece_index_t> mBufferPieces;

@@ -28,7 +28,7 @@ namespace torrest { namespace bittorrent {
         }
     }
 
-    FileInfo File::get_info() {
+    FileInfo File::get_info() const {
         mLogger->trace("operation=get_info");
         return FileInfo{
                 .id=int(mIndex),
@@ -38,7 +38,7 @@ namespace torrest { namespace bittorrent {
         };
     }
 
-    FileStatus File::get_status() {
+    FileStatus File::get_status() const {
         mLogger->trace("operation=get_status");
         std::lock_guard<std::mutex> lock(mMutex);
         auto completed = get_completed();
@@ -68,7 +68,7 @@ namespace torrest { namespace bittorrent {
         torrent->mHandle.file_priority(mIndex, pPriority);
     }
 
-    std::int64_t File::get_completed() {
+    std::int64_t File::get_completed() const {
         mLogger->trace("operation=get_completed");
         auto torrent = mTorrent.lock();
         CHECK_TORRENT(torrent)
@@ -78,12 +78,12 @@ namespace torrest { namespace bittorrent {
         return file_progress.at(int(mIndex));
     }
 
-    double File::get_progress(std::int64_t pCompleted) {
+    double File::get_progress(std::int64_t pCompleted) const {
         mLogger->trace("operation=get_progress, completed={}", pCompleted);
         return 100.0 * static_cast<double>(pCompleted) / static_cast<double>(mSize);
     }
 
-    State File::get_state(std::int64_t pCompleted) {
+    State File::get_state(std::int64_t pCompleted) const {
         mLogger->trace("operation=get_state, completed={}", pCompleted);
         auto torrent = mTorrent.lock();
         CHECK_TORRENT(torrent)
@@ -100,19 +100,19 @@ namespace torrest { namespace bittorrent {
         return state;
     }
 
-    std::int64_t File::get_buffer_bytes_missing() {
+    std::int64_t File::get_buffer_bytes_missing() const {
         mLogger->trace("operation=get_buffer_bytes_missing");
         auto torrent = mTorrent.lock();
         CHECK_TORRENT(torrent)
         return torrent->get_bytes_missing(mBufferPieces);
     }
 
-    std::int64_t File::get_buffer_bytes_completed() {
+    std::int64_t File::get_buffer_bytes_completed() const {
         mLogger->trace("operation=get_buffer_bytes_completed");
         return mBufferSize - get_buffer_bytes_missing();
     }
 
-    double File::get_buffering_progress() {
+    double File::get_buffering_progress() const {
         mLogger->trace("operation=get_buffering_progress");
         return mBufferSize == 0 || !mBuffering.load()
                ? 100 : 100 * static_cast<double>(get_buffer_bytes_completed()) / static_cast<double>(mBufferSize);
