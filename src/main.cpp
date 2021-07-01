@@ -4,7 +4,10 @@
 #include "spdlog/sinks/stdout_sinks.h"
 #include "oatpp/network/Server.hpp"
 #include "oatpp/core/base/CommandLineArguments.hpp"
+
+#if TORREST_ENABLE_SWAGGER
 #include "oatpp-swagger/Controller.hpp"
+#endif
 
 #include "settings/settings.h"
 #include "torrest.h"
@@ -15,10 +18,6 @@
 #include "api/controller/files.h"
 #include "utils/conversion.h"
 
-#define ADD_CONTROLLER(name, type, router, doc) \
-    auto name = std::make_shared<type>();       \
-    name->addEndpointsToRouter(router);         \
-    doc->pushBackAll(name->getEndpoints());
 
 int main(int argc, const char *argv[]) {
     spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e %l [%n] [thread-%t] %v");
@@ -52,18 +51,28 @@ int main(int argc, const char *argv[]) {
     {
         torrest::api::AppComponent component(port);
         OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router);
+#if TORREST_ENABLE_SWAGGER
         auto docEndpoints = oatpp::swagger::Controller::Endpoints::createShared();
+#endif
 
-        // Add all controllers
-        ADD_CONTROLLER(settingsController, torrest::api::SettingsController, router, docEndpoints)
-        ADD_CONTROLLER(serviceController, torrest::api::ServiceController, router, docEndpoints)
-        ADD_CONTROLLER(torrentsController, torrest::api::TorrentsController, router, docEndpoints)
-        ADD_CONTROLLER(filesController, torrest::api::FilesController, router, docEndpoints)
+        std::vector<std::shared_ptr<oatpp::web::server::api::ApiController>> controllers;
+        controllers.emplace_back(std::make_shared<torrest::api::SettingsController>());
+        controllers.emplace_back(std::make_shared<torrest::api::ServiceController>());
+        controllers.emplace_back(std::make_shared<torrest::api::TorrentsController>());
+        controllers.emplace_back(std::make_shared<torrest::api::FilesController>());
 
-        // Add swagger
+        for (auto &controller : controllers) {
+            controller->addEndpointsToRouter(router);
+#if TORREST_ENABLE_SWAGGER
+            docEndpoints->pushBackAll(controller->getEndpoints());
+#endif
+        }
+
+#if TORREST_ENABLE_SWAGGER
         auto swaggerController = oatpp::swagger::Controller::createShared(docEndpoints);
         swaggerController->addEndpointsToRouter(router);
         logger->debug("operation=main, message='Swagger available at http://localhost:{}/swagger/ui'", port);
+#endif
 
         OATPP_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, connectionHandler);
         OATPP_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, connectionProvider);

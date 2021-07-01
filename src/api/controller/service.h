@@ -26,7 +26,8 @@ public:
     explicit ServiceController(OATPP_COMPONENT(std::shared_ptr<ObjectMapper>, objectMapper))
             : oatpp::web::server::api::ApiController(objectMapper) {}
 
-#ifdef TORREST_ENABLE_SHUTDOWN
+#if TORREST_ENABLE_SHUTDOWN
+
     ENDPOINT_INFO(shutdown) {
         info->summary = "Shutdown";
         info->description = "Shutdown the application";
@@ -37,7 +38,8 @@ public:
         Torrest::get_instance().shutdown();
         return createDtoResponse(Status::CODE_200, MessageResponse::create("Shutting down"));
     }
-#endif
+
+#endif //TORREST_ENABLE_SHUTDOWN
 
     ENDPOINT_INFO(status) {
         info->summary = "Status";

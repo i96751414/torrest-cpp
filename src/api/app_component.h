@@ -6,16 +6,18 @@
 #include "oatpp/network/tcp/server/ConnectionProvider.hpp"
 #include "oatpp/core/macro/component.hpp"
 #include "oatpp/web/server/interceptor/AllowCorsGlobal.hpp"
+
+#if TORREST_ENABLE_SWAGGER
+#ifndef OATPP_SWAGGER_RES_PATH
+#error oatpp-swagger/res is not defined (OATPP_SWAGGER_RES_PATH)
+#endif
 #include "oatpp-swagger/Model.hpp"
 #include "oatpp-swagger/Resources.hpp"
+#endif //TORREST_ENABLE_SWAGGER
 
 #include "error_handler.h"
 #include "version.h"
 #include "logger_interceptor.h"
-
-#ifndef OATPP_SWAGGER_RES_PATH
-#error oatpp-swagger/res is not defined (OATPP_SWAGGER_RES_PATH)
-#endif
 
 namespace torrest { namespace api {
     /**
@@ -60,6 +62,8 @@ namespace torrest { namespace api {
             return httpConnectionHandler;
         }());
 
+#if TORREST_ENABLE_SWAGGER
+
         // General API docs
         OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::swagger::DocumentInfo>, swaggerDocumentInfo)
         (oatpp::swagger::DocumentInfo::Builder()
@@ -74,6 +78,9 @@ namespace torrest { namespace api {
 
         OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::swagger::Resources>, swaggerResources)
         (oatpp::swagger::Resources::loadResources(OATPP_SWAGGER_RES_PATH));
+
+#endif //TORREST_ENABLE_SWAGGER
+
     };
 
 }}

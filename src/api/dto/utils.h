@@ -4,6 +4,13 @@
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/Types.hpp"
 
+#if TORREST_ENABLE_SWAGGER
+#include "oatpp-swagger/Types.hpp"
+typedef oatpp::swagger::Binary Binary;
+#else
+typedef oatpp::String Binary;
+#endif //TORREST_ENABLE_SWAGGER
+
 #define FIELD(type, name, desc) \
 DTO_FIELD_INFO(name) {          \
     info->description = desc;   \
