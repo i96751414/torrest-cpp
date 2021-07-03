@@ -42,6 +42,11 @@ namespace torrest {
             return mSettings.dump();
         }
 
+        std::int64_t get_buffer_size() {
+            std::lock_guard<std::mutex> lock(mMutex);
+            return mSettings.buffer_size;
+        }
+
         void update_settings(const Settings &pSettings, bool pReset) {
             mLogger->debug("operation=update_settings, message='Updating settings'");
             std::lock_guard<std::mutex> lock(mMutex);

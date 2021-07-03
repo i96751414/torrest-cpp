@@ -41,6 +41,8 @@ namespace torrest { namespace bittorrent {
              const libtorrent::file_storage &pFileStorage,
              libtorrent::file_index_t pIndex);
 
+        std::int64_t get_size() const;
+
         FileInfo get_info() const;
 
         FileStatus get_status() const;

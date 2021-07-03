@@ -9,6 +9,8 @@
 #include "api/dto/torrent_info_status.h"
 #include "api/dto/file_info_status.h"
 
+#define GET_TORRENT(infoHash) Torrest::get_instance().get_service()->get_torrent(infoHash->std_str())
+
 namespace torrest { namespace api {
 
 #include OATPP_CODEGEN_BEGIN(ApiController)
@@ -65,7 +67,7 @@ public:
     }
 
     ENDPOINT("GET", "/torrents/{infoHash}/resume", resumeTorrent, PATH(String, infoHash, "infoHash")) {
-        Torrest::get_instance().get_service()->get_torrent(infoHash->std_str())->resume();
+        GET_TORRENT(infoHash)->resume();
         return createDtoResponse(Status::CODE_200, MessageResponse::create("Torrent resumed"));
     }
 
@@ -78,7 +80,7 @@ public:
     }
 
     ENDPOINT("GET", "/torrents/{infoHash}/pause", pauseTorrent, PATH(String, infoHash, "infoHash")) {
-        Torrest::get_instance().get_service()->get_torrent(infoHash->std_str())->pause();
+        GET_TORRENT(infoHash)->pause();
         return createDtoResponse(Status::CODE_200, MessageResponse::create("Torrent paused"));
     }
 
@@ -91,8 +93,7 @@ public:
     }
 
     ENDPOINT("GET", "/torrents/{infoHash}/info", torrentInfo, PATH(String, infoHash, "infoHash")) {
-        return createDtoResponse(Status::CODE_200, TorrentInfo::create(
-                Torrest::get_instance().get_service()->get_torrent(infoHash->std_str())->get_info()));
+        return createDtoResponse(Status::CODE_200, TorrentInfo::create(GET_TORRENT(infoHash)->get_info()));
     }
 
     ENDPOINT_INFO(torrentStatus) {
@@ -104,8 +105,7 @@ public:
     }
 
     ENDPOINT("GET", "/torrents/{infoHash}/status", torrentStatus, PATH(String, infoHash, "infoHash")) {
-        return createDtoResponse(Status::CODE_200, TorrentStatus::create(
-                Torrest::get_instance().get_service()->get_torrent(infoHash->std_str())->get_status()));
+        return createDtoResponse(Status::CODE_200, TorrentStatus::create(GET_TORRENT(infoHash)->get_status()));
     }
 
     ENDPOINT_INFO(torrentFiles) {
@@ -122,7 +122,7 @@ public:
     ENDPOINT("GET", "/torrents/{infoHash}/files", torrentFiles,
              PATH(String, infoHash, "infoHash"),
              QUERY(Boolean, status, "status", "false")) {
-        auto files = Torrest::get_instance().get_service()->get_torrent(infoHash->std_str())->get_files();
+        auto files = GET_TORRENT(infoHash)->get_files();
         auto responseList = oatpp::List<Object<FileInfoStatus>>::createShared();
         for (auto &file : files) {
             auto info = FileInfoStatus::create(file->get_info());
@@ -145,8 +145,7 @@ public:
 
     ENDPOINT("GET", "/torrents/{infoHash}/download", torrentDownload,
              PATH(String, infoHash, "infoHash")) {
-        Torrest::get_instance().get_service()->get_torrent(infoHash->std_str())->set_priority(
-                libtorrent::default_priority);
+        GET_TORRENT(infoHash)->set_priority(libtorrent::default_priority);
         return createDtoResponse(Status::CODE_200, MessageResponse::create("Torrent downloading"));
     }
 
@@ -161,8 +160,7 @@ public:
 
     ENDPOINT("GET", "/torrents/{infoHash}/stop", torrentStopDownload,
              PATH(String, infoHash, "infoHash")) {
-        Torrest::get_instance().get_service()->get_torrent(infoHash->std_str())->set_priority(
-                libtorrent::dont_download);
+        GET_TORRENT(infoHash)->set_priority(libtorrent::dont_download);
         return createDtoResponse(Status::CODE_200, MessageResponse::create("Stopped torrent download"));
     }
 };

@@ -17,6 +17,8 @@
 #include "utils/conversion.h"
 #include "bittorrent/exceptions.h"
 
+#define GET_SERVICE() Torrest::get_instance().get_service()
+
 namespace torrest { namespace api {
 
 #include OATPP_CODEGEN_BEGIN(ApiController)
@@ -48,8 +50,7 @@ public:
     }
 
     ENDPOINT("GET", "/status", status) {
-        return createDtoResponse(Status::CODE_200, ServiceStatus::create(
-                Torrest::get_instance().get_service()->get_status()));
+        return createDtoResponse(Status::CODE_200, ServiceStatus::create(GET_SERVICE()->get_status()));
     }
 
     ENDPOINT_INFO(pause) {
@@ -59,7 +60,7 @@ public:
     }
 
     ENDPOINT("GET", "/pause", pause) {
-        Torrest::get_instance().get_service()->pause();
+        GET_SERVICE()->pause();
         return createDtoResponse(Status::CODE_200, MessageResponse::create("Service paused"));
     }
 
@@ -70,7 +71,7 @@ public:
     }
 
     ENDPOINT("GET", "/resume", resume) {
-        Torrest::get_instance().get_service()->resume();
+        GET_SERVICE()->resume();
         return createDtoResponse(Status::CODE_200, MessageResponse::create("Service resumed"));
     }
 
@@ -97,8 +98,7 @@ public:
         OATPP_ASSERT_HTTP(magnet.compare(0, 7, "magnet:") == 0, Status::CODE_400, "Invalid magnet provided")
 
         return handle_duplicate_torrent(
-                [magnet, download] { return Torrest::get_instance().get_service()->add_magnet(magnet, download); },
-                ignoreDuplicate);
+                [magnet, download] { return GET_SERVICE()->add_magnet(magnet, download); }, ignoreDuplicate);
     }
 
     ENDPOINT_INFO(addTorrent) {
@@ -130,7 +130,7 @@ public:
 
         return handle_duplicate_torrent(
                 [torrent, download] {
-                    return Torrest::get_instance().get_service()->add_torrent_data(
+                    return GET_SERVICE()->add_torrent_data(
                             torrent->getInMemoryData()->c_str(),
                             int(torrent->getInMemoryData()->getSize()), download);
                 }, ignoreDuplicate);
