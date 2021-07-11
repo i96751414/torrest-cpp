@@ -120,6 +120,7 @@ namespace torrest { namespace bittorrent {
         libtorrent::settings_pack mSettingsPack;
         std::shared_ptr<libtorrent::session> mSession;
         std::vector<std::shared_ptr<Torrent>> mTorrents;
+        std::shared_ptr<ServiceSettings> mSettings;
         mutable std::mutex mTorrentsMutex;
         mutable std::mutex mServiceMutex;
         mutable std::mutex mCvMutex;
@@ -130,7 +131,6 @@ namespace torrest { namespace bittorrent {
         std::int64_t mUploadRate;
         double mProgress;
         bool mRateLimited;
-        ServiceSettings mSettings;
     };
 
 }}

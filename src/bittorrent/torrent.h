@@ -46,8 +46,13 @@ namespace torrest { namespace bittorrent {
 
         friend class File;
 
+        friend class Reader;
+
     public:
-        Torrent(libtorrent::torrent_handle pHandle, std::string pInfoHash, std::shared_ptr<spdlog::logger> pLogger);
+        Torrent(std::shared_ptr<ServiceSettings> pSettings,
+                libtorrent::torrent_handle pHandle,
+                std::string pInfoHash,
+                std::shared_ptr<spdlog::logger> pLogger);
 
         void pause();
 
@@ -80,6 +85,7 @@ namespace torrest { namespace bittorrent {
 
         std::shared_ptr<spdlog::logger> mLogger;
         libtorrent::torrent_handle mHandle;
+        std::shared_ptr<ServiceSettings> mSettings;
         std::string mInfoHash;
         std::string mDefaultName;
         std::vector<std::shared_ptr<File>> mFiles;

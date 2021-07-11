@@ -3,6 +3,8 @@
 
 #include <mutex>
 
+#include "settings/settings.h"
+
 #define SETTING(type, name, def)                    \
     private:                                        \
         type name = def;                            \
@@ -31,6 +33,7 @@ namespace torrest { namespace bittorrent {
     SETTING(int, seed_time_limit, 0)
     SETTING(int, seed_time_ratio_limit, 0)
     SETTING(int, share_ratio_limit, 0)
+    SETTING(int, piece_wait_timeout, 60)
 
     public:
         void update(const Settings &pSettings) {
@@ -45,6 +48,7 @@ namespace torrest { namespace bittorrent {
             seed_time_limit = pSettings.seed_time_limit;
             seed_time_ratio_limit = pSettings.seed_time_ratio_limit;
             share_ratio_limit = pSettings.share_ratio_limit;
+            piece_wait_timeout = pSettings.piece_wait_timeout;
         }
 
     private:

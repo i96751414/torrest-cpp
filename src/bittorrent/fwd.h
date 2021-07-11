@@ -9,6 +9,10 @@ namespace torrest { namespace bittorrent {
 
     class File;
 
+    class Reader;
+
+    class ServiceSettings;
+
 }}
 
 #endif //TORREST_FWD_H

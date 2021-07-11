@@ -1,7 +1,6 @@
 #include "torrent.h"
 
 #include <experimental/filesystem>
-#include <utility>
 
 #include "libtorrent/torrent_status.hpp"
 #include "libtorrent/torrent_info.hpp"
@@ -11,11 +10,13 @@
 
 namespace torrest { namespace bittorrent {
 
-    Torrent::Torrent(libtorrent::torrent_handle pHandle,
+    Torrent::Torrent(std::shared_ptr<ServiceSettings> pSettings,
+                     libtorrent::torrent_handle pHandle,
                      std::string pInfoHash,
                      std::shared_ptr<spdlog::logger> pLogger)
             : mLogger(std::move(pLogger)),
               mHandle(std::move(pHandle)),
+              mSettings(std::move(pSettings)),
               mInfoHash(std::move(pInfoHash)),
               mHasMetadata(false),
               mClosed(false) {

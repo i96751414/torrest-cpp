@@ -53,6 +53,8 @@ namespace torrest { namespace bittorrent {
 
         void buffer(std::int64_t pStartBufferSize, std::int64_t pEndBufferSize);
 
+        std::shared_ptr<Reader> reader(double pReadAhead = 0.01);
+
     private:
         std::int64_t get_buffer_bytes_missing() const;
 

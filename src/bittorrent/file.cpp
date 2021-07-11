@@ -1,6 +1,8 @@
 #include "file.h"
 
 #include "torrent.h"
+#include "settings.h"
+#include "reader.h"
 #include "exceptions.h"
 
 #define CHECK_TORRENT(t) if (!t) { throw torrest::bittorrent::InvalidTorrentException("Invalid torrent"); }
@@ -183,6 +185,14 @@ namespace torrest { namespace bittorrent {
         }
 
         mBuffering = mBufferSize > 0;
+    }
+
+    std::shared_ptr<Reader> File::reader(double pReadAhead) {
+        mLogger->debug("operation=reader, index={}, readAhead={}", to_string(mIndex), pReadAhead);
+        auto torrent = mTorrent.lock();
+        CHECK_TORRENT(torrent)
+        return std::make_shared<Reader>(
+                torrent, mOffset, mSize, mPieceLength, pReadAhead, torrent->mSettings->get_piece_wait_timeout());
     }
 
 }}
