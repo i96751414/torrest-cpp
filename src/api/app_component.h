@@ -8,11 +8,10 @@
 #include "oatpp/web/server/interceptor/AllowCorsGlobal.hpp"
 
 #if TORREST_ENABLE_SWAGGER
-#ifndef OATPP_SWAGGER_RES_PATH
-#error oatpp-swagger/res is not defined (OATPP_SWAGGER_RES_PATH)
+#ifdef OATPP_SWAGGER_RES_PATH
+#include "oatpp-swagger/Resources.hpp"
 #endif
 #include "oatpp-swagger/Model.hpp"
-#include "oatpp-swagger/Resources.hpp"
 #endif //TORREST_ENABLE_SWAGGER
 
 #include "error_handler.h"
@@ -76,8 +75,12 @@ namespace torrest { namespace api {
                  .setLicenseUrl("https://github.com/i96751414/torrest-cpp/blob/master/LICENSE")
                  .build());
 
+#ifdef OATPP_SWAGGER_RES_PATH
+
         OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::swagger::Resources>, swaggerResources)
         (oatpp::swagger::Resources::loadResources(OATPP_SWAGGER_RES_PATH));
+
+#endif //OATPP_SWAGGER_RES_PATH
 
 #endif //TORREST_ENABLE_SWAGGER
 

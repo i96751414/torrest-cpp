@@ -6,7 +6,13 @@
 #include "oatpp/core/base/CommandLineArguments.hpp"
 
 #if TORREST_ENABLE_SWAGGER
+#ifdef OATPP_SWAGGER_RES_PATH
 #include "oatpp-swagger/Controller.hpp"
+typedef oatpp::swagger::Controller SwaggerController;
+#else
+#include "api/controller/swagger.h"
+typedef torrest::api::SwaggerController SwaggerController;
+#endif
 #endif
 
 #include "settings/settings.h"
@@ -52,7 +58,7 @@ int main(int argc, const char *argv[]) {
         torrest::api::AppComponent component(port);
         OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router);
 #if TORREST_ENABLE_SWAGGER
-        auto docEndpoints = oatpp::swagger::Controller::Endpoints::createShared();
+        auto docEndpoints = SwaggerController::Endpoints::createShared();
 #endif
 
         std::vector<std::shared_ptr<oatpp::web::server::api::ApiController>> controllers;
@@ -69,7 +75,7 @@ int main(int argc, const char *argv[]) {
         }
 
 #if TORREST_ENABLE_SWAGGER
-        auto swaggerController = oatpp::swagger::Controller::createShared(docEndpoints);
+        auto swaggerController = SwaggerController::createShared(docEndpoints);
         swaggerController->addEndpointsToRouter(router);
         logger->debug("operation=main, message='Swagger available at http://localhost:{}/swagger/ui'", port);
 #endif
