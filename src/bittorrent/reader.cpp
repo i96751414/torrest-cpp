@@ -23,6 +23,10 @@ namespace torrest { namespace bittorrent {
               mLastPiece(piece_from_offset(pSize - 1)),
               mPos(0) {}
 
+    std::int64_t Reader::size() const {
+        return mSize;
+    }
+
     std::int32_t Reader::piece_from_offset(std::int64_t pOffset) const {
         return std::int32_t((mOffset + pOffset) / mPieceLength);
     }
@@ -31,7 +35,7 @@ namespace torrest { namespace bittorrent {
         return std::int32_t((mOffset + pOffset) % mPieceLength);
     }
 
-    void Reader::wait_for_piece(std::int32_t pPiece) {
+    void Reader::wait_for_piece(std::int32_t pPiece) const {
         mTorrent->mLogger->trace("operation=wait_for_piece, piece={}, infoHash={}", pPiece, mTorrent->mInfoHash);
         libtorrent::piece_index_t pieceIndex(pPiece);
         auto startTime = std::chrono::steady_clock::now();
@@ -57,18 +61,23 @@ namespace torrest { namespace bittorrent {
         std::lock_guard<std::mutex> lock(mMutex);
         mTorrent->mLogger->trace("operation=read, pos={}, size={}, infoHash={}", mPos, pSize, mTorrent->mInfoHash);
 
+        auto size = std::min(pSize, mSize - mPos);
+        if (size == 0) {
+            return 0;
+        }
+
         auto startPiece = piece_from_offset(mPos);
-        auto endPiece = piece_from_offset(mPos + static_cast<std::int64_t>(pSize) - 1);
+        auto endPiece = piece_from_offset(mPos + static_cast<std::int64_t>(size) - 1);
         set_pieces_priorities(startPiece, endPiece - startPiece);
         for (auto p = startPiece; p <= endPiece; p++) {
             wait_for_piece(p);
         }
 
         libtorrent::storage_error storageError;
-        libtorrent::iovec_t buf{static_cast<char *>(pBuf), pSize};
+        libtorrent::iovec_t buf{static_cast<char *>(pBuf), size};
         int n = 0;
 
-        while (n < pSize) {
+        while (n != size) {
             auto pos = mPos + n;
             auto readSize = mTorrent->mHandle.get_storage_impl()->readv(
                     buf, libtorrent::piece_index_t(piece_from_offset(pos)), piece_offset_from_offset(pos),
@@ -78,6 +87,9 @@ namespace torrest { namespace bittorrent {
                 mTorrent->mLogger->error("operation=read, message='{}', infoHash={}",
                                          storageError.ec.message(), mTorrent->mInfoHash);
                 throw ReaderException("Read failed");
+            }
+            if (readSize == 0) {
+                throw ReaderException("No data to read");
             }
 
             buf = buf.subspan(readSize);
@@ -89,14 +101,14 @@ namespace torrest { namespace bittorrent {
     }
 
     void Reader::set_piece_priority(libtorrent::piece_index_t pPiece, int pDeadline,
-                                    libtorrent::download_priority_t pPriority) {
+                                    libtorrent::download_priority_t pPriority) const {
         if (mTorrent->mHandle.piece_priority(pPiece) < pPriority) {
             mTorrent->mHandle.piece_priority(pPiece, pPriority);
             mTorrent->mHandle.set_piece_deadline(pPiece, pDeadline);
         }
     }
 
-    void Reader::set_pieces_priorities(std::int32_t pPiece, std::int32_t pPieceEndOffset) {
+    void Reader::set_pieces_priorities(std::int32_t pPiece, std::int32_t pPieceEndOffset) const {
         auto endPiece = pPiece + pPieceEndOffset + mPPieces;
         for (std::int32_t i = 0, p = pPiece; p <= endPiece && p <= mLastPiece; p++, i++) {
             libtorrent::piece_index_t pieceIndex(p);

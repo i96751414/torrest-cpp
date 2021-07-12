@@ -26,6 +26,8 @@ add_executable(torrest
         src/bittorrent/torrent.cpp
         src/bittorrent/file.cpp
         src/bittorrent/reader.cpp
+        src/api/body/empty_body.cpp
+        src/api/body/reader_body.cpp
         src/api/error_handler.cpp
         src/api/logger.cpp
         src/api/logger_interceptor.cpp
