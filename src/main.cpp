@@ -22,6 +22,7 @@ typedef torrest::api::SwaggerController SwaggerController;
 #include "api/controller/service.h"
 #include "api/controller/torrents.h"
 #include "api/controller/files.h"
+#include "api/controller/serve.h"
 #include "utils/conversion.h"
 
 
@@ -66,6 +67,7 @@ int main(int argc, const char *argv[]) {
         controllers.emplace_back(std::make_shared<torrest::api::ServiceController>());
         controllers.emplace_back(std::make_shared<torrest::api::TorrentsController>());
         controllers.emplace_back(std::make_shared<torrest::api::FilesController>());
+        controllers.emplace_back(std::make_shared<torrest::api::ServeController>());
 
         for (auto &controller : controllers) {
             controller->addEndpointsToRouter(router);

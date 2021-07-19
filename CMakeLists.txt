@@ -20,6 +20,7 @@ add_definitions(
 )
 
 add_executable(torrest
+        src/utils/mime.cpp
         src/utils/conversion.cpp
         src/settings/settings.cpp
         src/bittorrent/service.cpp
