@@ -30,10 +30,6 @@ namespace torrest { namespace bittorrent {
         }
     }
 
-    std::int64_t File::get_size() const {
-        return mSize;
-    }
-
     FileInfo File::get_info() const {
         mLogger->trace("operation=get_info");
         return FileInfo{

@@ -19,8 +19,6 @@ namespace torrest { namespace bittorrent {
                double pReadAhead,
                int pPieceWaitTimeout);
 
-        std::int64_t size() const;
-
         int read(void *pBuf, std::ptrdiff_t pSize);
 
         std::int64_t seek(std::int64_t pOff, int pWhence);

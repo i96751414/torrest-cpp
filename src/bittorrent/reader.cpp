@@ -23,10 +23,6 @@ namespace torrest { namespace bittorrent {
               mLastPiece(piece_from_offset(pSize - 1)),
               mPos(0) {}
 
-    std::int64_t Reader::size() const {
-        return mSize;
-    }
-
     std::int32_t Reader::piece_from_offset(std::int64_t pOffset) const {
         return std::int32_t((mOffset + pOffset) / mPieceLength);
     }
