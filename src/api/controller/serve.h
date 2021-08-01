@@ -4,6 +4,11 @@
 #include "oatpp/web/server/api/ApiController.hpp"
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/macro/component.hpp"
+#include "range_parser/range_parser.hpp"
+
+#include "utils/mime.h"
+#include "api/body/empty_body.h"
+#include "api/body/reader_body.h"
 
 #define SERVE(method, name, code, serve)                                                        \
     ENDPOINT_INFO(name) {                                                                       \
@@ -39,8 +44,60 @@ public:
     std::shared_ptr<OutgoingResponse> serve(const std::shared_ptr<IncomingRequest> &pRequest,
                                             const String &pInfoHash,
                                             const Int32 &pFile) {
+        auto logger = ApiLogger::get_instance()->get_logger();
         auto file = GET_FILE(pInfoHash, pFile);
-        return nullptr;
+        auto mime = guess_mime_type(std::experimental::filesystem::path(file->get_name()).extension().string());
+        logger->trace("operation=serve, infoHash={}, name='{}', mime='{}'",
+                      pInfoHash->std_str(), file->get_name(), mime);
+
+        auto code = Status::CODE_200;
+        std::shared_ptr<oatpp::web::protocol::http::outgoing::Body> body = nullptr;
+        std::vector<std::pair<String, String>> headers = {{"Content-Type", mime.c_str()}};
+        auto isHead = pRequest->getStartingLine().method == "HEAD";
+
+        auto rangeHeader = pRequest->getHeader(Header::RANGE);
+        if (rangeHeader != nullptr) {
+            auto range = range_parser::parse(rangeHeader->std_str(), file->get_size());
+            if (range.unit != range_parser::UNIT_BYTES) {
+                return createDtoResponse(Status::CODE_416, MessageResponse::create("Invalid range"));
+            }
+
+            auto rangeCount = range.ranges.size();
+            if (rangeCount == 1) {
+                auto singleRange = range.ranges.at(0);
+                code = Status::CODE_206;
+
+                if (isHead) {
+                    body = std::make_shared<EmptyBody>(singleRange.length);
+                } else {
+                    auto reader = file->reader();
+                    reader->seek(singleRange.start, std::ios::beg);
+                    body = std::make_shared<ReaderBody>(reader, singleRange.length);
+                }
+
+                headers.emplace_back("Content-Range", singleRange.content_range(file->get_size()).c_str());
+            } else if (rangeCount > 1) {
+                logger->error("operation=serve, message='Multiple ranges ar not supported'");
+                return createDtoResponse(Status::CODE_500, MessageResponse::create("Multi ranges are not supported"));
+            }
+
+            headers.emplace_back("Accept-Ranges", "bytes");
+        }
+
+        if (body == nullptr) {
+            if (isHead) {
+                body = std::make_shared<EmptyBody>(file->get_size());
+            } else {
+                body = std::make_shared<ReaderBody>(file->reader(), file->get_size());
+            }
+        }
+
+        auto response = OutgoingResponse::createShared(code, body);
+        for (auto &header : headers) {
+            response->putHeader(header.first, header.second);
+        }
+
+        return response;
     }
 };
 

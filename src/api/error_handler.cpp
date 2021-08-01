@@ -2,6 +2,7 @@
 
 #include "oatpp/web/protocol/http/outgoing/ResponseFactory.hpp"
 #include "nlohmann/json.hpp"
+#include "range_parser/range_parser.hpp"
 
 #include "api/dto/error_response.h"
 #include "utils/validation.h"
@@ -32,6 +33,8 @@ namespace torrest { namespace api {
                 status = oatpp::web::protocol::http::Status::CODE_404;
             } catch (const bittorrent::InvalidFileIndexException &e) {
                 status = oatpp::web::protocol::http::Status::CODE_404;
+            } catch (const range_parser::RangeException &e) {
+                status = oatpp::web::protocol::http::Status::CODE_416;
             } catch (...) {
                 // use the default status and message
             }

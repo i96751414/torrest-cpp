@@ -14,6 +14,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+find_package(range_parser 1.0.1 REQUIRED)
 find_package(nlohmann_json 3.9.0 REQUIRED)
 find_package(spdlog 1.8.5 REQUIRED)
 find_package(oatpp 1.2.5 REQUIRED)
@@ -45,6 +46,7 @@ target_include_directories(torrest PRIVATE src)
 
 target_link_libraries(torrest
         stdc++fs
+        range_parser::range_parser
         nlohmann_json::nlohmann_json
         spdlog::spdlog
         oatpp::oatpp

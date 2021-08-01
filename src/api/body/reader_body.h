@@ -20,8 +20,6 @@ namespace torrest { namespace api {
 
         v_buff_size getKnownSize() override;
 
-        oatpp::v_io_size seek(oatpp::v_io_size pOff, int pWhence);
-
     private:
         std::shared_ptr<bittorrent::Reader> mReader;
         v_buff_size mSize;

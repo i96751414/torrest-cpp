@@ -30,6 +30,7 @@ Additional environment variables can also be passed, such as:
   OPENSSL_CROSS_COMPILE (default: not set)
 
 optional arguments:
+  --range-parser    Build and install range parser
   --nlohmann-json   Build and install nlohmann json
   --spdlog          Build and install spdlog
   --oatpp           Build and install oatpp
@@ -67,7 +68,7 @@ function checkRequirement() {
 }
 
 # Parse options
-allowed_opts='nlohmann-json|spdlog|oatpp|oatpp-swagger|openssl|boost|libtorrent'
+allowed_opts='range-parser|nlohmann-json|spdlog|oatpp|oatpp-swagger|openssl|boost|libtorrent'
 all=true
 static=false
 
@@ -115,6 +116,14 @@ function buildCmake() {
   cmake --build "${cmake_build_dir}" -j"$(nproc)"
   ${CMD} cmake --install "${cmake_build_dir}"
 }
+
+if requires "range-parser"; then
+  echo "- Downloading range-parser ${RANGE_PARSER_VERSION}"
+  download "https://github.com/i96751414/range-parser-cpp/archive/${RANGE_PARSER_VERSION}.tar.gz"
+  echo "- Building range-parser ${RANGE_PARSER_VERSION}"
+  buildCmake
+  cleanup
+fi
 
 if requires "nlohmann-json"; then
   echo "- Downloading nlohmann-json ${NLOHMANN_JSON_VERSION}"
@@ -176,7 +185,7 @@ fi
 
 if requires "libtorrent"; then
   echo "- Downloading libtorrent ${LIBTORRENT_VERSION}"
-  download "https://github.com/arvidn/libtorrent/archive/${LIBTORRENT_VERSION//./_}.tar.gz"
+  download "https://github.com/arvidn/libtorrent/archive/${LIBTORRENT_VERSION}.tar.gz"
   echo "- Building libtorrent ${LIBTORRENT_VERSION}"
   buildCmake -Ddeprecated-functions=OFF
   cleanup

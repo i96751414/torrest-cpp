@@ -20,8 +20,4 @@ namespace torrest { namespace api {
         return mSize;
     }
 
-    oatpp::v_io_size ReaderBody::seek(oatpp::v_io_size pOff, int pWhence) {
-        return mReader->seek(pOff, pWhence);
-    }
-
 }}

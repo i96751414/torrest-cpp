@@ -11,7 +11,7 @@ def get_mimes():
         if not line.startswith("#"):
             mime, *extensions = line.split()
             for ext in extensions:
-                print('{"%s", "%s"},' % (ext, mime))
+                print('{".%s", "%s"},' % (ext, mime))
 
 
 if __name__ == "__main__":
