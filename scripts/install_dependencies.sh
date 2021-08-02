@@ -3,6 +3,7 @@ set -eo pipefail
 
 scripts_path=$(dirname "$(readlink -f "$0")")
 env_path="${scripts_path}/versions.env"
+jobs=$(nproc)
 
 : "${CXX_STANDARD:=14}"
 : "${PREFIX:=/usr/local}"
@@ -40,6 +41,7 @@ optional arguments:
   --libtorrent      Build and install libtorrent
   -s, --static      Do a static build
   -e, --env         Path of file containing versions environment variables (default: ${env_path})
+  -j, --jobs        Build jobs number (default: ${jobs})
   -h, --help        Show this message
 
 EOF
@@ -55,6 +57,13 @@ function validateFile() {
   if [ ! -f "${1}" ]; then
     echo "${2} requires a valid file"
     usage 1
+  fi
+}
+
+function validateNumber() {
+  if [[ ! "${1}" =~ ^[0-9]+$ ]] || [ "${1}" -le 0 ]; then
+    echo "${2} requires a number greater than 0"
+    exit 1
   fi
 }
 
@@ -77,6 +86,7 @@ while [ $# -gt 0 ]; do
   -h | --help) usage 0 ;;
   -s | --static) static=true ;;
   -e | --env) validateFile "$2" "$1" && shift && env_path="$1" ;;
+  -j | --jobs) validateNumber "$2" "$1" && shift && jobs="$1" ;;
   --*) [[ "${1:2}" =~ ^(${allowed_opts})$ ]] || invalidOpt "$1" && declare "${1//-/}"=true && all=false ;;
   *) invalidOpt "$1" ;;
   esac
@@ -113,7 +123,7 @@ function buildCmake() {
     -DCMAKE_INSTALL_PREFIX="${PREFIX}")
   [ "${static}" == true ] && cmake_options+=(-DBUILD_SHARED_LIBS=OFF) || cmake_options+=(-DBUILD_SHARED_LIBS=ON)
   cmake "${cmake_options[@]}" "$@"
-  cmake --build "${cmake_build_dir}" -j"$(nproc)"
+  cmake --build "${cmake_build_dir}" -j"${jobs}"
   ${CMD} cmake --install "${cmake_build_dir}"
 }
 
@@ -165,7 +175,7 @@ if requires "openssl"; then
   else
     ./config threads no-shared --prefix="${PREFIX}"
   fi
-  make -j"$(nproc)"
+  make -j"${jobs}"
   ${CMD} make install
   cleanup
 fi
@@ -176,7 +186,7 @@ if requires "boost"; then
   echo "- Building boost ${BOOST_VERSION}"
   ./bootstrap.sh --prefix="${PREFIX}"
   echo "${BOOST_CONFIG}" >user-config.jam
-  boost_options=(--with-date_time --with-system --with-chrono --with-random --prefix="${PREFIX}"
+  boost_options=(-j"${jobs}" --with-date_time --with-system --with-chrono --with-random --prefix="${PREFIX}"
     --user-config=user-config.jam variant=release threading=multi cxxflags=-std=c++"${CXX_STANDARD}")
   [ "${static}" == true ] && boost_options+=(link=static)
   ${CMD} ./b2 "${boost_options[@]}" install
