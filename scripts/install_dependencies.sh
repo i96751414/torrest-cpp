@@ -1,6 +1,7 @@
 #!/bin/bash
 set -eo pipefail
 
+allowed_opts='range-parser|nlohmann-json|spdlog|oatpp|oatpp-swagger|openssl|boost|libtorrent'
 scripts_path=$(dirname "$(readlink -f "$0")")
 env_path="${scripts_path}/versions.env"
 jobs=$(nproc)
@@ -14,6 +15,13 @@ if [ -z "${CMD}" ] && [ "$(id -u)" != 0 ]; then
     CMD=sudo
   fi
 fi
+
+function printAllowedOptions() {
+  IFS='|' read -ra options <<<"${allowed_opts}"
+  for opt in "${options[@]}"; do
+    printf '  --%-15s Build and install %s\n' "${opt}" "${opt}"
+  done
+}
 
 function usage() {
   cat <<EOF
@@ -31,14 +39,7 @@ Additional environment variables can also be passed, such as:
   OPENSSL_CROSS_COMPILE (default: not set)
 
 optional arguments:
-  --range-parser    Build and install range parser
-  --nlohmann-json   Build and install nlohmann json
-  --spdlog          Build and install spdlog
-  --oatpp           Build and install oatpp
-  --oatpp-swagger   Build and install oatpp-swagger
-  --openssl         Build and install openssl
-  --boost           Build and install boost
-  --libtorrent      Build and install libtorrent
+$(printAllowedOptions)
   -s, --static      Do a static build
   -e, --env         Path of file containing versions environment variables (default: ${env_path})
   -j, --jobs        Build jobs number (default: ${jobs})
@@ -77,7 +78,6 @@ function checkRequirement() {
 }
 
 # Parse options
-allowed_opts='range-parser|nlohmann-json|spdlog|oatpp|oatpp-swagger|openssl|boost|libtorrent'
 all=true
 static=false
 
