@@ -52,7 +52,7 @@ public:
 
         auto code = Status::CODE_200;
         std::shared_ptr<oatpp::web::protocol::http::outgoing::Body> body = nullptr;
-        std::vector<std::pair<String, String>> headers = {{"Content-Type", mime.c_str()}};
+        std::vector<std::pair<String, String>> headers = {{Header::CONTENT_TYPE, mime.c_str()}};
         auto isHead = pRequest->getStartingLine().method == "HEAD";
 
         auto rangeHeader = pRequest->getHeader(Header::RANGE);
@@ -75,13 +75,13 @@ public:
                     body = std::make_shared<ReaderBody>(reader, singleRange.length);
                 }
 
-                headers.emplace_back("Content-Range", singleRange.content_range(file->get_size()).c_str());
+                headers.emplace_back(Header::CONTENT_RANGE, singleRange.content_range(file->get_size()).c_str());
             } else if (rangeCount > 1) {
                 logger->error("operation=serve, message='Multiple ranges ar not supported'");
                 return createDtoResponse(Status::CODE_500, MessageResponse::create("Multi ranges are not supported"));
             }
 
-            headers.emplace_back("Accept-Ranges", "bytes");
+            headers.emplace_back("Accept-Ranges", range_parser::UNIT_BYTES);
         }
 
         if (body == nullptr) {

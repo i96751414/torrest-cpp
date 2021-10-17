@@ -2,7 +2,7 @@
 
 namespace torrest { namespace api {
 
-    ReaderBody::ReaderBody(std::shared_ptr<bittorrent::Reader> pReader, const v_buff_size &pSize)
+    ReaderBody::ReaderBody(std::shared_ptr<bittorrent::Reader> pReader, const v_int64 &pSize)
             : mReader(std::move(pReader)),
               mSize(pSize) {}
 
@@ -16,7 +16,7 @@ namespace torrest { namespace api {
         return nullptr;
     }
 
-    v_buff_size ReaderBody::getKnownSize() {
+    v_int64 ReaderBody::getKnownSize() {
         return mSize;
     }
 
