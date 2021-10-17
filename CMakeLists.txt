@@ -21,12 +21,6 @@ find_package(oatpp 1.2.5 REQUIRED)
 find_package(oatpp-swagger 1.2.5 REQUIRED)
 find_package(LibtorrentRasterbar 1.2.14 REQUIRED COMPONENTS torrent-rasterbar)
 
-add_definitions(
-        -DOATPP_SWAGGER_RES_PATH="${oatpp-swagger_INCLUDE_DIRS}/../bin/oatpp-swagger/res"
-        -DTORREST_ENABLE_SHUTDOWN
-        -DTORREST_ENABLE_SWAGGER
-)
-
 add_executable(torrest
         src/utils/mime.cpp
         src/utils/conversion.cpp
@@ -52,3 +46,13 @@ target_link_libraries(torrest
         oatpp::oatpp
         oatpp::oatpp-swagger
         LibtorrentRasterbar::torrent-rasterbar)
+
+target_optional_compile_definitions(torrest PUBLIC FEATURE NAME enable_swagger DEFAULT ON
+        DESCRIPTION "Enables swagger" ENABLED TORREST_ENABLE_SWAGGER)
+target_optional_compile_definitions(torrest PUBLIC FEATURE NAME with_swagger_local_resources DEFAULT OFF
+        DESCRIPTION "Enables swagger with local resources" ENABLED TORREST_ENABLE_SWAGGER
+        OATPP_SWAGGER_RES_PATH="${oatpp-swagger_INCLUDE_DIRS}/../bin/oatpp-swagger/res")
+target_optional_compile_definitions(torrest PUBLIC FEATURE NAME enable_shutdown DEFAULT ON
+        DESCRIPTION "Enables shutdown endpoint" ENABLED TORREST_ENABLE_SHUTDOWN)
+
+feature_summary(DEFAULT_DESCRIPTION WHAT ALL)
