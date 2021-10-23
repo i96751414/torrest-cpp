@@ -10,6 +10,7 @@ ENV BOOST_CONFIG "using gcc : : ${CROSS_TRIPLE}-c++ ;"
 ENV BOOST_OPTS target-os=windows address-model=64 architecture=x86 threadapi=win32
 ENV OPENSSL_PLATFORM mingw64
 ENV OPENSSL_CROSS_COMPILE "${CROSS_TRIPLE}-"
+# ENV CMAKE_TOOLCHAIN_FILE is already set on the base image
 
 COPY install_dependencies.sh versions.env /tmp/
 RUN /tmp/install_dependencies.sh --static --fix-mingw-headers \
