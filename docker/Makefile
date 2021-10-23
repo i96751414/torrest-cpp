@@ -4,7 +4,7 @@ CROSS_COMPILER_TAG ?= latest
 ROOT_DIR = $(abspath $(lastword $(MAKEFILE_LIST))/../..)
 
 PLATFORMS = dev \
-	windows-x64
+	windows-x64 windows-x86
 
 BUILD_TARGETS = $(addprefix build-, $(PLATFORMS))
 PUSH_TARGETS = $(addprefix push-, $(PLATFORMS))

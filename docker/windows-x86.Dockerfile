@@ -1,14 +1,14 @@
 # This image uses the context from scripts directory
 # To build, run the following command from the project root directory:
-# docker build -t i96751414/torrest-cpp-windows-x64:latest -f docker/windows-x64.Dockerfile scripts/
+# docker build -t i96751414/torrest-cpp-windows-x86:latest -f docker/windows-x86.Dockerfile scripts/
 
 ARG CROSS_COMPILER_TAG=latest
-FROM i96751414/cross-compiler-windows-x64:${CROSS_COMPILER_TAG}
+FROM i96751414/cross-compiler-windows-x86:${CROSS_COMPILER_TAG}
 
 ENV PREFIX "${CROSS_ROOT}"
 ENV BOOST_CONFIG "using gcc : : ${CROSS_TRIPLE}-c++ ;"
-ENV BOOST_OPTS target-os=windows address-model=64 architecture=x86 threadapi=win32
-ENV OPENSSL_PLATFORM mingw64
+ENV BOOST_OPTS target-os=windows address-model=32 architecture=x86 threadapi=win32
+ENV OPENSSL_PLATFORM mingw
 ENV OPENSSL_CROSS_COMPILE "${CROSS_TRIPLE}-"
 
 COPY install_dependencies.sh versions.env /tmp/
