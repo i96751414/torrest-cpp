@@ -1,3 +1,7 @@
+# This image uses the context from scripts directory
+# To build, run the following command from the project root directory:
+# docker build -t i96751414/torrest-cpp-dev:latest -f docker/dev.Dockerfile scripts/
+
 FROM debian:stretch-slim
 
 ARG CMAKE_VERSION=3.20.3

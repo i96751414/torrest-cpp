@@ -35,11 +35,14 @@ Additional environment variables can also be passed, such as:
   CXX_STANDARD (default: 14)
   PREFIX (default: /usr/local)
   BOOST_CONFIG (default: "using gcc ;")
+  BOOST_OPTS (default: not set)
   OPENSSL_PLATFORM (default: not set)
   OPENSSL_CROSS_COMPILE (default: not set)
+  CMAKE_TOOLCHAIN_FILE (default: not set)
 
 optional arguments:
 $(printAllowedOptions)
+  --fix-mingw-headers Fix mingw 'WinSock2' and 'WS2tcpip' headers name before building.
   -s, --static      Do a static build
   -e, --env         Path of file containing versions environment variables (default: ${env_path})
   -j, --jobs        Build jobs number (default: ${jobs})
@@ -80,6 +83,7 @@ function checkRequirement() {
 # Parse options
 all=true
 static=false
+fix_mingw_headers=false
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -87,6 +91,7 @@ while [ $# -gt 0 ]; do
   -s | --static) static=true ;;
   -e | --env) validateFile "$2" "$1" && shift && env_path="$1" ;;
   -j | --jobs) validateNumber "$2" "$1" && shift && jobs="$1" ;;
+  --fix-mingw-headers) fix_mingw_headers=true ;;
   --*) [[ "${1:2}" =~ ^(${allowed_opts})$ ]] || invalidOpt "$1" && declare "${1//-/}"=true && all=false ;;
   *) invalidOpt "$1" ;;
   esac
@@ -122,9 +127,15 @@ function buildCmake() {
   local cmake_options=(-B "${cmake_build_dir}" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD="${CXX_STANDARD}"
     -DCMAKE_INSTALL_PREFIX="${PREFIX}")
   [ "${static}" == true ] && cmake_options+=(-DBUILD_SHARED_LIBS=OFF) || cmake_options+=(-DBUILD_SHARED_LIBS=ON)
+  [ -n "${CMAKE_TOOLCHAIN_FILE}" ] && cmake_options+=(-DCMAKE_TOOLCHAIN_FILE="${CMAKE_TOOLCHAIN_FILE}")
   cmake "${cmake_options[@]}" "$@"
   cmake --build "${cmake_build_dir}" -j"${jobs}"
   ${CMD} cmake --install "${cmake_build_dir}"
+}
+
+function mingwFixHeaders() {
+  echo "- Fixing mingw headers"
+  find "${tmp_dir}" -type f -exec sed -i -e 's/WinSock2.h/winsock2.h/i' -e 's/WS2tcpip.h/ws2tcpip.h/i' {} +
 }
 
 if requires "range-parser"; then
@@ -153,6 +164,7 @@ fi
 if requires "oatpp"; then
   echo "- Downloading oatpp ${OATPP_VERSION}"
   download "https://github.com/oatpp/oatpp/archive/${OATPP_VERSION}.tar.gz"
+  [ "${fix_mingw_headers}" == true ] && mingwFixHeaders
   echo "- Building oatpp ${OATPP_VERSION}"
   buildCmake -DOATPP_BUILD_TESTS=OFF
   cleanup
@@ -189,7 +201,8 @@ if requires "boost"; then
   boost_options=(-j"${jobs}" --with-date_time --with-system --with-chrono --with-random --prefix="${PREFIX}"
     --user-config=user-config.jam variant=release threading=multi cxxflags=-std=c++"${CXX_STANDARD}")
   [ "${static}" == true ] && boost_options+=(link=static)
-  ${CMD} ./b2 "${boost_options[@]}" install
+  # shellcheck disable=SC2086
+  ${CMD} ./b2 "${boost_options[@]}" ${BOOST_OPTS} install
   cleanup
 fi
 
