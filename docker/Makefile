@@ -4,6 +4,7 @@ CROSS_COMPILER_TAG ?= latest
 ROOT_DIR = $(abspath $(lastword $(MAKEFILE_LIST))/../..)
 
 PLATFORMS = dev \
+	darwin-x64 \
 	linux-x64 linux-x86 \
 	windows-x64 windows-x86
 
