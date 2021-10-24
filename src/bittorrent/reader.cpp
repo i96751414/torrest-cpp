@@ -57,20 +57,20 @@ namespace torrest { namespace bittorrent {
         std::lock_guard<std::mutex> lock(mMutex);
         mTorrent->mLogger->trace("operation=read, pos={}, size={}, infoHash={}", mPos, pSize, mTorrent->mInfoHash);
 
-        auto size = std::min(pSize, mSize - mPos);
+        auto size = std::min<std::int64_t>(pSize, mSize - mPos);
         if (size == 0) {
             return 0;
         }
 
         auto startPiece = piece_from_offset(mPos);
-        auto endPiece = piece_from_offset(mPos + static_cast<std::int64_t>(size) - 1);
+        auto endPiece = piece_from_offset(mPos + size - 1);
         set_pieces_priorities(startPiece, endPiece - startPiece);
         for (auto p = startPiece; p <= endPiece; p++) {
             wait_for_piece(p);
         }
 
         libtorrent::storage_error storageError;
-        libtorrent::iovec_t buf{static_cast<char *>(pBuf), size};
+        libtorrent::iovec_t buf{static_cast<char *>(pBuf), static_cast<std::ptrdiff_t>(size)};
         int n = 0;
 
         while (n != size) {
