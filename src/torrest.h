@@ -19,8 +19,10 @@ namespace torrest {
             static Torrest instance(pSettingsPath, pSettings);
             mInstance = &instance;
             std::signal(SIGINT, shutdown_signal);
-            std::signal(SIGKILL, shutdown_signal);
             std::signal(SIGTERM, shutdown_signal);
+#ifndef _WIN32
+            std::signal(SIGKILL, shutdown_signal);
+#endif
         }
 
         static Torrest &get_instance() {

@@ -210,6 +210,8 @@ if requires "libtorrent"; then
   echo "- Downloading libtorrent ${LIBTORRENT_VERSION}"
   download "https://github.com/arvidn/libtorrent/archive/${LIBTORRENT_VERSION}.tar.gz"
   echo "- Building libtorrent ${LIBTORRENT_VERSION}"
-  buildCmake -Ddeprecated-functions=OFF
+  opts=(-Ddeprecated-functions=OFF)
+  [ "${static}" == true ] && opts+=(-Dstatic_runtime=ON)
+  buildCmake "${opts[@]}"
   cleanup
 fi

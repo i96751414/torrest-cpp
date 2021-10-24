@@ -19,6 +19,7 @@ find_package(nlohmann_json 3.9.0 REQUIRED)
 find_package(spdlog 1.8.5 REQUIRED)
 find_package(oatpp 1.2.5 REQUIRED)
 find_package(oatpp-swagger 1.2.5 REQUIRED)
+find_package(OpenSSL 1.1.1 REQUIRED)
 find_package(LibtorrentRasterbar 1.2.14 REQUIRED COMPONENTS torrent-rasterbar)
 
 add_executable(torrest
@@ -45,6 +46,7 @@ target_link_libraries(torrest
         spdlog::spdlog
         oatpp::oatpp
         oatpp::oatpp-swagger
+        OpenSSL::Crypto OpenSSL::SSL
         LibtorrentRasterbar::torrent-rasterbar)
 
 target_optional_compile_definitions(torrest PUBLIC FEATURE NAME enable_swagger DEFAULT ON

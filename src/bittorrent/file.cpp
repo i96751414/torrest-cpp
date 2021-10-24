@@ -165,8 +165,8 @@ namespace torrest { namespace bittorrent {
         mLogger->debug("operation=buffer, index={}, startBufferSize={}, endBufferSize={}",
                        to_string(mIndex), pStartBufferSize, pEndBufferSize);
 
-        auto start_buffer_size = std::max(pStartBufferSize, 0L);
-        auto end_buffer_size = std::max(pEndBufferSize, 0L);
+        auto start_buffer_size = std::max<std::int64_t>(pStartBufferSize, 0);
+        auto end_buffer_size = std::max<std::int64_t>(pEndBufferSize, 0);
 
         std::lock_guard<std::mutex> lock(mMutex);
 

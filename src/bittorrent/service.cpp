@@ -801,19 +801,19 @@ namespace torrest { namespace bittorrent {
     }
 
     inline std::string Service::get_parts_file(const std::string &pInfoHash) const {
-        return join_path(mSettings->get_download_path(), "." + pInfoHash + EXT_PARTS);
+        return join_path(mSettings->get_download_path(), "." + pInfoHash + EXT_PARTS).string();
     }
 
     inline std::string Service::get_fast_resume_file(const std::string &pInfoHash) const {
-        return join_path(mSettings->get_torrents_path(), pInfoHash + EXT_FASTRESUME);
+        return join_path(mSettings->get_torrents_path(), pInfoHash + EXT_FASTRESUME).string();
     }
 
     inline std::string Service::get_torrent_file(const std::string &pInfoHash) const {
-        return join_path(mSettings->get_torrents_path(), pInfoHash + EXT_TORRENT);
+        return join_path(mSettings->get_torrents_path(), pInfoHash + EXT_TORRENT).string();
     }
 
     inline std::string Service::get_magnet_file(const std::string &pInfoHash) const {
-        return join_path(mSettings->get_torrents_path(), pInfoHash + EXT_MAGNET);
+        return join_path(mSettings->get_torrents_path(), pInfoHash + EXT_MAGNET).string();
     }
 
     inline void Service::delete_parts_file(const std::string &pInfoHash) const {
