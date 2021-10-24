@@ -9,7 +9,7 @@
 #include "api/dto/torrent_info_status.h"
 #include "api/dto/file_info_status.h"
 
-#define GET_TORRENT(infoHash) Torrest::get_instance().get_service()->get_torrent(infoHash->std_str())
+#define GET_TORRENT(infoHash) Torrest::get_instance().get_service()->get_torrent(infoHash)
 
 namespace torrest { namespace api {
 
@@ -54,7 +54,7 @@ public:
     ENDPOINT("GET", "/torrents/{infoHash}/remove", removeTorrent,
              PATH(String, infoHash, "infoHash"),
              QUERY(Boolean, deleteFiles, "delete", "true")) {
-        Torrest::get_instance().get_service()->remove_torrent(infoHash->std_str(), deleteFiles);
+        Torrest::get_instance().get_service()->remove_torrent(infoHash, deleteFiles);
         return createDtoResponse(Status::CODE_200, MessageResponse::create("Torrent removed"));
     }
 

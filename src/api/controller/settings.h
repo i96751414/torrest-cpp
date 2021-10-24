@@ -42,7 +42,7 @@ public:
     }
 
     ENDPOINT("POST", "/settings/set", setSettings, QUERY(Boolean, reset, "reset", "false"), BODY_STRING(String, body)) {
-        Settings settings = Settings::parse(body->std_str());
+        Settings settings = Settings::parse(body);
         settings.validate();
 
         Torrest::get_instance().update_settings(settings, reset);

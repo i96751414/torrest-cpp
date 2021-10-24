@@ -10,7 +10,7 @@
 #include "api/dto/file_info.h"
 #include "torrest.h"
 
-#define GET_FILE(infoHash, file) Torrest::get_instance().get_service()->get_torrent(infoHash->std_str())->get_file(file)
+#define GET_FILE(infoHash, file) Torrest::get_instance().get_service()->get_torrent(infoHash)->get_file(file)
 
 namespace torrest { namespace api {
 

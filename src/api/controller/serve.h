@@ -47,8 +47,7 @@ public:
         auto logger = ApiLogger::get_instance()->get_logger();
         auto file = GET_FILE(pInfoHash, pFile);
         auto mime = guess_mime_type(std::experimental::filesystem::path(file->get_name()).extension().string());
-        logger->trace("operation=serve, infoHash={}, name='{}', mime='{}'",
-                      pInfoHash->std_str(), file->get_name(), mime);
+        logger->trace("operation=serve, infoHash={}, name='{}', mime='{}'", pInfoHash->c_str(), file->get_name(), mime);
 
         auto code = Status::CODE_200;
         std::shared_ptr<oatpp::web::protocol::http::outgoing::Body> body = nullptr;
@@ -57,7 +56,7 @@ public:
 
         auto rangeHeader = pRequest->getHeader(Header::RANGE);
         if (rangeHeader != nullptr) {
-            auto range = range_parser::parse(rangeHeader->std_str(), file->get_size());
+            auto range = range_parser::parse(rangeHeader, file->get_size());
             if (range.unit != range_parser::UNIT_BYTES) {
                 return createDtoResponse(Status::CODE_416, MessageResponse::create("Invalid range"));
             }

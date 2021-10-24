@@ -59,7 +59,7 @@ int main(int argc, const char *argv[]) {
         torrest::api::AppComponent component(port);
         OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router);
 #if TORREST_ENABLE_SWAGGER
-        auto docEndpoints = SwaggerController::Endpoints::createShared();
+        auto docEndpoints = std::make_shared<SwaggerController::Endpoints>();
 #endif
 
         std::vector<std::shared_ptr<oatpp::web::server::api::ApiController>> controllers;
@@ -72,7 +72,8 @@ int main(int argc, const char *argv[]) {
         for (auto &controller : controllers) {
             controller->addEndpointsToRouter(router);
 #if TORREST_ENABLE_SWAGGER
-            docEndpoints->pushBackAll(controller->getEndpoints());
+            auto controllerEndpoints = controller->getEndpoints();
+            docEndpoints->insert(docEndpoints->end(), controllerEndpoints->begin(), controllerEndpoints->end());
 #endif
         }
 
