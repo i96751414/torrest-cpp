@@ -14,12 +14,20 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+feature_option(BUILD_SHARED_LIBS "build torrest as a shared library" ON)
+
+if (NOT BUILD_SHARED_LIBS)
+    set(Boost_USE_STATIC_LIBS ON)
+    set(OPENSSL_USE_STATIC_LIBS ON)
+endif ()
+
 find_package(range_parser 1.0.1 REQUIRED)
 find_package(nlohmann_json 3.9.0 REQUIRED)
 find_package(spdlog 1.8.5 REQUIRED)
 find_package(oatpp 1.3.0 REQUIRED)
 find_package(oatpp-swagger 1.3.0 REQUIRED)
 find_package(OpenSSL 1.1.1 REQUIRED)
+find_package(Boost 1.72.0 REQUIRED COMPONENTS filesystem)
 find_package(LibtorrentRasterbar 1.2.14 REQUIRED COMPONENTS torrent-rasterbar)
 
 add_executable(torrest
@@ -37,16 +45,16 @@ add_executable(torrest
         src/api/logger_interceptor.cpp
         src/main.cpp)
 
-target_include_directories(torrest PRIVATE src)
+target_include_directories(torrest PRIVATE src PUBLIC {Boost_INCLUDE_DIRS})
 
 target_link_libraries(torrest
-        stdc++fs
         range_parser::range_parser
         nlohmann_json::nlohmann_json
         spdlog::spdlog
         oatpp::oatpp
         oatpp::oatpp-swagger
         OpenSSL::Crypto OpenSSL::SSL
+        ${Boost_FILESYSTEM_LIBRARY}
         LibtorrentRasterbar::torrent-rasterbar)
 
 target_optional_compile_definitions(torrest PUBLIC FEATURE NAME enable_swagger DEFAULT ON

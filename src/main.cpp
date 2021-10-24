@@ -1,5 +1,4 @@
-#include <experimental/filesystem>
-
+#include "boost/filesystem.hpp"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_sinks.h"
 #include "oatpp/network/Server.hpp"
@@ -36,7 +35,7 @@ int main(int argc, const char *argv[]) {
     auto settingsPath = cmdArgs.getNamedArgumentValue("--settings", "settings.json");
 
     torrest::Settings settings;
-    if (std::experimental::filesystem::exists(settingsPath)) {
+    if (boost::filesystem::exists(settingsPath)) {
         logger->debug("operation=main, message='Loading settings file', settingsPath='{}'", settingsPath);
         settings = torrest::Settings::load(settingsPath);
         settings.validate();

@@ -33,7 +33,7 @@ $(TORREST_TARGETS):
 	$(eval PLATFORM := $(@:torrest-%=%))
 	[ "$(PLATFORM)" = dev ] \
 		&& OPTS='-DCMAKE_BUILD_TYPE=Debug' \
-		|| OPTS='-DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE} -DOPENSSL_USE_STATIC_LIBS=TRUE'; \
+		|| OPTS='-DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE} -DBUILD_SHARED_LIBS=OFF'; \
 	case "$(PLATFORM)" in windows*) EXECUTABLE="torrest.exe" ;; *) EXECUTABLE="torrest" ;; esac; \
 	mkdir -p "$(ROOT_DIR)/build/$(PLATFORM)" && \
 	docker run --rm -u "$$(id -u):$$(id -g)" -v "$(ROOT_DIR):/build" -w "/build" \

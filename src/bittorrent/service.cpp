@@ -1,8 +1,8 @@
 #include "service.h"
 
 #include <thread>
-#include <experimental/filesystem>
 
+#include "boost/filesystem.hpp"
 #include "spdlog/sinks/stdout_sinks.h"
 #include "libtorrent/alert_types.hpp"
 #include "libtorrent/write_resume_data.hpp"
@@ -305,8 +305,8 @@ namespace torrest { namespace bittorrent {
     }
 
     void Service::configure(const Settings &pSettings) {
-        std::experimental::filesystem::create_directory(pSettings.download_path);
-        std::experimental::filesystem::create_directory(pSettings.torrents_path);
+        boost::filesystem::create_directory(pSettings.download_path);
+        boost::filesystem::create_directory(pSettings.torrents_path);
 
         mLogger->set_level(pSettings.service_log_level);
         mAlertsLogger->set_level(pSettings.alert_log_level);
@@ -621,8 +621,8 @@ namespace torrest { namespace bittorrent {
 
         if (pSaveFile) {
             auto destPath = get_torrent_file(infoHash);
-            if (!std::experimental::filesystem::equivalent(pFile, destPath)) {
-                std::experimental::filesystem::copy_file(pFile, destPath);
+            if (!boost::filesystem::equivalent(pFile, destPath)) {
+                boost::filesystem::copy_file(pFile, destPath);
             }
         }
 
@@ -657,8 +657,8 @@ namespace torrest { namespace bittorrent {
         std::vector<std::string> torrentFiles;
         std::vector<std::string> magnetFiles;
 
-        for (auto &p : std::experimental::filesystem::directory_iterator(mSettings->get_torrents_path())) {
-            if (std::experimental::filesystem::is_regular_file(p.path())) {
+        for (auto &p : boost::filesystem::directory_iterator(mSettings->get_torrents_path())) {
+            if (boost::filesystem::is_regular_file(p.path())) {
                 auto ext = p.path().extension();
                 if (ext == EXT_FASTRESUME) {
                     fastResumeFiles.emplace_back(p.path().string());
@@ -676,7 +676,7 @@ namespace torrest { namespace bittorrent {
             } catch (const BittorrentException &e) {
                 mLogger->error("operation=load_torrent_files, message='Failed adding torrent with resume data'"
                                ", what='{}', file='{}'", e.what(), f);
-                std::experimental::filesystem::remove(f);
+                boost::filesystem::remove(f);
             }
         }
 
@@ -686,7 +686,7 @@ namespace torrest { namespace bittorrent {
             } catch (const LoadTorrentException &e) {
                 mLogger->error("operation=load_torrent_files, message='Failed loading torrent', what='{}', file='{}'",
                                e.what(), f);
-                std::experimental::filesystem::remove(f);
+                boost::filesystem::remove(f);
             } catch (const BittorrentException &e) {
                 mLogger->error("operation=load_torrent_files, message='Failed adding torrent', what='{}', file='{}'",
                                e.what(), f);
@@ -713,17 +713,17 @@ namespace torrest { namespace bittorrent {
             } catch (const BittorrentException &e) {
                 mLogger->error("operation=load_torrent_files, message='Failed adding magnet', what='{}', file='{}'",
                                e.what(), f);
-                std::experimental::filesystem::remove(f);
+                boost::filesystem::remove(f);
             }
         }
 
-        for (auto &p : std::experimental::filesystem::directory_iterator(mSettings->get_download_path())) {
-            if (p.path().extension() == EXT_PARTS && std::experimental::filesystem::is_regular_file(p.path())) {
+        for (auto &p : boost::filesystem::directory_iterator(mSettings->get_download_path())) {
+            if (p.path().extension() == EXT_PARTS && boost::filesystem::is_regular_file(p.path())) {
                 auto infoHash = ltrim_copy(p.path().stem().string(), ".");
                 if (!has_torrent(infoHash)) {
                     mLogger->debug("operation=load_torrent_files, message='Cleaning stale parts', infoHash={}",
                                    infoHash);
-                    std::experimental::filesystem::remove(p.path());
+                    boost::filesystem::remove(p.path());
                 }
             }
         }
@@ -817,19 +817,19 @@ namespace torrest { namespace bittorrent {
     }
 
     inline void Service::delete_parts_file(const std::string &pInfoHash) const {
-        std::experimental::filesystem::remove(get_parts_file(pInfoHash));
+        boost::filesystem::remove(get_parts_file(pInfoHash));
     }
 
     inline void Service::delete_fast_resume_file(const std::string &pInfoHash) const {
-        std::experimental::filesystem::remove(get_fast_resume_file(pInfoHash));
+        boost::filesystem::remove(get_fast_resume_file(pInfoHash));
     }
 
     inline void Service::delete_torrent_file(const std::string &pInfoHash) const {
-        std::experimental::filesystem::remove(get_torrent_file(pInfoHash));
+        boost::filesystem::remove(get_torrent_file(pInfoHash));
     }
 
     inline void Service::delete_magnet_file(const std::string &pInfoHash) const {
-        std::experimental::filesystem::remove(get_magnet_file(pInfoHash));
+        boost::filesystem::remove(get_magnet_file(pInfoHash));
     }
 
     bool Service::wait_for_abort(const int &pSeconds) {

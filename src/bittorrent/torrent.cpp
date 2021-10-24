@@ -1,7 +1,6 @@
 #include "torrent.h"
 
-#include <experimental/filesystem>
-
+#include "boost/filesystem.hpp"
 #include "libtorrent/torrent_status.hpp"
 #include "libtorrent/torrent_info.hpp"
 #include "service.h"
@@ -185,7 +184,7 @@ namespace torrest { namespace bittorrent {
             return;
         }
 
-        auto spaceInfo = std::experimental::filesystem::space(pPath);
+        auto spaceInfo = boost::filesystem::space(pPath);
         if (spaceInfo.free < status.total - status.total_done) {
             mLogger->warn("operation=check_available_space, message='Insufficient space on {}', infoHash={}",
                           status.save_path, mInfoHash);

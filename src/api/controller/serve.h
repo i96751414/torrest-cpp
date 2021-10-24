@@ -1,6 +1,7 @@
 #ifndef TORREST_SERVE_CONTROLLER_H
 #define TORREST_SERVE_CONTROLLER_H
 
+#include "boost/filesystem.hpp"
 #include "oatpp/web/server/api/ApiController.hpp"
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/macro/component.hpp"
@@ -46,7 +47,7 @@ public:
                                             const Int32 &pFile) {
         auto logger = ApiLogger::get_instance()->get_logger();
         auto file = GET_FILE(pInfoHash, pFile);
-        auto mime = guess_mime_type(std::experimental::filesystem::path(file->get_name()).extension().string());
+        auto mime = guess_mime_type(boost::filesystem::path(file->get_name()).extension().string());
         logger->trace("operation=serve, infoHash={}, name='{}', mime='{}'", pInfoHash->c_str(), file->get_name(), mime);
 
         auto code = Status::CODE_200;

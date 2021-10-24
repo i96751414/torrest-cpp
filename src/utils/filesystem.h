@@ -2,14 +2,14 @@
 #define TORREST_FILESYSTEM_H
 
 #include <string>
-#include <experimental/filesystem>
+
+#include "boost/filesystem.hpp"
 
 namespace torrest {
 
     template<typename... Args>
-    std::experimental::filesystem::path join_path(const std::experimental::filesystem::path &pBasePath,
-                                                  Args const &... pArgs) {
-        std::experimental::filesystem::path path(pBasePath);
+    boost::filesystem::path join_path(const boost::filesystem::path &pBasePath, Args const &... pArgs) {
+        boost::filesystem::path path(pBasePath);
         using unpack = int[];
         (void) unpack{0, (path /= pArgs, 0)...};
         return path;
