@@ -58,7 +58,7 @@ int main(int argc, const char *argv[]) {
         torrest::api::AppComponent component(port);
         OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router);
 #if TORREST_ENABLE_SWAGGER
-        auto docEndpoints = std::make_shared<SwaggerController::Endpoints>();
+        oatpp::web::server::api::Endpoints docEndpoints{};
 #endif
 
         std::vector<std::shared_ptr<oatpp::web::server::api::ApiController>> controllers;
@@ -69,16 +69,14 @@ int main(int argc, const char *argv[]) {
         controllers.emplace_back(std::make_shared<torrest::api::ServeController>());
 
         for (auto &controller : controllers) {
-            controller->addEndpointsToRouter(router);
+            router->addController(controller);
 #if TORREST_ENABLE_SWAGGER
-            auto controllerEndpoints = controller->getEndpoints();
-            docEndpoints->insert(docEndpoints->end(), controllerEndpoints->begin(), controllerEndpoints->end());
+            docEndpoints.append(controller->getEndpoints());
 #endif
         }
 
 #if TORREST_ENABLE_SWAGGER
-        auto swaggerController = SwaggerController::createShared(docEndpoints);
-        swaggerController->addEndpointsToRouter(router);
+        router->addController(SwaggerController::createShared(docEndpoints));
         logger->debug("operation=main, message='Swagger available at http://localhost:{}/swagger/ui'", port);
 #endif
 

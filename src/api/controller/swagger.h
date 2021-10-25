@@ -22,7 +22,7 @@ public:
               mDocument(std::move(pDocument)) {}
 
     static std::shared_ptr<SwaggerController> createShared(
-            const std::shared_ptr<Endpoints> &pEndpointsList,
+            const oatpp::web::server::api::Endpoints& pEndpointsList,
             OATPP_COMPONENT(std::shared_ptr<oatpp::swagger::DocumentInfo>, pDocumentInfo)) {
 
         auto serializerConfig = oatpp::parser::json::mapping::Serializer::Config::createShared();
