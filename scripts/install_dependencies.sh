@@ -123,9 +123,8 @@ function cleanup() {
 
 function buildCmake() {
   mkdir "${cmake_build_dir}"
-  # -DCMAKE_TOOLCHAIN_FILE=/path/to/toolchain/file.cmake
   local cmake_options=(-B "${cmake_build_dir}" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD="${CXX_STANDARD}"
-    -DCMAKE_INSTALL_PREFIX="${PREFIX}")
+    -DCMAKE_INSTALL_PREFIX="${PREFIX}" -DCMAKE_CXX_FLAGS_RELEASE="-O2 -DNDEBUG" -DCMAKE_C_FLAGS_RELEASE="-O2 -DNDEBUG")
   [ "${static}" == true ] && cmake_options+=(-DBUILD_SHARED_LIBS=OFF) || cmake_options+=(-DBUILD_SHARED_LIBS=ON)
   [ -n "${CMAKE_TOOLCHAIN_FILE}" ] && cmake_options+=(-DCMAKE_TOOLCHAIN_FILE="${CMAKE_TOOLCHAIN_FILE}")
   cmake "${cmake_options[@]}" "$@"
