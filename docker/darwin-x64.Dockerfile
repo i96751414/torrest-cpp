@@ -15,18 +15,16 @@ ENV OPENSSL_CROSS_COMPILE "${CROSS_TRIPLE}-"
 # Fix Boost using wrong archiver / ignoring <archiver> flags
 # https://svn.boost.org/trac/boost/ticket/12573
 # https://github.com/boostorg/build/blob/boost-1.63.0/src/tools/clang-darwin.jam#L133
-RUN mv /usr/bin/ar /usr/bin/ar.orig && \
-    mv /usr/bin/strip /usr/bin/strip.orig && \
-    mv /usr/bin/ranlib /usr/bin/ranlib.orig && \
-    ln -sf "${CROSS_ROOT}/bin/${CROSS_TRIPLE}-ar" /usr/bin/ar && \
-    ln -sf "${CROSS_ROOT}/bin/${CROSS_TRIPLE}-strip" /usr/bin/strip && \
-    ln -sf "${CROSS_ROOT}/bin/${CROSS_TRIPLE}-ranlib" /usr/bin/ranlib
+RUN for i in ar strip ranlib; do \
+        mv "/usr/bin/${i}" "/usr/bin/${i}.orig" \
+        && ln -sf "${CROSS_ROOT}/bin/${CROSS_TRIPLE}-${i}" "/usr/bin/${i}"; \
+    done
 
 COPY install_dependencies.sh versions.env /tmp/
 RUN /tmp/install_dependencies.sh --static \
     && rm /tmp/*
 
 # Move back ar, strip and ranlib...
-RUN mv /usr/bin/ar.orig /usr/bin/ar && \
-    mv /usr/bin/strip.orig /usr/bin/strip && \
-    mv /usr/bin/ranlib.orig /usr/bin/ranlib
+RUN for i in ar strip ranlib; do \
+      mv "/usr/bin/${i}.orig" "/usr/bin/${i}"; \
+    done
