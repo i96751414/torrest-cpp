@@ -19,10 +19,10 @@ build: $(BUILD_TARGETS)
 $(BUILD_TARGETS):
 	$(eval PLATFORM := $(@:build-%=%))
 	docker build \
-		--tag $(IMAGE_PREFIX)-$(PLATFORM):$(IMAGE_TAG) \
-		--build-arg CROSS_COMPILER_TAG=$(CROSS_COMPILER_TAG) \
-		--file ${ROOT_DIR}/docker/$(PLATFORM).Dockerfile \
-		${ROOT_DIR}/scripts
+		--tag "$(IMAGE_PREFIX)-$(PLATFORM):$(IMAGE_TAG)" \
+		--build-arg CROSS_COMPILER_TAG="$(CROSS_COMPILER_TAG)" \
+		--file "${ROOT_DIR}/docker/$(PLATFORM).Dockerfile" \
+		"${ROOT_DIR}/scripts"
 
 push: $(PUSH_TARGETS)
 
@@ -38,7 +38,7 @@ $(TORREST_TARGETS):
 		|| OPTS='-DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE} -DBUILD_SHARED_LIBS=OFF'; \
 	mkdir -p "$(ROOT_DIR)/build/$(PLATFORM)" && \
 	docker run --rm -u "$$(id -u):$$(id -g)" -v "$(ROOT_DIR):/build" -w "/build" \
-    	$(IMAGE_PREFIX)-$(PLATFORM):$(IMAGE_TAG) bash -c "\
+    	"$(IMAGE_PREFIX)-$(PLATFORM):$(IMAGE_TAG)" bash -c "\
     		cmake -B /tmp/cmake-build $${OPTS} -Dtarget_path="/build/build/$(PLATFORM)/" && \
     		cmake --build /tmp/cmake-build --target torrest -- -j '$$(nproc)'"
 
