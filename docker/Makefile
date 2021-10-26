@@ -4,6 +4,7 @@ CROSS_COMPILER_TAG ?= latest
 ROOT_DIR = $(abspath $(lastword $(MAKEFILE_LIST))/../..)
 
 PLATFORMS = dev \
+	android-arm android-arm64 android-x64 android-x86 \
 	darwin-x64 \
 	linux-x64 linux-x86 \
 	windows-x64 windows-x86
@@ -35,13 +36,11 @@ $(TORREST_TARGETS):
 	[ "$(PLATFORM)" = dev ] \
 		&& OPTS='-DCMAKE_BUILD_TYPE=Debug' \
 		|| OPTS='-DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE} -DBUILD_SHARED_LIBS=OFF'; \
-	case "$(PLATFORM)" in windows*) EXECUTABLE="torrest.exe" ;; *) EXECUTABLE="torrest" ;; esac; \
 	mkdir -p "$(ROOT_DIR)/build/$(PLATFORM)" && \
 	docker run --rm -u "$$(id -u):$$(id -g)" -v "$(ROOT_DIR):/build" -w "/build" \
     	$(IMAGE_PREFIX)-$(PLATFORM):$(IMAGE_TAG) bash -c "\
-    		cmake -B /tmp/cmake-build $${OPTS} && \
-    		cmake --build /tmp/cmake-build --target torrest -- -j '$$(nproc)' && \
-    		cp '/tmp/cmake-build/$${EXECUTABLE}' '/build/build/$(PLATFORM)/'"
+    		cmake -B /tmp/cmake-build $${OPTS} -Dtarget_path="/build/build/$(PLATFORM)/" && \
+    		cmake --build /tmp/cmake-build --target torrest -- -j '$$(nproc)'"
 
 clean:
 	rm -rf "$(ROOT_DIR)/build"

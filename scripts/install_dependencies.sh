@@ -19,7 +19,7 @@ fi
 function printAllowedOptions() {
   IFS='|' read -ra options <<<"${allowed_opts}"
   for opt in "${options[@]}"; do
-    printf '  --%-15s Build and install %s\n' "${opt}" "${opt}"
+    printf '  --%-19s Build and install %s\n' "${opt}" "${opt}"
   done
 }
 
@@ -36,17 +36,19 @@ Additional environment variables can also be passed, such as:
   PREFIX (default: /usr/local)
   BOOST_CONFIG (default: "using gcc ;")
   BOOST_OPTS (default: not set)
-  OPENSSL_PLATFORM (default: not set)
+  OPENSSL_OPTS (default: not set)
   OPENSSL_CROSS_COMPILE (default: not set)
   CMAKE_TOOLCHAIN_FILE (default: not set)
 
 optional arguments:
 $(printAllowedOptions)
-  --fix-mingw-headers Fix mingw 'WinSock2' and 'WS2tcpip' headers name before building.
-  -s, --static      Do a static build
-  -e, --env         Path of file containing versions environment variables (default: ${env_path})
-  -j, --jobs        Build jobs number (default: ${jobs})
-  -h, --help        Show this message
+  --fix-mingw-headers   Fix mingw 'WinSock2' and 'WS2tcpip' headers name before building.
+  -s, --static          Do a static build
+  -r, --static-runtime  Build with static runtime
+  -e, --env             Path of file containing versions environment variables (default: ${env_path})
+  -j, --jobs            Build jobs number (default: ${jobs})
+  -v, --verbose         Do a verbose build
+  -h, --help            Show this message
 
 EOF
   exit "$1"
@@ -83,12 +85,16 @@ function checkRequirement() {
 # Parse options
 all=true
 static=false
+static_runtime=false
 fix_mingw_headers=false
+verbose=false
 
 while [ $# -gt 0 ]; do
   case "$1" in
   -h | --help) usage 0 ;;
+  -v | --verbose) verbose=true ;;
   -s | --static) static=true ;;
+  -r | --static-runtime) static_runtime=true ;;
   -e | --env) validateFile "$2" "$1" && shift && env_path="$1" ;;
   -j | --jobs) validateNumber "$2" "$1" && shift && jobs="$1" ;;
   --fix-mingw-headers) fix_mingw_headers=true ;;
@@ -97,6 +103,8 @@ while [ $# -gt 0 ]; do
   esac
   shift
 done
+
+[ "${verbose}" == true ] && set -x
 
 checkRequirement cmake
 # shellcheck source=versions.env
@@ -135,6 +143,13 @@ function buildCmake() {
 function mingwFixHeaders() {
   echo "- Fixing mingw headers"
   find "${tmp_dir}" -type f -exec sed -i -e 's/WinSock2.h/winsock2.h/i' -e 's/WS2tcpip.h/ws2tcpip.h/i' {} +
+}
+
+function parseArgsToArray() {
+  ARGS=()
+  while IFS= read -r -d ''; do
+    ARGS+=("${REPLY}")
+  done < <(xargs -r printf '%s\0' <<<"${1}")
 }
 
 if requires "range-parser"; then
@@ -181,10 +196,13 @@ if requires "openssl"; then
   echo "- Downloading openssl ${OPENSSL_VERSION}"
   download "https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz"
   echo "- Building openssl ${OPENSSL_VERSION}"
-  if [ -n "${OPENSSL_PLATFORM}" ]; then
-    CROSS_COMPILE="${OPENSSL_CROSS_COMPILE}" ./Configure threads no-shared "${OPENSSL_PLATFORM}" --prefix="${PREFIX}"
+  parseArgsToArray "${OPENSSL_OPTS}"
+  opts=(threads no-shared "${ARGS[@]}" --prefix="${PREFIX}")
+  [ "${static}" == true ] && opts+=(no-shared) || opts+=(shared)
+  if [ -n "${OPENSSL_CROSS_COMPILE}" ]; then
+    CROSS_COMPILE="${OPENSSL_CROSS_COMPILE}" ./Configure "${opts[@]}"
   else
-    ./config threads no-shared --prefix="${PREFIX}"
+    ./config "${opts[@]}"
   fi
   make -j"${jobs}"
   ${CMD} make install
@@ -200,8 +218,9 @@ if requires "boost"; then
   boost_options=(-j"${jobs}" --with-date_time --with-system --with-filesystem --with-chrono --with-random --prefix="${PREFIX}"
     --user-config=user-config.jam variant=release threading=multi cxxflags=-std=c++"${CXX_STANDARD}")
   [ "${static}" == true ] && boost_options+=(link=static)
-  # shellcheck disable=SC2086
-  ${CMD} ./b2 "${boost_options[@]}" ${BOOST_OPTS} install
+  [ "${static_runtime}" == true ] && boost_options+=(runtime-link=static)
+  parseArgsToArray "${BOOST_OPTS}"
+  ${CMD} ./b2 "${boost_options[@]}" "${ARGS[@]}" install
   cleanup
 fi
 
@@ -210,7 +229,7 @@ if requires "libtorrent"; then
   download "https://github.com/arvidn/libtorrent/archive/${LIBTORRENT_VERSION}.tar.gz"
   echo "- Building libtorrent ${LIBTORRENT_VERSION}"
   opts=(-Ddeprecated-functions=OFF)
-  [ "${static}" == true ] && opts+=(-Dstatic_runtime=ON)
+  [ "${static_runtime}" == true ] && opts+=(-Dstatic_runtime=ON)
   buildCmake "${opts[@]}"
   cleanup
 fi

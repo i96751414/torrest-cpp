@@ -8,7 +8,7 @@ FROM i96751414/cross-compiler-darwin-x64:${CROSS_COMPILER_TAG}
 ENV PREFIX "${CROSS_ROOT}"
 ENV BOOST_CONFIG "using clang : : ${CROSS_TRIPLE}-c++ -fvisibility=hidden -fvisibility-inlines-hidden ;"
 ENV BOOST_OPTS target-os=darwin
-ENV OPENSSL_PLATFORM darwin64-x86_64-cc
+ENV OPENSSL_OPTS darwin64-x86_64-cc
 ENV OPENSSL_CROSS_COMPILE "${CROSS_TRIPLE}-"
 # ENV CMAKE_TOOLCHAIN_FILE is already set on the base image
 

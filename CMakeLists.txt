@@ -15,10 +15,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 feature_option(BUILD_SHARED_LIBS "build torrest as a shared library" ON)
+feature_option(static_runtime "build torrest with static runtime" OFF)
 
 if (NOT BUILD_SHARED_LIBS)
     set(Boost_USE_STATIC_LIBS ON)
     set(OPENSSL_USE_STATIC_LIBS ON)
+endif ()
+if (static_runtime)
+    set(Boost_USE_STATIC_RUNTIME ON)
 endif ()
 
 find_package(range_parser 1.0.1 REQUIRED)
@@ -64,5 +68,10 @@ target_optional_compile_definitions(torrest PUBLIC FEATURE NAME with_swagger_loc
         OATPP_SWAGGER_RES_PATH="${oatpp-swagger_INCLUDE_DIRS}/../bin/oatpp-swagger/res")
 target_optional_compile_definitions(torrest PUBLIC FEATURE NAME enable_shutdown DEFAULT ON
         DESCRIPTION "Enables shutdown endpoint" ENABLED TORREST_ENABLE_SHUTDOWN)
+
+if (DEFINED target_path)
+    add_custom_command(TARGET torrest POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:torrest> "${target_path}")
+endif ()
 
 feature_summary(DEFAULT_DESCRIPTION WHAT ALL)

@@ -8,7 +8,7 @@ FROM i96751414/cross-compiler-linux-x86:${CROSS_COMPILER_TAG}
 ENV PREFIX "${CROSS_ROOT}"
 ENV BOOST_CONFIG "using gcc : : ${CROSS_TRIPLE}-c++ ;"
 ENV BOOST_OPTS target-os=linux
-ENV OPENSSL_PLATFORM linux-elf
+ENV OPENSSL_OPTS linux-elf
 ENV OPENSSL_CROSS_COMPILE "${CROSS_TRIPLE}-"
 # ENV CMAKE_TOOLCHAIN_FILE is already set on the base image
 
