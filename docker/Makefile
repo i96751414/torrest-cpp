@@ -6,7 +6,7 @@ ROOT_DIR = $(abspath $(lastword $(MAKEFILE_LIST))/../..)
 PLATFORMS = dev \
 	android-arm android-arm64 android-x64 android-x86 \
 	darwin-x64 \
-	linux-x64 linux-x86 \
+	linux-arm64 linux-armv7 linux-x64 linux-x86 \
 	windows-x64 windows-x86
 
 BUILD_TARGETS = $(addprefix build-, $(PLATFORMS))
