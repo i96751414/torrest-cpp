@@ -1,6 +1,7 @@
 # torrest-cpp
 
 [![Build Status](https://github.com/i96751414/torrest-cpp/actions/workflows/build.yml/badge.svg)](https://github.com/i96751414/torrest-cpp/actions/workflows/build.yml)
+[![cross-build](https://github.com/i96751414/torrest-cpp/actions/workflows/cross.yaml/badge.svg)](https://github.com/i96751414/torrest-cpp/actions/workflows/cross.yaml)
 
 Torrent service with a REST api, specially made for streaming. This is the C++ implementation of the
 [Torrest (golang)](https://github.com/i96751414/torrest) project.
@@ -61,6 +62,43 @@ Below is the list of supported CMake build configurations (which are then mapped
 |enable_swagger|ON|TORREST_ENABLE_SWAGGER|Enables swagger on http://localhost:8080/swagger/ui endpoint|
 |with_swagger_local_resources|OFF|OATPP_SWAGGER_RES_PATH|Sets the swagger resources path to the oatpp-swagger directory|
 |enable_shutdown|ON|TORREST_ENABLE_SHUTDOWN|Enables the shutdown endpoint (http://localhost:8080/shutdown)|
+
+## Cross Compiling
+
+One can also cross compile Torrest to the platforms listed in the below table. To do so, multiple docker images were
+created (see `docker` directory) in order to support this process.
+
+|Android|Darwin|Linux|Windows|
+|-------|------|-----|-------|
+|android-arm<br/>android-arm64<br/>android-x64<br/>android-x86<br/>|darwin-x64<br/><br/><br/><br/>|linux-armv7<br/>linux-arm64<br/>linux-x64<br/>linux-x86|windows-x64<br/>windows-x86<br/><br/><br/>|
+
+### Building images
+
+In order to build all docker images, simply run the following command:
+
+```shell
+make -f docker/Makefile build
+```
+
+For building a specific image, run:
+
+```shell
+make -f docker/Makefile build-<platform>
+```
+
+### Cross compiling Torrest
+
+Similarly, one can also build Torrest using the pre-built docker image. To do so, one needs to use the `torrest` target:
+
+```shell
+make -f docker/Makefile torrest
+```
+
+Or for a specific platform:
+
+```shell
+make -f docker/Makefile torrest-<platform>
+```
 
 ## Running Torrest
 
