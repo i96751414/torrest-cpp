@@ -1,0 +1,18 @@
+extraction:
+  cpp:
+    prepare:
+      packages:
+        - wget
+        - make
+        - build-essential
+    after_prepare:
+      - |
+        CMAKE_VERSION=3.20.3
+        wget "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz" \
+          --no-check-certificate -qO - | tar --strip-components=1 -xz -C cmake
+        mkdir workspace
+        CMD=" " PREFIX="$(pwd)/workspace" ./scripts/install_dependencies.sh
+    index:
+      build_command: |
+        ./cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_FIND_ROOT_PATH="$(pwd)/workspace" .
+        ./cmake/bin/cmake --build .
