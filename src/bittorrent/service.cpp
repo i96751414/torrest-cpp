@@ -402,6 +402,7 @@ namespace torrest { namespace bittorrent {
                 encPolicy = libtorrent::settings_pack::pe_forced;
                 encLevel = libtorrent::settings_pack::pe_rc4;
                 preferRc4 = true;
+                break;
             default:
                 encPolicy = libtorrent::settings_pack::pe_enabled;
                 encLevel = libtorrent::settings_pack::pe_both;
