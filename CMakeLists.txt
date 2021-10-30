@@ -71,7 +71,7 @@ target_optional_compile_definitions(torrest PUBLIC FEATURE NAME enable_shutdown 
 
 if (DEFINED target_path)
     add_custom_command(TARGET torrest POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:torrest> "${target_path}")
+            COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:torrest>" "${target_path}")
 endif ()
 
 feature_summary(DEFAULT_DESCRIPTION WHAT ALL)
