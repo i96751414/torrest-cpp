@@ -2,6 +2,7 @@
 
 [![Build Status](https://github.com/i96751414/torrest-cpp/actions/workflows/build.yml/badge.svg)](https://github.com/i96751414/torrest-cpp/actions/workflows/build.yml)
 [![cross-build](https://github.com/i96751414/torrest-cpp/actions/workflows/cross.yaml/badge.svg)](https://github.com/i96751414/torrest-cpp/actions/workflows/cross.yaml)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/f16ca71d4f034660ac593fafce2479b7)](https://www.codacy.com/gh/i96751414/torrest-cpp/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=i96751414/torrest-cpp&amp;utm_campaign=Badge_Grade)
 
 Torrent service with a REST api, specially made for streaming. This is the C++ implementation of the
 [Torrest (golang)](https://github.com/i96751414/torrest) project.
@@ -15,14 +16,14 @@ version 3.17). Additionally, you need a build system to actually schedule builds
 
 Torrest has several external dependencies. Below is a list of them and the minimum version required:
 
-- [range-parser](https://github.com/i96751414/range-parser-cpp) (v1.0.1)
-- [nlohmann-json](https://github.com/nlohmann/json) (v3.9.0)
-- [spdlog](https://github.com/gabime/spdlog) (v1.9.1)
-- [oatpp](https://github.com/oatpp/oatpp) (v1.3.0)
-- [oatpp-swagger](https://github.com/oatpp/oatpp-swagger) (v1.3.0)
-- [openssl](https://www.openssl.org) (1.1.1f)
-- [boost](https://www.boost.org) (1.72.0)
-- [libtorrent](https://github.com/arvidn/libtorrent) (v1.2.14)
+-   [range-parser](https://github.com/i96751414/range-parser-cpp) (v1.0.1)
+-   [nlohmann-json](https://github.com/nlohmann/json) (v3.9.0)
+-   [spdlog](https://github.com/gabime/spdlog) (v1.9.1)
+-   [oatpp](https://github.com/oatpp/oatpp) (v1.3.0)
+-   [oatpp-swagger](https://github.com/oatpp/oatpp-swagger) (v1.3.0)
+-   [openssl](https://www.openssl.org) (1.1.1f)
+-   [boost](https://www.boost.org) (1.72.0)
+-   [libtorrent](https://github.com/arvidn/libtorrent) (v1.2.14)
 
 ## Building
 
