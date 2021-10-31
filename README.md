@@ -1,7 +1,7 @@
 # torrest-cpp
 
 [![Build Status](https://github.com/i96751414/torrest-cpp/actions/workflows/build.yml/badge.svg)](https://github.com/i96751414/torrest-cpp/actions/workflows/build.yml)
-[![cross-build](https://github.com/i96751414/torrest-cpp/actions/workflows/cross.yaml/badge.svg)](https://github.com/i96751414/torrest-cpp/actions/workflows/cross.yaml)
+[![cross-build](https://github.com/i96751414/torrest-cpp/actions/workflows/cross.yml/badge.svg)](https://github.com/i96751414/torrest-cpp/actions/workflows/cross.yml)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/f16ca71d4f034660ac593fafce2479b7)](https://www.codacy.com/gh/i96751414/torrest-cpp/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=i96751414/torrest-cpp&amp;utm_campaign=Badge_Grade)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/i96751414/torrest-cpp.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/i96751414/torrest-cpp/alerts/)
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/i96751414/torrest-cpp.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/i96751414/torrest-cpp/context:cpp)
