@@ -2,7 +2,7 @@
 
 #include <map>
 
-namespace torrest {
+namespace torrest { namespace utils {
 
     std::map<std::string, std::string> &get_mimes() {
         static std::map<std::string, std::string> mimes = {
@@ -1002,4 +1002,4 @@ namespace torrest {
         return it == mimes.end() ? "application/octet-stream" : it->second;
     }
 
-}
+}}

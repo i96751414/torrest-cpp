@@ -5,7 +5,7 @@
 
 #include "boost/filesystem.hpp"
 
-namespace torrest {
+namespace torrest { namespace utils {
 
     template<typename... Args>
     boost::filesystem::path join_path(const boost::filesystem::path &pBasePath, Args const &... pArgs) {
@@ -15,6 +15,6 @@ namespace torrest {
         return path;
     }
 
-}
+}}
 
 #endif //TORREST_FILESYSTEM_H

@@ -94,7 +94,7 @@ public:
              QUERY(Boolean, download, "download", "false"),
              QUERY(Boolean, ignoreDuplicate, "ignore_duplicate", "false")) {
 
-        auto magnet = unescape_string(uri);
+        auto magnet = utils::unescape_string(uri);
         OATPP_ASSERT_HTTP(magnet.compare(0, 7, "magnet:") == 0, Status::CODE_400, "Invalid magnet provided")
 
         return handle_duplicate_torrent(

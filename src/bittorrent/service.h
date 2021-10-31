@@ -29,11 +29,11 @@ namespace torrest { namespace bittorrent {
 
     class Service {
     public:
-        explicit Service(const Settings &pSettings);
+        explicit Service(const settings::Settings &pSettings);
 
         ~Service();
 
-        void reconfigure(const Settings &pSettings, bool pReset);
+        void reconfigure(const settings::Settings &pSettings, bool pReset);
 
         std::shared_ptr<Torrent> get_torrent(const std::string &pInfoHash) const;
 
@@ -68,7 +68,7 @@ namespace torrest { namespace bittorrent {
 
         void handle_state_changed(const libtorrent::state_changed_alert *pAlert);
 
-        void configure(const Settings &pSettings);
+        void configure(const settings::Settings &pSettings);
 
         void set_buffering_rate_limits(bool pEnable);
 

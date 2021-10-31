@@ -1,7 +1,7 @@
 #ifndef TORREST_VALIDATION_H
 #define TORREST_VALIDATION_H
 
-#define _VALIDATE1(var, v1) if (_GET_OPERATOR v1 (var _GET_VALIDATOR v1)) throw torrest::ValidationException("'" #var "' " _GET_MESSAGE v1);
+#define _VALIDATE1(var, v1) if (_GET_OPERATOR v1 (var _GET_VALIDATOR v1)) throw torrest::utils::ValidationException("'" #var "' " _GET_MESSAGE v1);
 #define _VALIDATE2(var, v1, ...) _VALIDATE1(var, v1) _VALIDATE1(var, __VA_ARGS__)
 #define _VALIDATE3(var, v1, ...) _VALIDATE1(var, v1) _VALIDATE2(var, __VA_ARGS__)
 #define _GET_MACRO(_1, _2, _3, N, ...) N
@@ -17,13 +17,13 @@
 #define NOT_EMPTY() (, .empty(), "cannot be empty")
 #define VALIDATE(var, ...) _GET_MACRO(__VA_ARGS__, _VALIDATE3, _VALIDATE2, _VALIDATE1)(var, __VA_ARGS__)
 
-namespace torrest {
+namespace torrest { namespace utils {
 
     class ValidationException : public std::runtime_error {
     public:
         explicit ValidationException(const char *message) : std::runtime_error(message) {}
     };
 
-}
+}}
 
 #endif //TORREST_VALIDATION_H

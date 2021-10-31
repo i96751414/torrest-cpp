@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <sstream>
 
-namespace torrest {
+namespace torrest { namespace utils {
 
     uint16_t str_to_uint16(const char *pStr) {
         int value(std::stoi(pStr));
@@ -68,4 +68,4 @@ namespace torrest {
         return ret;
     }
 
-}
+}}

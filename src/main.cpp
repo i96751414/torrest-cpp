@@ -31,13 +31,13 @@ int main(int argc, const char *argv[]) {
     auto logger = spdlog::stdout_logger_mt("main");
 
     auto cmdArgs = oatpp::base::CommandLineArguments(argc, argv);
-    auto port = torrest::str_to_uint16(cmdArgs.getNamedArgumentValue("--port", "8080"));
+    auto port = torrest::utils::str_to_uint16(cmdArgs.getNamedArgumentValue("--port", "8080"));
     auto settingsPath = cmdArgs.getNamedArgumentValue("--settings", "settings.json");
 
-    torrest::Settings settings;
+    torrest::settings::Settings settings;
     if (boost::filesystem::exists(settingsPath)) {
         logger->debug("operation=main, message='Loading settings file', settingsPath='{}'", settingsPath);
-        settings = torrest::Settings::load(settingsPath);
+        settings = torrest::settings::Settings::load(settingsPath);
         settings.validate();
     } else {
         logger->debug("operation=main, message='Saving default settings file', settingsPath='{}'", settingsPath);

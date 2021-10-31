@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace torrest {
+namespace torrest { namespace utils {
 
     uint16_t str_to_uint16(const char *pStr);
 
@@ -21,6 +21,6 @@ namespace torrest {
         return ltrim(pStr, pChars);
     }
 
-}
+}}
 
 #endif //TORREST_CONVERSION_H

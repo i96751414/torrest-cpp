@@ -4,7 +4,7 @@
 #include "nlohmann/json.hpp"
 #include "spdlog/spdlog.h"
 
-namespace torrest {
+namespace torrest { namespace settings {
 
     enum UserAgent {
         ua_torrest_default,
@@ -133,6 +133,6 @@ namespace torrest {
 
     std::string get_user_agent(UserAgent pUserAgent);
 
-}
+}}
 
 #endif //TORREST_SETTINGS_H

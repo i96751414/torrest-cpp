@@ -80,7 +80,7 @@ namespace torrest { namespace bittorrent {
         return is;
     }
 
-    Service::Service(const Settings &pSettings)
+    Service::Service(const settings::Settings &pSettings)
             : mLogger(spdlog::stdout_logger_mt("bittorrent")),
               mAlertsLogger(spdlog::stdout_logger_mt("alerts")),
               mIsRunning(true),
@@ -290,7 +290,7 @@ namespace torrest { namespace bittorrent {
                     ? 100 * static_cast<double>(total_wanted_done) / static_cast<double>(total_wanted) : 100;
     }
 
-    void Service::reconfigure(const Settings &pSettings, bool pReset) {
+    void Service::reconfigure(const settings::Settings &pSettings, bool pReset) {
         mLogger->debug("operation=reconfigure, message='Reconfiguring service', reset={}", pReset);
         std::lock_guard<std::mutex> lock(mServiceMutex);
         configure(pSettings);
@@ -304,7 +304,7 @@ namespace torrest { namespace bittorrent {
         }
     }
 
-    void Service::configure(const Settings &pSettings) {
+    void Service::configure(const settings::Settings &pSettings) {
         boost::filesystem::create_directory(pSettings.download_path);
         boost::filesystem::create_directory(pSettings.torrents_path);
 
@@ -393,12 +393,12 @@ namespace torrest { namespace bittorrent {
         bool preferRc4;
 
         switch (pSettings.encryption_policy) {
-            case ep_disabled:
+            case settings::ep_disabled:
                 encPolicy = libtorrent::settings_pack::pe_disabled;
                 encLevel = libtorrent::settings_pack::pe_both;
                 preferRc4 = false;
                 break;
-            case ep_forced:
+            case settings::ep_forced:
                 encPolicy = libtorrent::settings_pack::pe_forced;
                 encLevel = libtorrent::settings_pack::pe_rc4;
                 preferRc4 = true;
@@ -417,26 +417,26 @@ namespace torrest { namespace bittorrent {
         mSettingsPack.set_int(libtorrent::settings_pack::allowed_enc_level, encLevel);
         mSettingsPack.set_bool(libtorrent::settings_pack::prefer_rc4, preferRc4);
 
-        if (pSettings.proxy_type != pt_none) {
+        if (pSettings.proxy_type != settings::pt_none) {
             libtorrent::settings_pack::proxy_type_t proxyType;
 
             switch (pSettings.proxy_type) {
-                case pt_socks4:
+                case settings::pt_socks4:
                     proxyType = libtorrent::settings_pack::socks4;
                     break;
-                case pt_socks5:
+                case settings::pt_socks5:
                     proxyType = libtorrent::settings_pack::socks5;
                     break;
-                case pt_socks5_password:
+                case settings::pt_socks5_password:
                     proxyType = libtorrent::settings_pack::socks5_pw;
                     break;
-                case pt_http:
+                case settings::pt_http:
                     proxyType = libtorrent::settings_pack::http;
                     break;
-                case pt_http_password:
+                case settings::pt_http_password:
                     proxyType = libtorrent::settings_pack::http_pw;
                     break;
-                case pt_i2psam:
+                case settings::pt_i2psam:
                     proxyType = libtorrent::settings_pack::i2p_proxy;
                     mSettingsPack.set_int(libtorrent::settings_pack::i2p_port, pSettings.proxy_port);
                     mSettingsPack.set_str(libtorrent::settings_pack::i2p_hostname, pSettings.proxy_hostname);
@@ -485,7 +485,7 @@ namespace torrest { namespace bittorrent {
             }
         }
 
-        auto listenInterfacesStr = join_string_vector(listenInterfaces, ",");
+        auto listenInterfacesStr = utils::join_string_vector(listenInterfaces, ",");
         mLogger->debug("operation=configure, message='Setting listen interfaces', listenInterfaces='{}'",
                        listenInterfacesStr);
         mSettingsPack.set_str(libtorrent::settings_pack::listen_interfaces, listenInterfacesStr);
@@ -720,7 +720,7 @@ namespace torrest { namespace bittorrent {
 
         for (auto &p : boost::filesystem::directory_iterator(mSettings->get_download_path())) {
             if (p.path().extension() == EXT_PARTS && boost::filesystem::is_regular_file(p.path())) {
-                auto infoHash = ltrim_copy(p.path().stem().string(), ".");
+                auto infoHash = utils::ltrim_copy(p.path().stem().string(), ".");
                 if (!has_torrent(infoHash)) {
                     mLogger->debug("operation=load_torrent_files, message='Cleaning stale parts', infoHash={}",
                                    infoHash);
@@ -802,19 +802,19 @@ namespace torrest { namespace bittorrent {
     }
 
     inline std::string Service::get_parts_file(const std::string &pInfoHash) const {
-        return join_path(mSettings->get_download_path(), "." + pInfoHash + EXT_PARTS).string();
+        return utils::join_path(mSettings->get_download_path(), "." + pInfoHash + EXT_PARTS).string();
     }
 
     inline std::string Service::get_fast_resume_file(const std::string &pInfoHash) const {
-        return join_path(mSettings->get_torrents_path(), pInfoHash + EXT_FASTRESUME).string();
+        return utils::join_path(mSettings->get_torrents_path(), pInfoHash + EXT_FASTRESUME).string();
     }
 
     inline std::string Service::get_torrent_file(const std::string &pInfoHash) const {
-        return join_path(mSettings->get_torrents_path(), pInfoHash + EXT_TORRENT).string();
+        return utils::join_path(mSettings->get_torrents_path(), pInfoHash + EXT_TORRENT).string();
     }
 
     inline std::string Service::get_magnet_file(const std::string &pInfoHash) const {
-        return join_path(mSettings->get_torrents_path(), pInfoHash + EXT_MAGNET).string();
+        return utils::join_path(mSettings->get_torrents_path(), pInfoHash + EXT_MAGNET).string();
     }
 
     inline void Service::delete_parts_file(const std::string &pInfoHash) const {

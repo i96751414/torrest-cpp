@@ -36,7 +36,7 @@ namespace torrest { namespace bittorrent {
     SETTING(int, piece_wait_timeout, 60)
 
     public:
-        void update(const Settings &pSettings) {
+        void update(const settings::Settings &pSettings) {
             std::lock_guard<std::mutex> l(mMutex);
             limit_after_buffering = pSettings.limit_after_buffering;
             max_download_rate = pSettings.max_download_rate;

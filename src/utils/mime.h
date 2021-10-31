@@ -3,10 +3,10 @@
 
 #include <string>
 
-namespace torrest {
+namespace torrest { namespace utils {
 
     std::string guess_mime_type(const std::string &pExtension);
 
-}
+}}
 
 #endif //TORREST_MIME_H

@@ -14,7 +14,7 @@ namespace torrest {
 
     class Torrest {
     public:
-        static void initialize(const std::string &pSettingsPath, const Settings &pSettings) {
+        static void initialize(const std::string &pSettingsPath, const settings::Settings &pSettings) {
             assert(mInstance == nullptr);
             static Torrest instance(pSettingsPath, pSettings);
             mInstance = &instance;
@@ -49,7 +49,7 @@ namespace torrest {
             return mSettings.buffer_size;
         }
 
-        void update_settings(const Settings &pSettings, bool pReset) {
+        void update_settings(const settings::Settings &pSettings, bool pReset) {
             mLogger->debug("operation=update_settings, message='Updating settings'");
             std::lock_guard<std::mutex> lock(mMutex);
             mService->reconfigure(pSettings, pReset);
@@ -66,7 +66,7 @@ namespace torrest {
         void operator=(Torrest const &) = delete;
 
     private:
-        explicit Torrest(std::string pSettingsPath, const Settings &pSettings)
+        explicit Torrest(std::string pSettingsPath, const settings::Settings &pSettings)
                 : mLogger(spdlog::stdout_logger_mt("torrest")),
                   mService(std::make_shared<bittorrent::Service>(pSettings)),
                   mSettingsPath(std::move(pSettingsPath)),
@@ -86,7 +86,7 @@ namespace torrest {
         std::shared_ptr<spdlog::logger> mLogger;
         std::shared_ptr<bittorrent::Service> mService;
         std::string mSettingsPath;
-        Settings mSettings;
+        settings::Settings mSettings;
         std::atomic<bool> mIsRunning;
     };
 

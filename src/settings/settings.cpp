@@ -7,7 +7,7 @@
 #include "utils/validation.h"
 #include "version.h"
 
-namespace torrest {
+namespace torrest { namespace settings {
 
     Settings Settings::load(const std::string &pPath) {
         std::ifstream i(pPath);
@@ -81,4 +81,4 @@ namespace torrest {
         }
     }
 
-}
+}}

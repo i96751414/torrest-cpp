@@ -47,7 +47,7 @@ public:
                                             const Int32 &pFile) {
         auto logger = ApiLogger::get_instance()->get_logger();
         auto file = GET_FILE(pInfoHash, pFile);
-        auto mime = guess_mime_type(boost::filesystem::path(file->get_name()).extension().string());
+        auto mime = utils::guess_mime_type(boost::filesystem::path(file->get_name()).extension().string());
         logger->trace("operation=serve, infoHash={}, name='{}', mime='{}'", pInfoHash->c_str(), file->get_name(), mime);
 
         auto code = Status::CODE_200;
@@ -77,7 +77,7 @@ public:
 
                 headers.emplace_back(Header::CONTENT_RANGE, singleRange.content_range(file->get_size()).c_str());
             } else if (rangeCount > 1) {
-                logger->error("operation=serve, message='Multiple ranges ar not supported'");
+                logger->error("operation=serve, message='Multiple ranges are not supported'");
                 return createDtoResponse(Status::CODE_500, MessageResponse::create("Multi ranges are not supported"));
             }
 

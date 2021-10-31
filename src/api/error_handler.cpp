@@ -25,7 +25,7 @@ namespace torrest { namespace api {
             try {
                 // We can throw for HTTP 500 errors only as per oatpp/web/server/HttpProcessor.cpp
                 throw; // lgtm [cpp/rethrow-no-exception]
-            } catch (const ValidationException &e) {
+            } catch (const utils::ValidationException &e) {
                 status = oatpp::web::protocol::http::Status::CODE_400;
             } catch (const nlohmann::json::exception &e) {
                 status = oatpp::web::protocol::http::Status::CODE_400;
