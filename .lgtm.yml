@@ -9,10 +9,14 @@ extraction:
       - |
         CMAKE_VERSION=3.20.3
         wget "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz" \
-          --no-check-certificate -qO - | tar --strip-components=1 -xz -C cmake
-        mkdir workspace
-        CMD=" " PREFIX="$(pwd)/workspace" ./scripts/install_dependencies.sh
+          --no-check-certificate -qO - | tar --strip-components=1 -xz --one-top-level="${LGTM_WORKSPACE}/cmake"
+        export PATH="${LGTM_WORKSPACE}/cmake/bin:${PATH}"
+      - |
+        mkdir "${LGTM_WORKSPACE}/dependencies"
+        CMD=" " PREFIX="${LGTM_WORKSPACE}/dependencies" ./scripts/install_dependencies.sh
+    configure:
+      command:
+        - cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_FIND_ROOT_PATH="${LGTM_WORKSPACE}/dependencies" .
     index:
-      build_command: |
-        ./cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_FIND_ROOT_PATH="$(pwd)/workspace" .
-        ./cmake/bin/cmake --build .
+      build_command:
+        - cmake --build .
