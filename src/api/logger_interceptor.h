@@ -1,17 +1,20 @@
 #ifndef TORREST_LOGGER_INTERCEPTOR_H
 #define TORREST_LOGGER_INTERCEPTOR_H
 
+#include <oatpp/web/server/interceptor/RequestInterceptor.hpp>
 #include "oatpp/web/server/interceptor/ResponseInterceptor.hpp"
 
 namespace torrest { namespace api {
 
-    class LoggerInterceptor : public oatpp::web::server::interceptor::ResponseInterceptor {
+    class LoggerRequestInterceptor : public oatpp::web::server::interceptor::RequestInterceptor {
     public:
-        typedef oatpp::web::protocol::http::incoming::Request IncomingRequest;
-        typedef oatpp::web::protocol::http::outgoing::Response OutgoingResponse;
+        std::shared_ptr<OutgoingResponse> intercept(const std::shared_ptr<IncomingRequest> &pRequest) override;
+    };
 
-        std::shared_ptr<OutgoingResponse> intercept(const std::shared_ptr<IncomingRequest> &request,
-                                                    const std::shared_ptr<OutgoingResponse> &response) override;
+    class LoggerResponseInterceptor : public oatpp::web::server::interceptor::ResponseInterceptor {
+    public:
+        std::shared_ptr<OutgoingResponse> intercept(const std::shared_ptr<IncomingRequest> &pRequest,
+                                                    const std::shared_ptr<OutgoingResponse> &pResponse) override;
     };
 
 }}

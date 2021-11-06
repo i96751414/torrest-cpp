@@ -37,7 +37,13 @@ namespace torrest { namespace api {
         // Create ConnectionProvider component which listens on the port
         OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, serverConnectionProvider)
         (oatpp::network::tcp::server::ConnectionProvider::createShared(
-                {"localhost", mPort, oatpp::network::Address::IP_4}));
+                {"0.0.0.0", mPort, oatpp::network::Address::IP_4},
+#if TORREST_EXTENDED_CONNECTIONS
+                true
+#else
+                false
+#endif
+        ));
 
         // Create Router component
         OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, httpRouter)
@@ -56,7 +62,8 @@ namespace torrest { namespace api {
                     std::make_shared<oatpp::web::server::interceptor::AllowOptionsGlobal>());
             httpConnectionHandler->addResponseInterceptor(
                     std::make_shared<oatpp::web::server::interceptor::AllowCorsGlobal>());
-            httpConnectionHandler->addResponseInterceptor(std::make_shared<LoggerInterceptor>());
+            httpConnectionHandler->addRequestInterceptor(std::make_shared<LoggerRequestInterceptor>());
+            httpConnectionHandler->addResponseInterceptor(std::make_shared<LoggerResponseInterceptor>());
 
             return httpConnectionHandler;
         }());

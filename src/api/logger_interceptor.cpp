@@ -2,15 +2,31 @@
 
 #include "spdlog/spdlog.h"
 
+#if TORREST_EXTENDED_CONNECTIONS
+#include "oatpp/network/tcp/server/ConnectionProvider.hpp"
+#endif
+
 #include "logger.h"
 
 namespace torrest { namespace api {
 
-    std::shared_ptr<LoggerInterceptor::OutgoingResponse>
-    LoggerInterceptor::intercept(const std::shared_ptr<IncomingRequest> &request,
-                                 const std::shared_ptr<OutgoingResponse> &response) {
+    std::shared_ptr<LoggerRequestInterceptor::OutgoingResponse>
+    LoggerRequestInterceptor::intercept(const std::shared_ptr<IncomingRequest> &pRequest) {
+        oatpp::Int64 startTime(std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count());
+        pRequest->putBundleData("startTime", startTime);
+        return nullptr;
+    }
+
+    std::shared_ptr<LoggerResponseInterceptor::OutgoingResponse>
+    LoggerResponseInterceptor::intercept(const std::shared_ptr<IncomingRequest> &pRequest,
+                                         const std::shared_ptr<OutgoingResponse> &pResponse) {
+        oatpp::Int64 endTime(std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count());
+        auto duration = endTime - pRequest->getBundleData<oatpp::Int64>("startTime");
+
         spdlog::level::level_enum level;
-        auto statusCode = response->getStatus().code;
+        auto statusCode = pResponse->getStatus().code;
 
         if (statusCode >= 500) {
             level = spdlog::level::err;
@@ -20,12 +36,24 @@ namespace torrest { namespace api {
             level = spdlog::level::info;
         }
 
-        auto &startingLine = request->getStartingLine();
+        auto &startingLine = pRequest->getStartingLine();
         ApiLogger::get_instance()->get_logger()->log(
-                level, "operation=intercept, method={}, uri={}, statusCode={}",
-                startingLine.method.std_str(), startingLine.path.std_str(), statusCode);
+                level, "operation=intercept"
+                       ", method={}"
+#if TORREST_EXTENDED_CONNECTIONS
+                       ", address={}"
+#endif
+                       ", uri={}"
+                       ", elapsedTime={}"
+                       ", statusCode={}",
+                startingLine.method.std_str(),
+#if TORREST_EXTENDED_CONNECTIONS
+                pRequest->getConnection()->getInputStreamContext().getProperties().get(
+                        oatpp::network::tcp::server::ConnectionProvider::ExtendedConnection::PROPERTY_PEER_ADDRESS)->c_str(),
+#endif
+                startingLine.path.std_str(), duration, statusCode);
 
-        return response;
+        return pResponse;
     }
 
 }}

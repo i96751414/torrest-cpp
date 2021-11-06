@@ -65,6 +65,7 @@ Below is the list of supported CMake build configurations (which are then mapped
 |enable_swagger|ON|TORREST_ENABLE_SWAGGER|Enables swagger on http://localhost:8080/swagger/ui endpoint|
 |with_swagger_local_resources|OFF|OATPP_SWAGGER_RES_PATH|Sets the swagger resources path to the oatpp-swagger directory|
 |enable_shutdown|ON|TORREST_ENABLE_SHUTDOWN|Enables the shutdown endpoint (http://localhost:8080/shutdown)|
+|enable_extended_connections|ON|TORREST_EXTENDED_CONNECTIONS|Enables oatpp extended connections|
 
 ## Cross Compiling
 

@@ -68,6 +68,8 @@ target_optional_compile_definitions(torrest PUBLIC FEATURE NAME with_swagger_loc
         OATPP_SWAGGER_RES_PATH="${oatpp-swagger_INCLUDE_DIRS}/../bin/oatpp-swagger/res")
 target_optional_compile_definitions(torrest PUBLIC FEATURE NAME enable_shutdown DEFAULT ON
         DESCRIPTION "Enables shutdown endpoint" ENABLED TORREST_ENABLE_SHUTDOWN)
+target_optional_compile_definitions(torrest PUBLIC FEATURE NAME enable_extended_connections DEFAULT ON
+        DESCRIPTION "Enables extended connections" ENABLED TORREST_EXTENDED_CONNECTIONS)
 
 if (DEFINED target_path)
     add_custom_command(TARGET torrest POST_BUILD
