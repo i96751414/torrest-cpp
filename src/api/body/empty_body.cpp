@@ -8,7 +8,7 @@ namespace torrest { namespace api {
         return 0;
     }
 
-    void EmptyBody::declareHeaders(Headers &headers) {}
+    void EmptyBody::declareHeaders(Headers &pHeaders) {}
 
     p_char8 EmptyBody::getKnownData() {
         return nullptr;

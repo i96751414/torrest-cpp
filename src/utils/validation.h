@@ -21,7 +21,7 @@ namespace torrest { namespace utils {
 
     class ValidationException : public std::runtime_error {
     public:
-        explicit ValidationException(const char *message) : std::runtime_error(message) {}
+        explicit ValidationException(const char *pMessage) : std::runtime_error(pMessage) {}
     };
 
 }}

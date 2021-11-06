@@ -10,9 +10,9 @@ namespace torrest { namespace api {
     public:
         static std::shared_ptr<ApiLogger> get_instance();
 
-        void log(v_uint32 priority, const std::string &tag, const std::string &message) override;
+        void log(v_uint32 pPriority, const std::string &pTag, const std::string &pMessage) override;
 
-        bool isLogPriorityEnabled(v_uint32 priority) override;
+        bool isLogPriorityEnabled(v_uint32 pPriority) override;
 
         std::shared_ptr<spdlog::logger> get_logger();
 
@@ -23,7 +23,7 @@ namespace torrest { namespace api {
     private:
         ApiLogger();
 
-        static spdlog::level::level_enum get_associated_level(v_uint32 priority);
+        static spdlog::level::level_enum get_associated_level(v_uint32 pPriority);
 
         std::shared_ptr<spdlog::logger> mLogger;
     };
