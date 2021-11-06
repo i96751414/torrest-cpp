@@ -6,7 +6,7 @@
 #include "oatpp/core/macro/component.hpp"
 #include "oatpp/web/mime/multipart/Reader.hpp"
 #include "oatpp/web/mime/multipart/PartList.hpp"
-#include "oatpp/web/mime/multipart/InMemoryPartReader.hpp"
+#include "oatpp/web/mime/multipart/InMemoryDataProvider.hpp"
 
 #include "torrest.h"
 #include "api/dto/message_response.h"
@@ -127,12 +127,14 @@ public:
 
         auto torrent = multipart->getNamedPart("torrent");
         OATPP_ASSERT_HTTP(torrent, Status::CODE_400, "torrent file needs to be provided")
+        auto payload = torrent->getPayload();
+        OATPP_ASSERT_HTTP(payload, Status::CODE_400, "torrent file needs to be provided")
 
         return handle_duplicate_torrent(
-                [torrent, download] {
+                [payload, download] {
                     return GET_SERVICE()->add_torrent_data(
-                            torrent->getInMemoryData()->c_str(),
-                            int(torrent->getInMemoryData()->length()), download);
+                            payload->getInMemoryData()->c_str(),
+                            int(payload->getInMemoryData()->length()), download);
                 }, ignoreDuplicate);
     }
 
