@@ -39,12 +39,12 @@ namespace torrest {
             mIsRunning = false;
         }
 
-        std::string dump_settings() {
+        std::string dump_settings() const {
             std::lock_guard<std::mutex> lock(mMutex);
             return mSettings.dump();
         }
 
-        std::int64_t get_buffer_size() {
+        std::int64_t get_buffer_size() const {
             std::lock_guard<std::mutex> lock(mMutex);
             return mSettings.buffer_size;
         }
@@ -57,7 +57,7 @@ namespace torrest {
             mSettings.save(mSettingsPath);
         }
 
-        std::shared_ptr<bittorrent::Service> get_service() {
+        std::shared_ptr<bittorrent::Service> get_service() const {
             return mService;
         }
 
@@ -81,8 +81,7 @@ namespace torrest {
         }
 
         static Torrest *mInstance;
-
-        std::mutex mMutex;
+        mutable std::mutex mMutex;
         std::shared_ptr<spdlog::logger> mLogger;
         std::shared_ptr<bittorrent::Service> mService;
         std::string mSettingsPath;
