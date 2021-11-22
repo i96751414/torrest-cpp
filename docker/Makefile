@@ -13,10 +13,12 @@ PLATFORMS = dev \
 	windows-x64 windows-x86
 
 BUILD_TARGETS = $(addprefix build-, $(PLATFORMS))
+PULL_TARGETS = $(addprefix pull-, $(PLATFORMS))
 PUSH_TARGETS = $(addprefix push-, $(PLATFORMS))
 TORREST_TARGETS = $(addprefix torrest-, $(PLATFORMS))
 ZIP_TARGETS = $(addprefix zip-, $(PLATFORMS))
-.PHONY: build push torrest zip clean $(BUILD_TARGETS) $(PUSH_TARGETS) $(TORREST_TARGETS) $(ZIP_TARGETS)
+.PHONY: build pull push torrest zip clean \
+	$(BUILD_TARGETS) $(PULL_TARGETS) $(PUSH_TARGETS) $(TORREST_TARGETS) $(ZIP_TARGETS)
 
 build: $(BUILD_TARGETS)
 
@@ -28,10 +30,15 @@ $(BUILD_TARGETS):
 		--file "${ROOT_DIR}/docker/$(PLATFORM).Dockerfile" \
 		"${ROOT_DIR}/scripts"
 
+pull: $(PULL_TARGETS)
+
+$(PULL_TARGETS):
+	docker pull "$(IMAGE_PREFIX)-$(@:pull-%=%):$(IMAGE_TAG)"
+
 push: $(PUSH_TARGETS)
 
 $(PUSH_TARGETS):
-	docker push $(IMAGE_PREFIX)-$(@:push-%=%):$(IMAGE_TAG)
+	docker push "$(IMAGE_PREFIX)-$(@:push-%=%):$(IMAGE_TAG)"
 
 torrest: $(TORREST_TARGETS)
 
