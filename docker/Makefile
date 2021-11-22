@@ -53,7 +53,7 @@ $(TORREST_TARGETS):
 	mkdir -p "$(ROOT_DIR)/$(BUILD_DIR)/$(PLATFORM)" && \
 	docker run --rm -u "$$(id -u):$$(id -g)" -v "$(ROOT_DIR):/workspace" -w "/workspace" \
     	"$(IMAGE_PREFIX)-$(PLATFORM):$(IMAGE_TAG)" bash -c "\
-    		cmake -B /tmp/cmake-build $${OPTS} -Dtarget_path="/workspace/$(BUILD_DIR)/$(PLATFORM)/" && \
+    		cmake -B /tmp/cmake-build $${OPTS} -Dtarget_path='/workspace/$(BUILD_DIR)/$(PLATFORM)/' && \
     		cmake --build /tmp/cmake-build --target torrest -- -j '$$(nproc)'"
 
 zip: $(ZIP_TARGETS)

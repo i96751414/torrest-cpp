@@ -12,9 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 RUN wget "https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz" \
-    --no-check-certificate -qO- | tar --strip-components=1 -xz --one-top-level=/usr/bin/cmake
-
-ENV PATH="/usr/bin/cmake/bin:${PATH}"
+    --no-check-certificate -qO- | tar --strip-components=1 -xz --one-top-level=/usr
 
 COPY install_dependencies.sh versions.env /tmp/
 RUN /tmp/install_dependencies.sh \
