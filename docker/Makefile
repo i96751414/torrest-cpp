@@ -49,6 +49,7 @@ $(TORREST_TARGETS):
 		|| OPTS='-DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE} -DBUILD_SHARED_LIBS=OFF'; \
 	case "$(PLATFORM)" in \
 		windows*) OPTS="$${OPTS} -DCMAKE_EXE_LINKER_FLAGS='-static-libgcc -static-libstdc++ -static'" ;; \
+		android*) OPTS="$${OPTS} -DCMAKE_EXE_LINKER_FLAGS='-static-libstdc++'" ;; \
 	esac; \
 	mkdir -p "$(ROOT_DIR)/$(BUILD_DIR)/$(PLATFORM)" && \
 	docker run --rm -u "$$(id -u):$$(id -g)" -v "$(ROOT_DIR):/workspace" -w "/workspace" \
