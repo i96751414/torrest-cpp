@@ -72,9 +72,19 @@ Below is the list of supported CMake build configurations (which are then mapped
 One can also cross compile Torrest to the platforms listed in the below table. To do so, multiple docker images were
 created (see `docker` directory) in order to support this process.
 
-|Android|Darwin|Linux|Windows|
-|-------|------|-----|-------|
-|android-arm<br/>android-arm64<br/>android-x64<br/>android-x86<br/>|darwin-x64<br/><br/><br/><br/>|linux-armv7<br/>linux-arm64<br/>linux-x64<br/>linux-x86|windows-x64<br/>windows-x86<br/><br/><br/>|
+|Platform|Size|Dockerfile|
+|--------|----|----------|
+|android-arm|[![android-arm](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-android-arm/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-android-arm)|[docker/android-arm.Dockerfile](docker/android-arm.Dockerfile)|
+|android-arm64|[![android-arm64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-android-arm64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-android-arm64)|[docker/android-arm64.Dockerfile](docker/android-arm64.Dockerfile)|
+|android-x64|[![android-x64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-android-x64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-android-x64)|[docker/android-x64.Dockerfile](docker/android-x64.Dockerfile)|
+|android-x86|[![android-x86](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-android-x86/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-android-x86)|[docker/android-x86.Dockerfile](docker/android-x86.Dockerfile)|
+|darwin-x64|[![darwin-x64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-darwin-x64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-darwin-x64)|[docker/darwin-x64.Dockerfile](docker/darwin-x64.Dockerfile)|
+|linux-armv7|[![linux-armv7](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-linux-armv7/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-linux-armv7)|[docker/linux-armv7.Dockerfile](docker/linux-armv7.Dockerfile)|
+|linux-arm64|[![linux-arm64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-linux-arm64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-linux-arm64)|[docker/linux-arm64.Dockerfile](docker/linux-arm64.Dockerfile)|
+|linux-x64|[![linux-x64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-linux-x64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-linux-x64)|[docker/linux-x64.Dockerfile](docker/linux-x64.Dockerfile)|
+|linux-x86|[![linux-x86](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-linux-x86/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-linux-x86)|[docker/linux-x86.Dockerfile](docker/linux-x86.Dockerfile)|
+|windows-x64|[![windows-x64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-windows-x64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-windows-x64)|[docker/windows-x64.Dockerfile](docker/windows-x64.Dockerfile)|
+|windows-x86|[![windows-x86](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-windows-x86/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-windows-x86)|[docker/windows-x86.Dockerfile](docker/windows-x86.Dockerfile)|
 
 ### Building images
 
