@@ -417,10 +417,10 @@ namespace torrest { namespace bittorrent {
         mSettingsPack.set_int(libtorrent::settings_pack::allowed_enc_level, encLevel);
         mSettingsPack.set_bool(libtorrent::settings_pack::prefer_rc4, preferRc4);
 
-        if (pSettings.proxy_type != settings::pt_none) {
+        if (pSettings.proxy && pSettings.proxy->type != settings::pt_none) {
             libtorrent::settings_pack::proxy_type_t proxyType;
 
-            switch (pSettings.proxy_type) {
+            switch (pSettings.proxy->type) {
                 case settings::pt_socks4:
                     proxyType = libtorrent::settings_pack::socks4;
                     break;
@@ -438,22 +438,22 @@ namespace torrest { namespace bittorrent {
                     break;
                 case settings::pt_i2psam:
                     proxyType = libtorrent::settings_pack::i2p_proxy;
-                    mSettingsPack.set_int(libtorrent::settings_pack::i2p_port, pSettings.proxy_port);
-                    mSettingsPack.set_str(libtorrent::settings_pack::i2p_hostname, pSettings.proxy_hostname);
+                    mSettingsPack.set_int(libtorrent::settings_pack::i2p_port, pSettings.proxy->port);
+                    mSettingsPack.set_str(libtorrent::settings_pack::i2p_hostname, pSettings.proxy->hostname);
                     mSettingsPack.set_bool(libtorrent::settings_pack::allow_i2p_mixed, true);
                     break;
                 default:
                     mLogger->warn("operation=configure, message='Unknown proxy type', proxyType={}",
-                                  pSettings.proxy_type);
+                                  pSettings.proxy->type);
                     proxyType = libtorrent::settings_pack::none;
             }
 
             mLogger->debug("operation=configure, message='Applying proxy settings', proxyType={}", proxyType);
             mSettingsPack.set_int(libtorrent::settings_pack::proxy_type, proxyType);
-            mSettingsPack.set_int(libtorrent::settings_pack::proxy_port, pSettings.proxy_port);
-            mSettingsPack.set_str(libtorrent::settings_pack::proxy_hostname, pSettings.proxy_hostname);
-            mSettingsPack.set_str(libtorrent::settings_pack::proxy_username, pSettings.proxy_username);
-            mSettingsPack.set_str(libtorrent::settings_pack::proxy_password, pSettings.proxy_password);
+            mSettingsPack.set_int(libtorrent::settings_pack::proxy_port, pSettings.proxy->port);
+            mSettingsPack.set_str(libtorrent::settings_pack::proxy_hostname, pSettings.proxy->hostname);
+            mSettingsPack.set_str(libtorrent::settings_pack::proxy_username, pSettings.proxy->username);
+            mSettingsPack.set_str(libtorrent::settings_pack::proxy_password, pSettings.proxy->password);
             mSettingsPack.set_bool(libtorrent::settings_pack::proxy_tracker_connections, true);
             mSettingsPack.set_bool(libtorrent::settings_pack::proxy_peer_connections, true);
             mSettingsPack.set_bool(libtorrent::settings_pack::proxy_hostnames, true);

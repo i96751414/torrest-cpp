@@ -9,6 +9,11 @@
 
 namespace torrest { namespace settings {
 
+    void ProxySettings::validate() const {
+        VALIDATE(type, GTE(0), LT(pt_num_values))
+        VALIDATE(port, GTE(0), LTE(65535))
+    }
+
     Settings Settings::load(const std::string &pPath) {
         std::ifstream i(pPath);
         nlohmann::json j;
@@ -44,12 +49,12 @@ namespace torrest { namespace settings {
         VALIDATE(seed_time_ratio_limit, GTE(0))
         VALIDATE(seed_time_limit, GTE(0))
         VALIDATE(encryption_policy, GTE(0), LT(ep_num_values))
-        VALIDATE(proxy_type, GTE(0), LT(pt_num_values))
-        VALIDATE(proxy_port, GTE(0), LTE(65535))
         VALIDATE(piece_wait_timeout, GTE(0))
         VALIDATE(service_log_level, GTE(0), LT(spdlog::level::n_levels))
         VALIDATE(alert_log_level, GTE(0), LT(spdlog::level::n_levels))
         VALIDATE(api_log_level, GTE(0), LT(spdlog::level::n_levels))
+
+        if (proxy) { proxy->validate(); }
     }
 
     std::string get_user_agent(UserAgent pUserAgent) {

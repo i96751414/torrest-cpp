@@ -4,6 +4,24 @@
 #include "nlohmann/json.hpp"
 #include "spdlog/spdlog.h"
 
+namespace nlohmann {
+
+    template<class T>
+    void to_json(nlohmann::json &pJson, const std::shared_ptr<T> &pValue) {
+        if (pValue) {
+            pJson = *pValue;
+        } else {
+            pJson = nullptr;
+        }
+    }
+
+    template<class T>
+    void from_json(const nlohmann::json &pJson, std::shared_ptr<T> &pValue) {
+        pValue = pJson.is_null() ? nullptr : std::make_shared<T>(pJson.get<T>());
+    }
+
+}
+
 namespace torrest { namespace settings {
 
     enum UserAgent {
@@ -40,6 +58,23 @@ namespace torrest { namespace settings {
         pt_num_values
     };
 
+    struct ProxySettings {
+        ProxyType type = pt_none;
+        int port = 0;
+        std::string hostname;
+        std::string username;
+        std::string password;
+
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(ProxySettings,
+                                       type,
+                                       port,
+                                       hostname,
+                                       username,
+                                       password)
+
+        void validate() const;
+    };
+
     struct Settings {
         int listen_port = 6889;
         std::string listen_interfaces;
@@ -69,11 +104,7 @@ namespace torrest { namespace settings {
         int active_lsd_limit = 60;
         int active_limit = 500;
         EncryptionPolicy encryption_policy = ep_enabled;
-        ProxyType proxy_type = pt_none;
-        int proxy_port = 0;
-        std::string proxy_hostname;
-        std::string proxy_username;
-        std::string proxy_password;
+        std::shared_ptr<ProxySettings> proxy = nullptr;
         std::int64_t buffer_size = 20 * 1024 * 1024;
         int piece_wait_timeout = 60;
         spdlog::level::level_enum service_log_level = spdlog::level::info;
@@ -109,11 +140,7 @@ namespace torrest { namespace settings {
                                        active_lsd_limit,
                                        active_limit,
                                        encryption_policy,
-                                       proxy_type,
-                                       proxy_port,
-                                       proxy_hostname,
-                                       proxy_username,
-                                       proxy_password,
+                                       proxy,
                                        buffer_size,
                                        piece_wait_timeout,
                                        service_log_level,
