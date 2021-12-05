@@ -44,7 +44,7 @@ int main(int argc, const char *argv[]) {
         settings.save(settingsPath);
     }
 
-    logger->debug("operation=main, message='Initializing Torrest application'");
+    logger->debug("operation=main, message='Initializing Torrest application', version=" TORREST_VERSION);
     torrest::Torrest::initialize(settingsPath, settings);
 
     logger->debug("operation=main, message='Starting OATPP environment'");
