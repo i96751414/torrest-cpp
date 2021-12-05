@@ -74,6 +74,7 @@ created (see `docker` directory) in order to support this process.
 
 |Platform|Size|Dockerfile|
 |--------|----|----------|
+|dev (linux-x64)|[![dev](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-dev/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-dev)|[docker/dev.Dockerfile](docker/dev.Dockerfile)|
 |android-arm|[![android-arm](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-android-arm/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-android-arm)|[docker/android-arm.Dockerfile](docker/android-arm.Dockerfile)|
 |android-arm64|[![android-arm64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-android-arm64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-android-arm64)|[docker/android-arm64.Dockerfile](docker/android-arm64.Dockerfile)|
 |android-x64|[![android-x64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-android-x64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-android-x64)|[docker/android-x64.Dockerfile](docker/android-x64.Dockerfile)|
