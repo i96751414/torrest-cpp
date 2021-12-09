@@ -17,7 +17,7 @@ class FileInfoStatus : public FileInfo {
     static oatpp::data::mapping::type::DTOWrapper<FileInfoStatus> create(const bittorrent::FileInfo &pInfo) {
         auto info = FileInfoStatus::createShared();
         info->id = pInfo.id;
-        info->lenght = pInfo.length;
+        info->length = pInfo.length;
         info->path = pInfo.path.c_str();
         info->name = pInfo.name.c_str();
         info->status = nullptr;

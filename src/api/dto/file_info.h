@@ -13,7 +13,7 @@ class FileInfo : public oatpp::DTO {
 
     FIELD(Int32, id, "File id")
 
-    FIELD(Int64, lenght, "File size")
+    FIELD(Int64, length, "File size")
 
     FIELD(String, path, "File path")
 
@@ -22,7 +22,7 @@ class FileInfo : public oatpp::DTO {
     static oatpp::data::mapping::type::DTOWrapper<FileInfo> create(const bittorrent::FileInfo &pInfo) {
         auto info = FileInfo::createShared();
         info->id = pInfo.id;
-        info->lenght = pInfo.length;
+        info->length = pInfo.length;
         info->path = pInfo.path.c_str();
         info->name = pInfo.name.c_str();
         return info;
