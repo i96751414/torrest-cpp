@@ -51,7 +51,7 @@ namespace torrest { namespace settings {
         VALIDATE(encryption_policy, GTE(0), LT(ep_num_values))
         VALIDATE(piece_wait_timeout, GTE(0))
         VALIDATE(service_log_level, GTE(0), LT(spdlog::level::n_levels))
-        VALIDATE(alert_log_level, GTE(0), LT(spdlog::level::n_levels))
+        VALIDATE(alerts_log_level, GTE(0), LT(spdlog::level::n_levels))
         VALIDATE(api_log_level, GTE(0), LT(spdlog::level::n_levels))
 
         if (proxy) { proxy->validate(); }

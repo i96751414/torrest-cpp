@@ -108,7 +108,7 @@ namespace torrest { namespace settings {
         std::int64_t buffer_size = 20 * 1024 * 1024;
         int piece_wait_timeout = 60;
         spdlog::level::level_enum service_log_level = spdlog::level::info;
-        spdlog::level::level_enum alert_log_level = spdlog::level::critical;
+        spdlog::level::level_enum alerts_log_level = spdlog::level::critical;
         spdlog::level::level_enum api_log_level = spdlog::level::err;
 
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(Settings,
@@ -144,7 +144,7 @@ namespace torrest { namespace settings {
                                        buffer_size,
                                        piece_wait_timeout,
                                        service_log_level,
-                                       alert_log_level,
+                                       alerts_log_level,
                                        api_log_level)
 
         static Settings load(const std::string &pPath);

@@ -309,7 +309,7 @@ namespace torrest { namespace bittorrent {
         boost::filesystem::create_directory(pSettings.torrents_path);
 
         mLogger->set_level(pSettings.service_log_level);
-        mAlertsLogger->set_level(pSettings.alert_log_level);
+        mAlertsLogger->set_level(pSettings.alerts_log_level);
         mLogger->info("operation=configure, message='Applying session settings'");
         mSettings->update(pSettings);
 
