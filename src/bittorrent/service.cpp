@@ -112,7 +112,7 @@ namespace torrest { namespace bittorrent {
         while (!wait_for_abort(mSettings->get_session_save())) {
             if (!mTorrents.empty()) {
                 std::lock_guard<std::mutex> lock(mTorrentsMutex);
-                for (auto &torrent: mTorrents) {
+                for (auto &torrent : mTorrents) {
                     torrent->check_save_resume_data();
                 }
             }
@@ -238,13 +238,13 @@ namespace torrest { namespace bittorrent {
         bool has_files_buffering = false;
 
         std::unique_lock<std::mutex> lock(mTorrentsMutex);
-        for (auto &torrent: mTorrents) {
+        for (auto &torrent : mTorrents) {
             if (torrent->mPaused.load() || !torrent->mHasMetadata.load() || !torrent->mHandle.is_valid()) {
                 continue;
             }
 
             // Check files buffering state
-            for (auto &file: torrent->mFiles) {
+            for (auto &file : torrent->mFiles) {
                 if (file->verify_buffering_state()) {
                     has_files_buffering = true;
                 }

@@ -90,7 +90,7 @@ namespace torrest { namespace bittorrent {
         auto torrent = mTorrent.lock();
         CHECK_TORRENT(torrent)
 
-        auto state = torrent->get_state();
+        auto state = torrent->get_torrent_state();
         if (state == downloading) {
             if (mBuffering.load()) {
                 state = buffering;

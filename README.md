@@ -60,32 +60,33 @@ values may be passed (e.g. `Release`).
 
 Below is the list of supported CMake build configurations (which are then mapped to macros during the build):
 
-|CMake configuration|Default|Maps to macro|Description|
-|---|---|---|---|
-|enable_swagger|ON|TORREST_ENABLE_SWAGGER|Enables swagger on http://localhost:8080/swagger/ui endpoint|
-|with_swagger_local_resources|OFF|OATPP_SWAGGER_RES_PATH|Sets the swagger resources path to the oatpp-swagger directory|
-|enable_shutdown|ON|TORREST_ENABLE_SHUTDOWN|Enables the shutdown endpoint (http://localhost:8080/shutdown)|
-|enable_extended_connections|ON|TORREST_EXTENDED_CONNECTIONS|Enables oatpp extended connections|
+| CMake configuration             | Default | Maps to macro                           | Description                                                    |
+|---------------------------------|---------|-----------------------------------------|----------------------------------------------------------------|
+| enable_swagger                  | ON      | TORREST_ENABLE_SWAGGER                  | Enables swagger on http://localhost:8080/swagger/ui endpoint   |
+| with_swagger_local_resources    | OFF     | OATPP_SWAGGER_RES_PATH                  | Sets the swagger resources path to the oatpp-swagger directory |
+| enable_shutdown                 | ON      | TORREST_ENABLE_SHUTDOWN                 | Enables the shutdown endpoint (http://localhost:8080/shutdown) |
+| enable_extended_connections     | ON      | TORREST_EXTENDED_CONNECTIONS            | Enables oatpp extended connections                             |
+| enable_torrent_buffering_status | OFF     | TORREST_ENABLE_TORRENT_BUFFERING_STATUS | Enables torrent buffering status                               |
 
 ## Cross Compiling
 
 One can also cross compile Torrest to the platforms listed in the below table. To do so, multiple docker images were
 created (see `docker` directory) in order to support this process.
 
-|Platform|Size|Dockerfile|
-|--------|----|----------|
-|dev (linux-x64)|[![dev](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-dev/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-dev)|[docker/dev.Dockerfile](docker/dev.Dockerfile)|
-|android-arm|[![android-arm](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-android-arm/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-android-arm)|[docker/android-arm.Dockerfile](docker/android-arm.Dockerfile)|
-|android-arm64|[![android-arm64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-android-arm64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-android-arm64)|[docker/android-arm64.Dockerfile](docker/android-arm64.Dockerfile)|
-|android-x64|[![android-x64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-android-x64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-android-x64)|[docker/android-x64.Dockerfile](docker/android-x64.Dockerfile)|
-|android-x86|[![android-x86](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-android-x86/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-android-x86)|[docker/android-x86.Dockerfile](docker/android-x86.Dockerfile)|
-|darwin-x64|[![darwin-x64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-darwin-x64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-darwin-x64)|[docker/darwin-x64.Dockerfile](docker/darwin-x64.Dockerfile)|
-|linux-armv7|[![linux-armv7](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-linux-armv7/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-linux-armv7)|[docker/linux-armv7.Dockerfile](docker/linux-armv7.Dockerfile)|
-|linux-arm64|[![linux-arm64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-linux-arm64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-linux-arm64)|[docker/linux-arm64.Dockerfile](docker/linux-arm64.Dockerfile)|
-|linux-x64|[![linux-x64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-linux-x64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-linux-x64)|[docker/linux-x64.Dockerfile](docker/linux-x64.Dockerfile)|
-|linux-x86|[![linux-x86](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-linux-x86/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-linux-x86)|[docker/linux-x86.Dockerfile](docker/linux-x86.Dockerfile)|
-|windows-x64|[![windows-x64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-windows-x64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-windows-x64)|[docker/windows-x64.Dockerfile](docker/windows-x64.Dockerfile)|
-|windows-x86|[![windows-x86](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-windows-x86/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-windows-x86)|[docker/windows-x86.Dockerfile](docker/windows-x86.Dockerfile)|
+| Platform        | Size                                                                                                                                                                                  | Dockerfile                                                         |
+|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------|
+| dev (linux-x64) | [![dev](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-dev/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-dev)                               | [docker/dev.Dockerfile](docker/dev.Dockerfile)                     |
+| android-arm     | [![android-arm](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-android-arm/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-android-arm)       | [docker/android-arm.Dockerfile](docker/android-arm.Dockerfile)     |
+| android-arm64   | [![android-arm64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-android-arm64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-android-arm64) | [docker/android-arm64.Dockerfile](docker/android-arm64.Dockerfile) |
+| android-x64     | [![android-x64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-android-x64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-android-x64)       | [docker/android-x64.Dockerfile](docker/android-x64.Dockerfile)     |
+| android-x86     | [![android-x86](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-android-x86/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-android-x86)       | [docker/android-x86.Dockerfile](docker/android-x86.Dockerfile)     |
+| darwin-x64      | [![darwin-x64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-darwin-x64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-darwin-x64)          | [docker/darwin-x64.Dockerfile](docker/darwin-x64.Dockerfile)       |
+| linux-armv7     | [![linux-armv7](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-linux-armv7/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-linux-armv7)       | [docker/linux-armv7.Dockerfile](docker/linux-armv7.Dockerfile)     |
+| linux-arm64     | [![linux-arm64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-linux-arm64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-linux-arm64)       | [docker/linux-arm64.Dockerfile](docker/linux-arm64.Dockerfile)     |
+| linux-x64       | [![linux-x64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-linux-x64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-linux-x64)             | [docker/linux-x64.Dockerfile](docker/linux-x64.Dockerfile)         |
+| linux-x86       | [![linux-x86](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-linux-x86/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-linux-x86)             | [docker/linux-x86.Dockerfile](docker/linux-x86.Dockerfile)         |
+| windows-x64     | [![windows-x64](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-windows-x64/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-windows-x64)       | [docker/windows-x64.Dockerfile](docker/windows-x64.Dockerfile)     |
+| windows-x86     | [![windows-x86](https://img.shields.io/docker/image-size/i96751414/torrest-cpp-windows-x86/latest)](https://hub.docker.com/repository/docker/i96751414/torrest-cpp-windows-x86)       | [docker/windows-x86.Dockerfile](docker/windows-x86.Dockerfile)     |
 
 ### Building images
 
@@ -125,7 +126,7 @@ After building Torrest, one can run it like any other binary, that is:
 
 Although Torrest doesn't have any required arguments, it accepts two optional arguments:
 
-|Argument|Type|Default|Description|
-|---|---|---|---|
-|--port|uint16|8080|The server listen port|
-|--settings|string|settings.json|The settings path|
+| Argument   | Type   | Default       | Description            |
+|------------|--------|---------------|------------------------|
+| --port     | uint16 | 8080          | The server listen port |
+| --settings | string | settings.json | The settings path      |

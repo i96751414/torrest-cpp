@@ -70,6 +70,8 @@ target_optional_compile_definitions(torrest PUBLIC FEATURE NAME enable_shutdown 
         DESCRIPTION "Enables shutdown endpoint" ENABLED TORREST_ENABLE_SHUTDOWN)
 target_optional_compile_definitions(torrest PUBLIC FEATURE NAME enable_extended_connections DEFAULT ON
         DESCRIPTION "Enables extended connections" ENABLED TORREST_EXTENDED_CONNECTIONS)
+target_optional_compile_definitions(torrest PUBLIC FEATURE NAME enable_torrent_buffering_status DEFAULT OFF
+        DESCRIPTION "Enables torrent buffering status" ENABLED TORREST_ENABLE_TORRENT_BUFFERING_STATUS)
 
 if (DEFINED target_path)
     add_custom_command(TARGET torrest POST_BUILD

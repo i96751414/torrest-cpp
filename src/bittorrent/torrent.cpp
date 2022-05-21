@@ -108,6 +108,25 @@ namespace torrest { namespace bittorrent {
 
     State Torrent::get_state() const {
         mLogger->trace("operation=get_state");
+        auto state = get_torrent_state();
+
+#ifdef TORREST_ENABLE_TORRENT_BUFFERING_STATUS
+        if (state == downloading) {
+            std::lock_guard<std::mutex> filesLock(mFilesMutex);
+            for (auto &file : mFiles) {
+                if (file->mBuffering.load()) {
+                    state = buffering;
+                    break;
+                }
+            }
+        }
+#endif
+
+        return state;
+    }
+
+    State Torrent::get_torrent_state() const {
+        mLogger->trace("operation=get_torrent_state");
         if (mPaused.load()) {
             return paused;
         }
@@ -145,7 +164,9 @@ namespace torrest { namespace bittorrent {
                 state = allocating;
                 break;
             default:
-                mLogger->warn("operation=get_state, message='Unknown torrent state', torrentState={}", torrentState);
+                mLogger->warn(
+                        "operation=get_torrent_state, message='Unknown torrent state', torrentState={}",
+                        torrentState);
         }
 
         return state;
@@ -214,7 +235,7 @@ namespace torrest { namespace bittorrent {
             std::vector<libtorrent::partial_piece_info> queue;
             mHandle.get_download_queue(queue);
 
-            for (auto &qPiece: queue) {
+            for (auto &qPiece : queue) {
                 if (std::find(pPieces.begin(), pPieces.end(), qPiece.piece_index) != pPieces.end()) {
                     for (int i = 0; i < qPiece.blocks_in_piece; i++) {
                         missing -= qPiece.blocks[i].bytes_progress;

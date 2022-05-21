@@ -81,6 +81,8 @@ namespace torrest { namespace bittorrent {
     private:
         void handle_metadata_received();
 
+        State get_torrent_state() const;
+
         std::int64_t get_bytes_missing(const std::vector<libtorrent::piece_index_t> &pPieces) const;
 
         std::shared_ptr<spdlog::logger> mLogger;
