@@ -124,9 +124,12 @@ After building Torrest, one can run it like any other binary, that is:
 ./torrest
 ```
 
-Although Torrest doesn't have any required arguments, it accepts two optional arguments:
+Although Torrest doesn't have any required arguments, it accepts optional arguments:
 
-| Argument   | Type   | Default       | Description            |
-|------------|--------|---------------|------------------------|
-| --port     | uint16 | 8080          | The server listen port |
-| --settings | string | settings.json | The settings path      |
+| Argument       | Type   | Default       | Description            |
+|----------------|--------|---------------|------------------------|
+| -p, --port     | uint16 | 8080          | The server listen port |
+| -s, --settings | string | settings.json | The settings path      |
+| --log-level    | string | INFO          | The global log level   |
+| -v, --version  | n/a    | n/a           | Print version          |
+| -h, --help     | n/a    | n/a           | Print help message     |

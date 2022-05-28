@@ -2,16 +2,15 @@
 
 #include "boost/program_options.hpp"
 #include "boost/filesystem.hpp"
+#include "boost/algorithm/string.hpp"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_sinks.h"
 #include "oatpp/network/Server.hpp"
-
 #if TORREST_ENABLE_SWAGGER
 #ifdef OATPP_SWAGGER_RES_PATH
 #include "oatpp-swagger/Controller.hpp"
 typedef oatpp::swagger::Controller SwaggerController;
 #else
-
 #include "api/controller/swagger.h"
 
 typedef torrest::api::SwaggerController SwaggerController;
@@ -32,7 +31,21 @@ typedef torrest::api::SwaggerController SwaggerController;
 struct Options {
     uint16_t port = 8080;
     std::string settings_path = "settings.json";
+    spdlog::level::level_enum global_log_level = spdlog::level::info;
 };
+
+std::istream &operator>>(std::istream &pIs, spdlog::level::level_enum &pLevel) {
+    std::string levelString;
+    pIs >> levelString;
+    boost::algorithm::to_lower(levelString);
+
+    pLevel = spdlog::level::from_str(levelString);
+    if (pLevel == spdlog::level::off && levelString != "off") {
+        pIs.setstate(std::ios_base::failbit);
+    }
+
+    return pIs;
+}
 
 Options parse_arguments(int argc, const char *argv[]) {
     Options options;
@@ -41,7 +54,9 @@ Options parse_arguments(int argc, const char *argv[]) {
             ("port,p", boost::program_options::value<uint16_t>(&options.port),
              "server listen port (default: 8080)")
             ("settings,s", boost::program_options::value<std::string>(&options.settings_path),
-             "server settings path (default: settings.json)")
+             "settings path (default: settings.json)")
+            ("log-level", boost::program_options::value<spdlog::level::level_enum>(&options.global_log_level),
+             "global log level (default: INFO)")
             ("version,v", "print version")
             ("help,h", "print help message");
 
@@ -63,7 +78,7 @@ Options parse_arguments(int argc, const char *argv[]) {
 int main(int argc, const char *argv[]) {
     auto options = parse_arguments(argc, argv);
     spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e %l [%n] [thread-%t] %v");
-    spdlog::set_level(spdlog::level::debug);
+    spdlog::set_level(options.global_log_level);
     auto logger = spdlog::stdout_logger_mt("main");
 
     torrest::settings::Settings settings;
