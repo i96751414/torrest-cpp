@@ -31,7 +31,7 @@ find_package(spdlog 1.8.5 REQUIRED)
 find_package(oatpp 1.3.0 REQUIRED)
 find_package(oatpp-swagger 1.3.0 REQUIRED)
 find_package(OpenSSL 1.1.1 REQUIRED)
-find_package(Boost 1.72.0 REQUIRED COMPONENTS filesystem)
+find_package(Boost 1.72.0 REQUIRED COMPONENTS filesystem program_options)
 find_package(LibtorrentRasterbar 1.2.14 REQUIRED COMPONENTS torrent-rasterbar)
 
 add_executable(torrest
@@ -59,6 +59,7 @@ target_link_libraries(torrest
         oatpp::oatpp-swagger
         OpenSSL::Crypto OpenSSL::SSL
         ${Boost_FILESYSTEM_LIBRARY}
+        ${Boost_PROGRAM_OPTIONS_LIBRARY}
         LibtorrentRasterbar::torrent-rasterbar)
 
 target_optional_compile_definitions(torrest PUBLIC FEATURE NAME enable_swagger DEFAULT ON

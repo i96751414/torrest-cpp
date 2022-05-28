@@ -215,8 +215,8 @@ if requires "boost"; then
   echo "- Building boost ${BOOST_VERSION}"
   ./bootstrap.sh --prefix="${PREFIX}"
   echo "${BOOST_CONFIG}" >user-config.jam
-  boost_options=(-j"${jobs}" --with-date_time --with-system --with-filesystem --with-chrono --with-random --prefix="${PREFIX}"
-    --user-config=user-config.jam variant=release threading=multi cxxflags=-std=c++"${CXX_STANDARD}")
+  boost_options=(-j"${jobs}" --with-date_time --with-system --with-filesystem --with-program_options --with-chrono --with-random
+    --prefix="${PREFIX}" --user-config=user-config.jam variant=release threading=multi cxxflags=-std=c++"${CXX_STANDARD}")
   [ "${static}" == true ] && boost_options+=(link=static)
   [ "${static_runtime}" == true ] && boost_options+=(runtime-link=static)
   parseArgsToArray "${BOOST_OPTS}"

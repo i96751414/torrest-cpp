@@ -1,15 +1,19 @@
+#include <iostream>
+
+#include "boost/program_options.hpp"
 #include "boost/filesystem.hpp"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_sinks.h"
 #include "oatpp/network/Server.hpp"
-#include "oatpp/core/base/CommandLineArguments.hpp"
 
 #if TORREST_ENABLE_SWAGGER
 #ifdef OATPP_SWAGGER_RES_PATH
 #include "oatpp-swagger/Controller.hpp"
 typedef oatpp::swagger::Controller SwaggerController;
 #else
+
 #include "api/controller/swagger.h"
+
 typedef torrest::api::SwaggerController SwaggerController;
 #endif
 #endif
@@ -25,27 +29,56 @@ typedef torrest::api::SwaggerController SwaggerController;
 #include "utils/conversion.h"
 
 
+struct Options {
+    uint16_t port = 8080;
+    std::string settings_path = "settings.json";
+};
+
+Options parse_arguments(int argc, const char *argv[]) {
+    Options options;
+    boost::program_options::options_description optionsDescription("Optional arguments");
+    optionsDescription.add_options()
+            ("port,p", boost::program_options::value<uint16_t>(&options.port),
+             "server listen port (default: 8080)")
+            ("settings,s", boost::program_options::value<std::string>(&options.settings_path),
+             "server settings path (default: settings.json)")
+            ("version,v", "print version")
+            ("help,h", "print help message");
+
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line(argc, argv, optionsDescription), vm);
+    boost::program_options::notify(vm);
+
+    if (vm.count("help")) {
+        std::cout << optionsDescription << std::endl;
+        std::exit(0);
+    } else if (vm.count("version")) {
+        std::cout << TORREST_VERSION << std::endl;
+        std::exit(0);
+    }
+
+    return options;
+}
+
 int main(int argc, const char *argv[]) {
+    auto options = parse_arguments(argc, argv);
     spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e %l [%n] [thread-%t] %v");
     spdlog::set_level(spdlog::level::debug);
     auto logger = spdlog::stdout_logger_mt("main");
 
-    auto cmdArgs = oatpp::base::CommandLineArguments(argc, argv);
-    auto port = torrest::utils::str_to_uint16(cmdArgs.getNamedArgumentValue("--port", "8080"));
-    auto settingsPath = cmdArgs.getNamedArgumentValue("--settings", "settings.json");
-
     torrest::settings::Settings settings;
-    if (boost::filesystem::exists(settingsPath)) {
-        logger->debug("operation=main, message='Loading settings file', settingsPath='{}'", settingsPath);
-        settings = torrest::settings::Settings::load(settingsPath);
+    if (boost::filesystem::exists(options.settings_path)) {
+        logger->debug("operation=main, message='Loading settings file', settingsPath='{}'", options.settings_path);
+        settings = torrest::settings::Settings::load(options.settings_path);
         settings.validate();
     } else {
-        logger->debug("operation=main, message='Saving default settings file', settingsPath='{}'", settingsPath);
-        settings.save(settingsPath);
+        logger->debug("operation=main, message='Saving default settings file', settingsPath='{}'",
+                      options.settings_path);
+        settings.save(options.settings_path);
     }
 
     logger->debug("operation=main, message='Initializing Torrest application', version=" TORREST_VERSION);
-    torrest::Torrest::initialize(settingsPath, settings);
+    torrest::Torrest::initialize(options.settings_path, settings);
 
     logger->debug("operation=main, message='Starting OATPP environment'");
     oatpp::base::Environment::init();
@@ -55,7 +88,7 @@ int main(int argc, const char *argv[]) {
     oatpp::base::Environment::setLogger(apiLogger);
 
     {
-        torrest::api::AppComponent component(port);
+        torrest::api::AppComponent component(options.port);
         OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router);
 #if TORREST_ENABLE_SWAGGER
         oatpp::web::server::api::Endpoints docEndpoints{};
@@ -77,14 +110,14 @@ int main(int argc, const char *argv[]) {
 
 #if TORREST_ENABLE_SWAGGER
         router->addController(SwaggerController::createShared(docEndpoints));
-        logger->debug("operation=main, message='Swagger available at http://localhost:{}/swagger/ui'", port);
+        logger->debug("operation=main, message='Swagger available at http://localhost:{}/swagger/ui'", options.port);
 #endif
 
         OATPP_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, connectionHandler);
         OATPP_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, connectionProvider);
         oatpp::network::Server server(connectionProvider, connectionHandler);
 
-        logger->info("operation=main, message='Starting HTTP server', port={}", port);
+        logger->info("operation=main, message='Starting HTTP server', port={}", options.port);
         server.run(static_cast<std::function<bool()>>([] {
             return torrest::Torrest::get_instance().is_running();
         }));
