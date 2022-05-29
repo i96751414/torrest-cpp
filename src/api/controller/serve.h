@@ -59,7 +59,7 @@ public:
         if (rangeHeader != nullptr) {
             auto range = range_parser::parse(rangeHeader, file->get_size());
             if (range.unit != range_parser::UNIT_BYTES) {
-                return createDtoResponse(Status::CODE_416, MessageResponse::create("Invalid range"));
+                return createDtoResponse(Status::CODE_416, ErrorResponse::create("Invalid range"));
             }
 
             auto rangeCount = range.ranges.size();
@@ -78,7 +78,7 @@ public:
                 headers.emplace_back(Header::CONTENT_RANGE, singleRange.content_range(file->get_size()).c_str());
             } else if (rangeCount > 1) {
                 logger->error("operation=serve, message='Multiple ranges are not supported'");
-                return createDtoResponse(Status::CODE_500, MessageResponse::create("Multi ranges are not supported"));
+                return createDtoResponse(Status::CODE_500, ErrorResponse::create("Multi ranges are not supported"));
             }
 
             headers.emplace_back("Accept-Ranges", range_parser::UNIT_BYTES);
