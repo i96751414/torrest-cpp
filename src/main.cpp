@@ -28,24 +28,28 @@ typedef torrest::api::SwaggerController SwaggerController;
 #include "utils/conversion.h"
 
 
+namespace spdlog { namespace level {
+
+    std::istream &operator>>(std::istream &pIs, level_enum &pLevel) {
+        std::string levelString;
+        pIs >> levelString;
+        boost::algorithm::to_lower(levelString);
+
+        pLevel = from_str(levelString);
+        if (pLevel == off && levelString != "off") {
+            pIs.setstate(std::ios_base::failbit);
+        }
+
+        return pIs;
+    }
+
+}}
+
 struct Options {
     uint16_t port = 8080;
     std::string settings_path = "settings.json";
     spdlog::level::level_enum global_log_level = spdlog::level::info;
 };
-
-std::istream &operator>>(std::istream &pIs, spdlog::level::level_enum &pLevel) {
-    std::string levelString;
-    pIs >> levelString;
-    boost::algorithm::to_lower(levelString);
-
-    pLevel = spdlog::level::from_str(levelString);
-    if (pLevel == spdlog::level::off && levelString != "off") {
-        pIs.setstate(std::ios_base::failbit);
-    }
-
-    return pIs;
-}
 
 Options parse_arguments(int argc, const char *argv[]) {
     Options options;
