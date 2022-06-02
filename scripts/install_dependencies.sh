@@ -34,6 +34,7 @@ Additional environment variables can also be passed, such as:
   CMD (default: automatic)
   CXX_STANDARD (default: 14)
   PREFIX (default: /usr/local)
+  OATPP_OPTS (default: not set)
   BOOST_CONFIG (default: "using gcc ;")
   BOOST_OPTS (default: not set)
   OPENSSL_OPTS (default: not set)
@@ -179,8 +180,9 @@ if requires "oatpp"; then
   echo "- Downloading oatpp ${OATPP_VERSION}"
   download "https://github.com/oatpp/oatpp/archive/${OATPP_VERSION}.tar.gz"
   [ "${fix_mingw_headers}" == true ] && mingwFixHeaders
+  parseArgsToArray "${OATPP_OPTS}"
   echo "- Building oatpp ${OATPP_VERSION}"
-  buildCmake -DOATPP_BUILD_TESTS=OFF
+  buildCmake -DOATPP_BUILD_TESTS=OFF "${ARGS[@]}"
   cleanup
 fi
 

@@ -6,6 +6,8 @@ FROM debian:stretch-slim
 
 ARG CMAKE_VERSION=3.20.3
 
+ENV OATPP_OPTS -DOATPP_LINK_ATOMIC=OFF
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
         wget make build-essential \
     && apt-get clean \

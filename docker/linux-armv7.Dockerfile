@@ -6,6 +6,7 @@ ARG CROSS_COMPILER_TAG=latest
 FROM i96751414/cross-compiler-linux-armv7:${CROSS_COMPILER_TAG}
 
 ENV PREFIX "${CROSS_ROOT}"
+ENV OATPP_OPTS -DOATPP_LINK_ATOMIC=OFF
 ENV BOOST_CONFIG "using gcc : : ${CROSS_TRIPLE}-c++ ;"
 ENV BOOST_OPTS target-os=linux cxxflags=-fPIC cflags=-fPIC
 ENV OPENSSL_OPTS linux-armv4
