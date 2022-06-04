@@ -688,6 +688,9 @@ namespace torrest { namespace bittorrent {
                 mLogger->error("operation=load_torrent_files, message='Failed loading torrent', what='{}', file='{}'",
                                e.what(), f);
                 boost::filesystem::remove(f);
+            } catch (const DuplicateTorrentException &e) {
+                mLogger->debug("operation=load_torrent_files, message='{}', infoHash={}, file='{}'",
+                               e.what(), e.get_info_hash(), f);
             } catch (const BittorrentException &e) {
                 mLogger->error("operation=load_torrent_files, message='Failed adding torrent', what='{}', file='{}'",
                                e.what(), f);
