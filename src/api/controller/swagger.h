@@ -7,6 +7,7 @@
 #include "oatpp/parser/json/mapping/ObjectMapper.hpp"
 #include "oatpp-swagger/Generator.hpp"
 
+#define SWAGGER_UI_URL "/swagger/ui"
 #define SWAGGER_DOC_URL "/api-docs/oas-3.0.0.json"
 #define SWAGGER_RESOURCE(RES) "https://cdn.jsdelivr.net/npm/swagger-ui-dist@3.46.0/" RES
 
@@ -22,7 +23,7 @@ public:
               mDocument(std::move(pDocument)) {}
 
     static std::shared_ptr<SwaggerController> createShared(
-            const oatpp::web::server::api::Endpoints& pEndpointsList,
+            const oatpp::web::server::api::Endpoints &pEndpointsList,
             OATPP_COMPONENT(std::shared_ptr<oatpp::swagger::DocumentInfo>, pDocumentInfo)) {
 
         auto serializerConfig = oatpp::parser::json::mapping::Serializer::Config::createShared();
@@ -50,7 +51,7 @@ public:
         return createDtoResponse(Status::CODE_200, mDocument);
     }
 
-    ENDPOINT("GET", "/swagger/ui", getUIRoot) {
+    ENDPOINT("GET", SWAGGER_UI_URL, getUIRoot) {
         auto response = createResponse(Status::CODE_200, R"(<!DOCTYPE html>
 <html lang="en">
   <head>
