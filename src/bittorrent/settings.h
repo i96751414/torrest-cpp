@@ -5,16 +5,16 @@
 
 #include "settings/settings.h"
 
-#define SETTING(type, name, def)                    \
+#define SETTING(mtx, type, name, def)               \
     private:                                        \
         type name = def;                            \
     public:                                         \
         type get_##name() const {                   \
-            std::lock_guard<std::mutex> l(mMutex);  \
+            std::lock_guard<std::mutex> l(mtx);     \
             return name;                            \
         }                                           \
         void set_##name(const type &pValue) {       \
-            std::lock_guard<std::mutex> l(mMutex);  \
+            std::lock_guard<std::mutex> l(mtx);     \
             name = pValue;                          \
         }
     
@@ -23,17 +23,17 @@ namespace torrest { namespace bittorrent {
 
     class ServiceSettings {
 
-    SETTING(bool, limit_after_buffering, false)
-    SETTING(int, max_download_rate, 0)
-    SETTING(int, max_upload_rate, 0)
-    SETTING(std::string, download_path, "downloads")
-    SETTING(std::string, torrents_path, "downloads/torrents")
-    SETTING(bool, check_available_space, true)
-    SETTING(int, session_save, 30)
-    SETTING(int, seed_time_limit, 0)
-    SETTING(int, seed_time_ratio_limit, 0)
-    SETTING(int, share_ratio_limit, 0)
-    SETTING(int, piece_wait_timeout, 60)
+    SETTING(mMutex, bool, limit_after_buffering, false)
+    SETTING(mMutex, int, max_download_rate, 0)
+    SETTING(mMutex, int, max_upload_rate, 0)
+    SETTING(mMutex, std::string, download_path, "downloads")
+    SETTING(mMutex, std::string, torrents_path, "downloads/torrents")
+    SETTING(mMutex, bool, check_available_space, true)
+    SETTING(mMutex, int, session_save, 30)
+    SETTING(mMutex, int, seed_time_limit, 0)
+    SETTING(mMutex, int, seed_time_ratio_limit, 0)
+    SETTING(mMutex, int, share_ratio_limit, 0)
+    SETTING(mMutex, int, piece_wait_timeout, 60)
 
     public:
         void update(const settings::Settings &pSettings) {
