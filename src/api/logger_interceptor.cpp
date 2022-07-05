@@ -13,7 +13,7 @@ namespace torrest { namespace api {
     std::shared_ptr<LoggerRequestInterceptor::OutgoingResponse>
     LoggerRequestInterceptor::intercept(const std::shared_ptr<IncomingRequest> &pRequest) {
         oatpp::Int64 startTime(std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now().time_since_epoch()).count());
+                std::chrono::steady_clock::now().time_since_epoch()).count());
         pRequest->putBundleData("startTime", startTime);
         return nullptr;
     }
@@ -22,7 +22,7 @@ namespace torrest { namespace api {
     LoggerResponseInterceptor::intercept(const std::shared_ptr<IncomingRequest> &pRequest,
                                          const std::shared_ptr<OutgoingResponse> &pResponse) {
         oatpp::Int64 endTime(std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now().time_since_epoch()).count());
+                std::chrono::steady_clock::now().time_since_epoch()).count());
         auto duration = endTime - pRequest->getBundleData<oatpp::Int64>("startTime");
 
         spdlog::level::level_enum level;
