@@ -43,8 +43,8 @@ namespace torrest { namespace bittorrent {
             if (mTorrent->mPaused.load()) {
                 throw ReaderException("Torrent paused");
             }
-            if (0 < mPieceWaitTimeout && std::chrono::duration_cast<std::chrono::seconds>(
-                    std::chrono::steady_clock::now() - startTime).count() >= mPieceWaitTimeout) {
+            if (0 < mPieceWaitTimeout
+                && std::chrono::steady_clock::now() - startTime >= std::chrono::seconds(mPieceWaitTimeout)) {
                 mTorrent->mLogger->warn("operation=wait_for_piece, message='Timed out', piece={}, infoHash={}",
                                         pPiece, mTorrent->mInfoHash);
                 throw ReaderException("Timeout reached");
