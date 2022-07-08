@@ -54,19 +54,19 @@ namespace torrest { namespace bittorrent {
         void resume();
 
     private:
-        void check_save_resume_data_handler();
+        void check_save_resume_data_handler() const;
 
-        void consume_alerts_handler();
+        void consume_alerts_handler() const;
 
         void progress_handler();
 
         void update_progress();
 
-        void handle_save_resume_data(const libtorrent::save_resume_data_alert *pAlert);
+        void handle_save_resume_data(const libtorrent::save_resume_data_alert *pAlert) const;
 
-        void handle_metadata_received(const libtorrent::metadata_received_alert *pAlert);
+        void handle_metadata_received(const libtorrent::metadata_received_alert *pAlert) const;
 
-        void handle_state_changed(const libtorrent::state_changed_alert *pAlert);
+        void handle_state_changed(const libtorrent::state_changed_alert *pAlert) const;
 
         void configure(const settings::Settings &pSettings);
 
@@ -108,9 +108,9 @@ namespace torrest { namespace bittorrent {
 
         void delete_magnet_file(const std::string &pInfoHash) const;
 
-        bool wait_for_abort(const int &pSeconds);
+        bool wait_for_abort(const int &pSeconds) const;
 
-        bool wait_for_abort(const std::chrono::seconds &pSeconds);
+        bool wait_for_abort(const std::chrono::seconds &pSeconds) const;
 
         const std::regex mPortRegex = std::regex(":\\d+$");
         const std::regex mWhiteSpaceRegex = std::regex("\\s+");
@@ -124,7 +124,7 @@ namespace torrest { namespace bittorrent {
         mutable std::mutex mTorrentsMutex;
         mutable std::mutex mServiceMutex;
         mutable std::mutex mCvMutex;
-        std::condition_variable mCv;
+        mutable std::condition_variable mCv;
         std::vector<std::thread> mThreads;
         std::atomic<bool> mIsRunning;
         std::int64_t mDownloadRate;

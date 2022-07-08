@@ -107,8 +107,9 @@ namespace torrest { namespace bittorrent {
         }
     }
 
-    void Service::check_save_resume_data_handler() {
+    void Service::check_save_resume_data_handler() const {
         mLogger->debug("operation=check_save_resume_data_handler, message='Initializing handler'");
+
         while (!wait_for_abort(mSettings->get_session_save())) {
             if (!mTorrents.empty()) {
                 std::lock_guard<std::mutex> lock(mTorrentsMutex);
@@ -121,7 +122,7 @@ namespace torrest { namespace bittorrent {
         mLogger->debug("operation=check_save_resume_data_handler, message='Terminating handler'");
     }
 
-    void Service::consume_alerts_handler() {
+    void Service::consume_alerts_handler() const {
         mLogger->debug("operation=consume_alerts_handler, message='Initializing handler'");
         libtorrent::seconds alertWaitTime{1};
 
@@ -172,7 +173,7 @@ namespace torrest { namespace bittorrent {
         mLogger->debug("operation=consume_alerts_handler, message='Terminating handler'");
     }
 
-    void Service::handle_save_resume_data(const libtorrent::save_resume_data_alert *pAlert) {
+    void Service::handle_save_resume_data(const libtorrent::save_resume_data_alert *pAlert) const {
         auto infoHash = get_info_hash(pAlert->handle.info_hash());
         mLogger->debug("operation=handle_save_resume_data, message='Saving resume data', infoHash={}", infoHash);
 
@@ -182,7 +183,7 @@ namespace torrest { namespace bittorrent {
         of.write(buffer.data(), int(buffer.size()));
     }
 
-    void Service::handle_metadata_received(const libtorrent::metadata_received_alert *pAlert) {
+    void Service::handle_metadata_received(const libtorrent::metadata_received_alert *pAlert) const {
         auto torrentFile = pAlert->handle.torrent_file();
         auto infoHash = get_info_hash(torrentFile->info_hash());
 
@@ -206,7 +207,7 @@ namespace torrest { namespace bittorrent {
         delete_magnet_file(infoHash);
     }
 
-    void Service::handle_state_changed(const libtorrent::state_changed_alert *pAlert) {
+    void Service::handle_state_changed(const libtorrent::state_changed_alert *pAlert) const {
         if (mSettings->get_check_available_space() && pAlert->state == libtorrent::torrent_status::downloading) {
             auto infoHash = get_info_hash(pAlert->handle.info_hash());
             try {
@@ -220,8 +221,8 @@ namespace torrest { namespace bittorrent {
 
     void Service::progress_handler() {
         mLogger->debug("operation=progress_handler, message='Initializing handler'");
-        std::chrono::seconds progressPeriodicity(1);
-        while (!wait_for_abort(progressPeriodicity)) {
+
+        while (!wait_for_abort(1)) {
             if (!mSession->is_paused()) {
                 update_progress();
             }
@@ -836,11 +837,11 @@ namespace torrest { namespace bittorrent {
         boost::filesystem::remove(get_magnet_file(pInfoHash));
     }
 
-    bool Service::wait_for_abort(const int &pSeconds) {
+    bool Service::wait_for_abort(const int &pSeconds) const {
         return wait_for_abort(std::chrono::seconds(pSeconds));
     }
 
-    bool Service::wait_for_abort(const std::chrono::seconds &pSeconds) {
+    bool Service::wait_for_abort(const std::chrono::seconds &pSeconds) const {
         auto until = std::chrono::steady_clock::now() + pSeconds;
         std::unique_lock<std::mutex> lock(mCvMutex);
         return mCv.wait_until(lock, until, [this] { return !mIsRunning.load(); });
