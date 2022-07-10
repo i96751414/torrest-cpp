@@ -96,6 +96,7 @@ namespace torrest { namespace bittorrent {
 
         mThreads.emplace_back(&Service::check_save_resume_data_handler, this);
         mThreads.emplace_back(&Service::consume_alerts_handler, this);
+        mThreads.emplace_back(&Service::piece_cleanup_handler, this);
         mThreads.emplace_back(&Service::progress_handler, this);
     }
 
@@ -150,6 +151,9 @@ namespace torrest { namespace bittorrent {
                         break;
                     case libtorrent::state_changed_alert::alert_type:
                         handle_state_changed(dynamic_cast<const libtorrent::state_changed_alert *>(alert));
+                        break;
+                    case libtorrent::read_piece_alert::alert_type:
+                        handle_read_piece_alert(dynamic_cast<const libtorrent::read_piece_alert *>(alert));
                         break;
                 }
 
@@ -217,6 +221,37 @@ namespace torrest { namespace bittorrent {
                                e.what());
             }
         }
+    }
+
+    void Service::handle_read_piece_alert(const libtorrent::read_piece_alert *pAlert) const {
+        auto infoHash = get_info_hash(pAlert->handle.info_hash());
+        if (pAlert->error.failed()) {
+            mLogger->error(
+                    "operation=handle_read_piece_alert, message='Failed reading piece', infoHash={}, piece={}, error={}",
+                    infoHash, to_string(pAlert->piece), pAlert->error.message());
+        } else {
+            try {
+                get_torrent(infoHash)->store_piece(pAlert->piece, pAlert->size, pAlert->buffer);
+            } catch (const std::exception &e) {
+                mLogger->error("operation=handle_read_piece_alert, message='Failed handling read piece', what='{}'",
+                               e.what());
+            }
+        }
+    }
+
+    void Service::piece_cleanup_handler() const {
+        mLogger->debug("operation=piece_cleanup_handler, message='Initializing handler'");
+
+        while (!wait_for_abort(2)) {
+            if (!mTorrents.empty()) {
+                std::lock_guard<std::mutex> lock(mTorrentsMutex);
+                for (auto &torrent : mTorrents) {
+                    torrent->cleanup_pieces(std::chrono::seconds(5));
+                }
+            }
+        }
+
+        mLogger->debug("operation=piece_cleanup_handler, message='Terminating handler'");
     }
 
     void Service::progress_handler() {
@@ -736,7 +771,7 @@ namespace torrest { namespace bittorrent {
 
     std::vector<std::shared_ptr<Torrent>>::const_iterator Service::find_torrent(const std::string &pInfoHash,
                                                                                 bool pMustFind) const {
-        mLogger->debug("operation=find_torrent, infoHash={}", pInfoHash);
+        mLogger->trace("operation=find_torrent, infoHash={}", pInfoHash);
         auto torrent = std::find_if(
                 mTorrents.begin(), mTorrents.end(),
                 [&pInfoHash](const std::shared_ptr<Torrent> &t) { return t->get_info_hash() == pInfoHash; });
@@ -754,13 +789,13 @@ namespace torrest { namespace bittorrent {
     }
 
     std::shared_ptr<Torrent> Service::get_torrent(const std::string &pInfoHash) const {
-        mLogger->debug("operation=get_torrent, infoHash={}", pInfoHash);
+        mLogger->trace("operation=get_torrent, infoHash={}", pInfoHash);
         std::lock_guard<std::mutex> lock(mTorrentsMutex);
         return *find_torrent(pInfoHash);
     }
 
     std::vector<std::shared_ptr<Torrent>> Service::get_torrents() const {
-        mLogger->debug("operation=get_torrents");
+        mLogger->trace("operation=get_torrents");
         std::lock_guard<std::mutex> lock(mTorrentsMutex);
         return mTorrents;
     }

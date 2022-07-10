@@ -73,6 +73,8 @@ target_optional_compile_definitions(torrest PUBLIC FEATURE NAME enable_extended_
         DESCRIPTION "Enables extended connections" ENABLED TORREST_EXTENDED_CONNECTIONS)
 target_optional_compile_definitions(torrest PUBLIC FEATURE NAME enable_torrent_buffering_status DEFAULT OFF
         DESCRIPTION "Enables torrent buffering status" ENABLED TORREST_ENABLE_TORRENT_BUFFERING_STATUS)
+target_optional_compile_definitions(torrest PUBLIC FEATURE NAME legacy_read_piece DEFAULT OFF
+        DESCRIPTION "Uses legacy read piece method" ENABLED TORREST_LEGACY_READ_PIECE)
 
 if (DEFINED target_path)
     add_custom_command(TARGET torrest POST_BUILD

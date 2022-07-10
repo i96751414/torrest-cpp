@@ -58,6 +58,8 @@ namespace torrest { namespace bittorrent {
 
         void consume_alerts_handler() const;
 
+        void piece_cleanup_handler() const;
+
         void progress_handler();
 
         void update_progress();
@@ -67,6 +69,8 @@ namespace torrest { namespace bittorrent {
         void handle_metadata_received(const libtorrent::metadata_received_alert *pAlert) const;
 
         void handle_state_changed(const libtorrent::state_changed_alert *pAlert) const;
+
+        void handle_read_piece_alert(const libtorrent::read_piece_alert *pAlert) const;
 
         void configure(const settings::Settings &pSettings);
 
