@@ -41,6 +41,92 @@ namespace torrest { namespace bittorrent {
         mHasMetadata = true;
     }
 
+    void Torrent::store_piece(libtorrent::piece_index_t pPiece, int pSize, const boost::shared_array<char> &pBuffer) {
+        mLogger->trace("operation=store_piece, piece={}, size={}", to_string(pPiece), pSize);
+        std::lock_guard<std::mutex> lock(mPiecesMutex);
+        mPieces[pPiece] = PieceData{.size=pSize, .buffer=pBuffer, .read_at=std::chrono::steady_clock::now()};
+        mPiecesCv.notify_all();
+    }
+
+    void Torrent::cleanup_pieces(const std::chrono::milliseconds &pExpiration) {
+        mLogger->trace("operation=cleanup_pieces, expiration={}", pExpiration.count());
+        auto now = std::chrono::steady_clock::now();
+        std::lock_guard<std::mutex> lock(mPiecesMutex);
+        for (auto it = mPieces.begin(); it != mPieces.end();) {
+            if (now - it->second.read_at >= pExpiration) {
+                mPieces.erase(it++);
+            } else {
+                it++;
+            }
+        }
+    }
+
+    void Torrent::schedule_read_piece(libtorrent::piece_index_t pPiece) {
+        mLogger->trace("operation=schedule_read_piece, piece={}", to_string(pPiece));
+        mHandle.read_piece(pPiece);
+    }
+
+    PieceData Torrent::read_scheduled_piece(libtorrent::piece_index_t pPiece,
+                                            const std::chrono::milliseconds &pTimeout) {
+        mLogger->trace("operation=read_scheduled_piece, piece={}, timeout={}", to_string(pPiece), pTimeout.count());
+        auto until = std::chrono::steady_clock::now() + pTimeout;
+        std::unique_lock<std::mutex> lock(mPiecesMutex);
+
+        auto it = mPieces.find(pPiece);
+        while (it == mPieces.end()) {
+            if (pTimeout <= std::chrono::milliseconds::zero()) {
+                mPiecesCv.wait(lock);
+            } else if (std::chrono::steady_clock::now() > until) {
+                mLogger->error("operation=read_scheduled_piece, message='Timed out waiting for piece', piece={}",
+                               to_string(pPiece));
+                throw PieceException("Timed out waiting for piece");
+            } else {
+                mPiecesCv.wait_until(lock, until);
+            }
+
+            it = mPieces.find(pPiece);
+        }
+
+        it->second.read_at = std::chrono::steady_clock::now();
+        return it->second;
+    }
+
+    PieceData Torrent::read_piece(libtorrent::piece_index_t pPiece, const std::chrono::milliseconds &pTimeout) {
+        mLogger->trace("operation=read_piece, piece={}, timeout={}", to_string(pPiece), pTimeout.count());
+
+        {
+            std::lock_guard<std::mutex> lock(mPiecesMutex);
+            auto it = mPieces.find(pPiece);
+            if (it != mPieces.end()) {
+                return it->second;
+            }
+        }
+
+        schedule_read_piece(pPiece);
+        return read_scheduled_piece(pPiece, pTimeout);
+    }
+
+    void Torrent::wait_for_piece(libtorrent::piece_index_t pPiece, const std::chrono::milliseconds &pTimeout) const {
+        mLogger->trace("operation=wait_for_piece, piece={}, infoHash={}", to_string(pPiece), mInfoHash);
+        auto startTime = std::chrono::steady_clock::now();
+
+        while (!mHandle.have_piece(pPiece)) {
+            if (mClosed.load()) {
+                throw PieceException("Torrent closed");
+            }
+            if (mPaused.load()) {
+                throw PieceException("Torrent paused");
+            }
+            if (std::chrono::milliseconds::zero() < pTimeout &&
+                std::chrono::steady_clock::now() - startTime >= pTimeout) {
+                mLogger->warn("operation=wait_for_piece, message='Timed out', piece={}, infoHash={}",
+                              to_string(pPiece), mInfoHash);
+                throw PieceException("Timeout reached");
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
+    }
+
     void Torrent::pause() {
         mLogger->debug("operation=pause, message='Pausing torrent', infoHash={}", mInfoHash);
         std::lock_guard<std::mutex> lock(mMutex);

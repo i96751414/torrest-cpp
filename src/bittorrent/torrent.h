@@ -4,7 +4,9 @@
 #include <atomic>
 #include <mutex>
 #include <memory>
+#include <condition_variable>
 
+#include "boost/shared_array.hpp"
 #include "spdlog/spdlog.h"
 #include "libtorrent/torrent_handle.hpp"
 
@@ -12,6 +14,12 @@
 #include "enums.h"
 
 namespace torrest { namespace bittorrent {
+
+    struct PieceData {
+        int size;
+        boost::shared_array<char> buffer;
+        std::chrono::steady_clock::time_point read_at;
+    };
 
     struct TorrentInfo {
         std::string info_hash;
@@ -81,6 +89,18 @@ namespace torrest { namespace bittorrent {
     private:
         void handle_metadata_received();
 
+        void store_piece(libtorrent::piece_index_t pPiece, int pSize, const boost::shared_array<char> &pBuffer);
+
+        void cleanup_pieces(const std::chrono::milliseconds &pExpiration);
+
+        void schedule_read_piece(libtorrent::piece_index_t pPiece);
+
+        PieceData read_scheduled_piece(libtorrent::piece_index_t pPiece, const std::chrono::milliseconds &pTimeout);
+
+        PieceData read_piece(libtorrent::piece_index_t pPiece, const std::chrono::milliseconds &pTimeout);
+
+        void wait_for_piece(libtorrent::piece_index_t pPiece, const std::chrono::milliseconds &pTimeout) const;
+
         State get_torrent_state() const;
 
         std::int64_t get_bytes_missing(const std::vector<libtorrent::piece_index_t> &pPieces) const;
@@ -91,8 +111,11 @@ namespace torrest { namespace bittorrent {
         std::string mInfoHash;
         std::string mDefaultName;
         std::vector<std::shared_ptr<File>> mFiles;
+        std::unordered_map<libtorrent::piece_index_t, PieceData> mPieces;
         mutable std::mutex mMutex;
         mutable std::mutex mFilesMutex;
+        mutable std::mutex mPiecesMutex;
+        mutable std::condition_variable mPiecesCv;
         std::atomic<bool> mPaused{};
         std::atomic<bool> mHasMetadata;
         std::atomic<bool> mClosed;

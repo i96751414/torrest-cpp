@@ -45,6 +45,10 @@ namespace torrest { namespace bittorrent {
         using BittorrentException::BittorrentException;
     };
 
+    class PieceException : public BittorrentException {
+        using BittorrentException::BittorrentException;
+    };
+
 }}
 
 #endif //TORREST_EXCEPTIONS_H

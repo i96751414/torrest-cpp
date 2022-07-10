@@ -19,7 +19,7 @@ namespace torrest { namespace bittorrent {
                double pReadAhead,
                int pPieceWaitTimeout);
 
-        int read(void *pBuf, std::ptrdiff_t pSize);
+        std::int64_t read(void *pBuf, std::int64_t pSize);
 
         std::int64_t seek(std::int64_t pOff, int pWhence);
 
@@ -27,8 +27,6 @@ namespace torrest { namespace bittorrent {
         std::int32_t piece_from_offset(std::int64_t pOffset) const;
 
         std::int32_t piece_offset_from_offset(std::int64_t pOffset) const;
-
-        void wait_for_piece(std::int32_t pPiece) const;
 
         void set_piece_priority(libtorrent::piece_index_t pPiece, int pDeadline,
                                 libtorrent::download_priority_t pPriority) const;
@@ -41,7 +39,7 @@ namespace torrest { namespace bittorrent {
         std::int64_t mSize;
         std::int64_t mPieceLength;
         std::int64_t mPPieces;
-        int mPieceWaitTimeout;
+        std::chrono::seconds mPieceWaitTimeout;
         std::int32_t mLastPiece;
         std::int64_t mPos;
     };
