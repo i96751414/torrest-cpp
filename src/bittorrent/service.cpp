@@ -28,11 +28,27 @@
                                     ",router.silotis.us:6881" \
                                     ",dht.libtorrent.org:25401"
 
+#if TORRENT_ABI_VERSION <= 2
+#define INFO_HASH_PARAM info_hash
+#define INFO_HASH_T libtorrent::sha1_hash
+#else
+#define INFO_HASH_PARAM info_hashes
+#define INFO_HASH_T libtorrent::info_hash_t
+#endif
+
 namespace {
 
-    std::string get_info_hash(libtorrent::sha1_hash const &pSha1Hash) {
+    std::string get_info_hash(INFO_HASH_T const &pInfoHash) {
         std::stringstream ss;
-        ss << pSha1Hash;
+#if TORRENT_ABI_VERSION <= 2
+        ss << pInfoHash;
+#else
+        if (pInfoHash.has_v2()) {
+            ss << pInfoHash.v2;
+        } else {
+            ss << pInfoHash.v1;
+        }
+#endif
         return ss.str();
     }
 
@@ -91,7 +107,12 @@ namespace torrest { namespace bittorrent {
               mSettings(std::make_shared<ServiceSettings>()) {
 
         configure(pSettings);
-        mSession = std::make_shared<libtorrent::session>(mSettingsPack, libtorrent::session::add_default_plugins);
+        mSession = std::make_shared<libtorrent::session>(mSettingsPack
+#if TORRENT_ABI_VERSION <= 2
+            , libtorrent::session::add_default_plugins
+#endif
+        );
+
         load_torrent_files();
 
         mThreads.emplace_back(&Service::check_save_resume_data_handler, this);
@@ -178,7 +199,7 @@ namespace torrest { namespace bittorrent {
     }
 
     void Service::handle_save_resume_data(const libtorrent::save_resume_data_alert *pAlert) const {
-        auto infoHash = get_info_hash(pAlert->handle.info_hash());
+        auto infoHash = get_info_hash(pAlert->handle.INFO_HASH_PARAM());
         mLogger->debug("operation=handle_save_resume_data, message='Saving resume data', infoHash={}", infoHash);
 
         auto buffer = libtorrent::write_resume_data_buf(pAlert->params);
@@ -189,7 +210,7 @@ namespace torrest { namespace bittorrent {
 
     void Service::handle_metadata_received(const libtorrent::metadata_received_alert *pAlert) const {
         auto torrentFile = pAlert->handle.torrent_file();
-        auto infoHash = get_info_hash(torrentFile->info_hash());
+        auto infoHash = get_info_hash(torrentFile->INFO_HASH_PARAM());
 
         try {
             get_torrent(infoHash)->handle_metadata_received();
@@ -213,7 +234,7 @@ namespace torrest { namespace bittorrent {
 
     void Service::handle_state_changed(const libtorrent::state_changed_alert *pAlert) const {
         if (mSettings->get_check_available_space() && pAlert->state == libtorrent::torrent_status::downloading) {
-            auto infoHash = get_info_hash(pAlert->handle.info_hash());
+            auto infoHash = get_info_hash(pAlert->handle.INFO_HASH_PARAM());
             try {
                 get_torrent(infoHash)->check_available_space(mSettings->get_download_path());
             } catch (const std::exception &e) {
@@ -224,7 +245,7 @@ namespace torrest { namespace bittorrent {
     }
 
     void Service::handle_read_piece_alert(const libtorrent::read_piece_alert *pAlert) const {
-        auto infoHash = get_info_hash(pAlert->handle.info_hash());
+        auto infoHash = get_info_hash(pAlert->handle.INFO_HASH_PARAM());
         if (pAlert->error.failed()) {
             mLogger->error(
                     "operation=handle_read_piece_alert, message='Failed reading piece', infoHash={}, piece={}, error={}",
@@ -385,11 +406,13 @@ namespace torrest { namespace bittorrent {
 
         // For Android external storage / OS-mounted NAS setups
         if (pSettings.tuned_storage) {
+            mSettingsPack.set_int(libtorrent::settings_pack::max_queued_disk_bytes, 10 * 1024 * 1024);
+#if TORRENT_ABI_VERSION <= 2
             mSettingsPack.set_bool(libtorrent::settings_pack::use_read_cache, true);
             mSettingsPack.set_bool(libtorrent::settings_pack::coalesce_reads, true);
             mSettingsPack.set_bool(libtorrent::settings_pack::coalesce_writes, true);
-            mSettingsPack.set_int(libtorrent::settings_pack::max_queued_disk_bytes, 10 * 1024 * 1024);
             mSettingsPack.set_int(libtorrent::settings_pack::cache_size, -1);
+#endif
         }
 
         mSettingsPack.set_int(libtorrent::settings_pack::connections_limit,
@@ -607,7 +630,7 @@ namespace torrest { namespace bittorrent {
             throw LoadTorrentException(errorCode.message());
         }
 
-        auto infoHash = get_info_hash(torrentParams.info_hash);
+        auto infoHash = get_info_hash(torrentParams.INFO_HASH_PARAM);
         add_torrent_with_params(torrentParams, infoHash, false, pDownload);
 
         if (pSaveMagnet) {
@@ -633,7 +656,7 @@ namespace torrest { namespace bittorrent {
             throw LoadTorrentException(errorCode.message());
         }
 
-        auto infoHash = get_info_hash(torrentParams.ti->info_hash());
+        auto infoHash = get_info_hash(torrentParams.ti->INFO_HASH_PARAM());
         std::lock_guard<std::mutex> lock(mTorrentsMutex);
         add_torrent_with_params(torrentParams, infoHash, false, pDownload);
         std::ofstream of(get_torrent_file(infoHash), std::ios::binary);
@@ -653,7 +676,7 @@ namespace torrest { namespace bittorrent {
             throw LoadTorrentException(errorCode.message());
         }
 
-        auto infoHash = get_info_hash(torrentParams.ti->info_hash());
+        auto infoHash = get_info_hash(torrentParams.ti->INFO_HASH_PARAM());
         add_torrent_with_params(torrentParams, infoHash, false, pDownload);
 
         if (pSaveFile) {
@@ -684,7 +707,7 @@ namespace torrest { namespace bittorrent {
             throw LoadTorrentException(errorCode.message());
         }
 
-        auto infoHash = get_info_hash(torrentParams.info_hash);
+        auto infoHash = get_info_hash(torrentParams.INFO_HASH_PARAM);
         add_torrent_with_params(torrentParams, infoHash, true, true);
     }
 

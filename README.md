@@ -67,7 +67,7 @@ Below is the list of supported CMake build configurations (which are then mapped
 | enable_shutdown                 | ON      | TORREST_ENABLE_SHUTDOWN                 | Enables the shutdown endpoint (http://localhost:8080/shutdown) |
 | enable_extended_connections     | ON      | TORREST_EXTENDED_CONNECTIONS            | Enables oatpp extended connections                             |
 | enable_torrent_buffering_status | OFF     | TORREST_ENABLE_TORRENT_BUFFERING_STATUS | Enables torrent buffering status                               |
-| legacy_read_piece               | OFF     | TORREST_LEGACY_READ_PIECE               | Uses legacy read piece method                                  |
+| legacy_read_piece               | OFF     | TORREST_LEGACY_READ_PIECE               | Uses legacy read piece method (libtorrent v1 only)             |
 
 ## Cross Compiling
 
