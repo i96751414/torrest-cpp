@@ -10,6 +10,10 @@ on:
         description: "Push built images"
         default: "false"
         required: true
+      libtorrent-version:
+        description: "Libtorrent version (empty for default)"
+        default: ""
+        required: false
 jobs:
   cross-build:
     name: "Build cross compiler"
@@ -37,6 +41,10 @@ jobs:
       - name: Build ${{ matrix.platform }} docker image
         shell: bash
         run: |
+          if [ -n "${{ github.event.inputs.libtorrent-version }}" ]; then
+            echo "Setting libtorrent version to ${{ github.event.inputs.libtorrent-version }}"
+            sed -i "s|\(LIBTORRENT_VERSION=\).*|\1${{ github.event.inputs.libtorrent-version }}|g" scripts/versions.env
+          fi
           for tag in ${{ github.event.inputs.tags }}; do
             make -f docker/Makefile build-${{ matrix.platform }} IMAGE_TAG=${tag}
           done
