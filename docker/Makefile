@@ -24,7 +24,7 @@ build: $(BUILD_TARGETS)
 
 $(BUILD_TARGETS): PLATFORM = $(@:build-%=%)
 $(BUILD_TARGETS):
-	docker build \
+	docker build --pull \
 		--tag "$(IMAGE_PREFIX)-$(PLATFORM):$(IMAGE_TAG)" \
 		--build-arg CROSS_COMPILER_TAG="$(CROSS_COMPILER_TAG)" \
 		--file "${ROOT_DIR}/docker/$(PLATFORM).Dockerfile" \

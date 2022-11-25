@@ -38,6 +38,7 @@ Additional environment variables can also be passed, such as:
   BOOST_CONFIG (default: "using gcc ;")
   BOOST_OPTS (default: not set)
   OPENSSL_OPTS (default: not set)
+  LIBTORRENT_OPTS (default: not set)
   OPENSSL_CROSS_COMPILE (default: not set)
   CMAKE_TOOLCHAIN_FILE (default: not set)
 
@@ -228,9 +229,14 @@ fi
 
 if requires "libtorrent"; then
   echo "- Downloading libtorrent ${LIBTORRENT_VERSION}"
-  download "https://github.com/arvidn/libtorrent/archive/${LIBTORRENT_VERSION}.tar.gz"
+  download "https://github.com/arvidn/libtorrent/releases/download/${LIBTORRENT_VERSION}/libtorrent-rasterbar-${LIBTORRENT_VERSION#v}.tar.gz"
+  # Fix for Windows - https://github.com/arvidn/libtorrent/issues/7190
+  sed -i "s|\(-D_WIN32_WINNT\)=[[:digit:]x]\+|\1=0x0601|g" "${tmp_dir}/CMakeLists.txt"
+  # Fix for MingGW - https://github.com/godotengine/godot/issues/59409
+  # find "${tmp_dir}/src" -name "*.cpp" -type f -exec sed -i "s|\(#include <iphlpapi.h>\)|#include <wincrypt.h>\n\1|g" {} +
   echo "- Building libtorrent ${LIBTORRENT_VERSION}"
-  opts=(-Ddeprecated-functions=OFF)
+  parseArgsToArray "${LIBTORRENT_OPTS}"
+  opts=("${ARGS[@]}" -Ddeprecated-functions=OFF)
   [ "${static_runtime}" == true ] && opts+=(-Dstatic_runtime=ON)
   buildCmake "${opts[@]}"
   cleanup
