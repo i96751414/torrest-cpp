@@ -5,7 +5,7 @@
 #include "reader.h"
 #include "exceptions.h"
 
-#define CHECK_TORRENT(t) if (!t) { throw torrest::bittorrent::InvalidTorrentException("Invalid torrent"); }
+#define CHECK_TORRENT(t) do { if (!t) throw torrest::bittorrent::InvalidTorrentException("Invalid torrent"); } while(0)
 
 namespace torrest { namespace bittorrent {
 
@@ -57,7 +57,7 @@ namespace torrest { namespace bittorrent {
 
     void File::set_priority(libtorrent::download_priority_t pPriority) {
         auto torrent = mTorrent.lock();
-        CHECK_TORRENT(torrent)
+        CHECK_TORRENT(torrent);
 
         mLogger->debug("operation=set_priority, message='Setting file priority', priority={}, infoHash={}, index={}",
                        to_string(pPriority), torrent->mInfoHash, to_string(mIndex));
@@ -73,7 +73,7 @@ namespace torrest { namespace bittorrent {
     std::int64_t File::get_completed() const {
         mLogger->trace("operation=get_completed");
         auto torrent = mTorrent.lock();
-        CHECK_TORRENT(torrent)
+        CHECK_TORRENT(torrent);
 
         std::vector<std::int64_t> file_progress;
         torrent->mHandle.file_progress(file_progress, libtorrent::torrent_handle::piece_granularity);
@@ -88,7 +88,7 @@ namespace torrest { namespace bittorrent {
     State File::get_state(std::int64_t pCompleted) const {
         mLogger->trace("operation=get_state, completed={}", pCompleted);
         auto torrent = mTorrent.lock();
-        CHECK_TORRENT(torrent)
+        CHECK_TORRENT(torrent);
 
         auto state = torrent->get_torrent_state();
         if (state == downloading) {
@@ -105,7 +105,7 @@ namespace torrest { namespace bittorrent {
     std::int64_t File::get_buffer_bytes_missing() const {
         mLogger->trace("operation=get_buffer_bytes_missing");
         auto torrent = mTorrent.lock();
-        CHECK_TORRENT(torrent)
+        CHECK_TORRENT(torrent);
         return torrent->get_bytes_missing(mBufferPieces);
     }
 
@@ -149,7 +149,7 @@ namespace torrest { namespace bittorrent {
         mLogger->trace("operation=add_buffer_pieces, index={}, offset={}, length={}",
                        to_string(mIndex), pOffset, pLength);
         auto torrent = mTorrent.lock();
-        CHECK_TORRENT(torrent)
+        CHECK_TORRENT(torrent);
         auto torrent_file = torrent->mHandle.torrent_file();
         auto pieces = get_pieces_indexes(pOffset, pLength);
 
@@ -186,7 +186,7 @@ namespace torrest { namespace bittorrent {
     std::shared_ptr<Reader> File::reader(double pReadAhead) {
         mLogger->debug("operation=reader, index={}, readAhead={}", to_string(mIndex), pReadAhead);
         auto torrent = mTorrent.lock();
-        CHECK_TORRENT(torrent)
+        CHECK_TORRENT(torrent);
         return std::make_shared<Reader>(
                 torrent, mOffset, mSize, mPieceLength, pReadAhead, torrent->mSettings->get_piece_wait_timeout());
     }

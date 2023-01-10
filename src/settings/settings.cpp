@@ -10,8 +10,8 @@
 namespace torrest { namespace settings {
 
     void ProxySettings::validate() const {
-        VALIDATE(type, GTE(0), LT(pt_num_values))
-        VALIDATE(port, GTE(0), LTE(65535))
+        VALIDATE(type, GTE(0), LT(pt_num_values));
+        VALIDATE(port, GTE(0), LTE(65535));
     }
 
     Settings Settings::load(const std::string &pPath) {
@@ -38,21 +38,21 @@ namespace torrest { namespace settings {
     }
 
     void Settings::validate() const {
-        VALIDATE(listen_port, GTE(0), LTE(65535))
-        VALIDATE(download_path, NOT_EMPTY())
-        VALIDATE(torrents_path, NOT_EMPTY())
-        VALIDATE(user_agent, GTE(0), LT(ua_num_values))
-        VALIDATE(session_save, GT(0))
-        VALIDATE(max_download_rate, GTE(0))
-        VALIDATE(max_upload_rate, GTE(0))
-        VALIDATE(share_ratio_limit, GTE(0))
-        VALIDATE(seed_time_ratio_limit, GTE(0))
-        VALIDATE(seed_time_limit, GTE(0))
-        VALIDATE(encryption_policy, GTE(0), LT(ep_num_values))
-        VALIDATE(piece_wait_timeout, GTE(0))
-        VALIDATE(service_log_level, GTE(0), LT(spdlog::level::n_levels))
-        VALIDATE(alerts_log_level, GTE(0), LT(spdlog::level::n_levels))
-        VALIDATE(api_log_level, GTE(0), LT(spdlog::level::n_levels))
+        VALIDATE(listen_port, GTE(0), LTE(65535));
+        VALIDATE(download_path, NOT_EMPTY());
+        VALIDATE(torrents_path, NOT_EMPTY());
+        VALIDATE(user_agent, GTE(0), LT(ua_num_values));
+        VALIDATE(session_save, GT(0));
+        VALIDATE(max_download_rate, GTE(0));
+        VALIDATE(max_upload_rate, GTE(0));
+        VALIDATE(share_ratio_limit, GTE(0));
+        VALIDATE(seed_time_ratio_limit, GTE(0));
+        VALIDATE(seed_time_limit, GTE(0));
+        VALIDATE(encryption_policy, GTE(0), LT(ep_num_values));
+        VALIDATE(piece_wait_timeout, GTE(0));
+        VALIDATE(service_log_level, GTE(0), LT(spdlog::level::n_levels));
+        VALIDATE(alerts_log_level, GTE(0), LT(spdlog::level::n_levels));
+        VALIDATE(api_log_level, GTE(0), LT(spdlog::level::n_levels));
 
         if (proxy) { proxy->validate(); }
     }

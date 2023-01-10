@@ -17,7 +17,7 @@
 #define LTE(l) (!, <= l, "must be less than or equal to " + std::to_string(l))
 #define GTE(l) (!, >= l, "must be greater than or equal to " + std::to_string(l))
 #define NOT_EMPTY() (, .empty(), "cannot be empty")
-#define VALIDATE(var, ...) _GET_MACRO(__VA_ARGS__, _VALIDATE3, _VALIDATE2, _VALIDATE1)(var, __VA_ARGS__)
+#define VALIDATE(var, ...) do { _GET_MACRO(__VA_ARGS__, _VALIDATE3, _VALIDATE2, _VALIDATE1)(var, __VA_ARGS__) } while(0)
 
 namespace torrest { namespace utils {
 
