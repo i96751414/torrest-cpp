@@ -93,6 +93,7 @@ verbose=false
 
 while [ $# -gt 0 ]; do
   case "$1" in
+  --) shift && break ;;
   -h | --help) usage 0 ;;
   -v | --verbose) verbose=true ;;
   -s | --static) static=true ;;
@@ -101,10 +102,16 @@ while [ $# -gt 0 ]; do
   -j | --jobs) validateNumber "$2" "$1" && shift && jobs="$1" ;;
   --fix-mingw-headers) fix_mingw_headers=true ;;
   --*) [[ "${1:2}" =~ ^(${allowed_opts})$ ]] || invalidOpt "$1" && declare "${1//-/}"=true && all=false ;;
-  *) invalidOpt "$1" ;;
+  -*) invalidOpt "$1" ;;
+  *) break ;;
   esac
   shift
 done
+
+if [ $# -gt 0 ]; then
+  echo "No positional arguments expected"
+  usage 1
+fi
 
 [ "${verbose}" == true ] && set -x
 
