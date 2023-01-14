@@ -98,6 +98,7 @@ namespace torrest { namespace bittorrent {
             std::lock_guard<std::mutex> lock(mPiecesMutex);
             auto it = mPieces.find(pPiece);
             if (it != mPieces.end()) {
+                it->second.read_at = std::chrono::steady_clock::now();
                 return it->second;
             }
         }

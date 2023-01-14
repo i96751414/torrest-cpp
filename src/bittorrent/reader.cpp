@@ -75,14 +75,14 @@ namespace torrest { namespace bittorrent {
         }
 #else
         auto startPieceData = mTorrent->read_piece(
-                libtorrent::piece_index_t(startPiece), std::chrono::milliseconds(500));
+                libtorrent::piece_index_t(startPiece), std::chrono::milliseconds(2000));
         auto startPieceOffset = piece_offset_from_offset(mPos);
         auto n = std::min<std::int64_t>(size, startPieceData.size - startPieceOffset);
         memcpy(pBuf, &startPieceData.buffer[startPieceOffset], n);
 
         for (auto p = startPiece + 1; p <= endPiece; p++) {
             auto pieceData = mTorrent->read_piece(
-                    libtorrent::piece_index_t(p), std::chrono::milliseconds(500));
+                    libtorrent::piece_index_t(p), std::chrono::milliseconds(2000));
             auto pieceBufferSize = std::min<std::int64_t>(size - n, pieceData.size);
             memcpy((char *) pBuf + n, pieceData.buffer.get(), pieceBufferSize);
             n += pieceBufferSize;
@@ -116,7 +116,7 @@ namespace torrest { namespace bittorrent {
     }
 
     std::int64_t Reader::seek(std::int64_t pOff, int pWhence) {
-        mTorrent->mLogger->trace("operation=seek, off={}, whence={}, infoHash={}", pOff, pWhence, mTorrent->mInfoHash);
+        mTorrent->mLogger->debug("operation=seek, off={}, whence={}, infoHash={}", pOff, pWhence, mTorrent->mInfoHash);
         std::lock_guard<std::mutex> lock(mMutex);
 
         std::int64_t off;
@@ -135,6 +135,7 @@ namespace torrest { namespace bittorrent {
         }
 
         if (off < 0 || off > mSize) {
+            mTorrent->mLogger->error("operation=seek, message='Offset out of boundaries', off={}", off);
             return -1;
         }
 
