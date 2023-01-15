@@ -14,8 +14,8 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-feature_option(BUILD_SHARED_LIBS "build torrest as a shared library" ON)
-feature_option(static_runtime "build torrest with static runtime" OFF)
+feature_option(BUILD_SHARED_LIBS "Build torrest as a shared library" ON)
+feature_option(static_runtime "Build torrest with static runtime" OFF)
 
 if (NOT BUILD_SHARED_LIBS)
     set(Boost_USE_STATIC_LIBS ON)
@@ -62,11 +62,16 @@ target_link_libraries(torrest
         ${Boost_PROGRAM_OPTIONS_LIBRARY}
         LibtorrentRasterbar::torrent-rasterbar)
 
+get_filename_component(default_swagger_local_resources "${oatpp-swagger_INCLUDE_DIRS}/../bin/oatpp-swagger/res" ABSOLUTE)
+feature(swagger_local_resources STRING with_swagger_local_resources
+        "Swagger local resources path (to use when with_swagger_local_resources=ON)"
+        "${default_swagger_local_resources}")
+
 target_optional_compile_definitions(torrest PUBLIC FEATURE NAME enable_swagger DEFAULT ON
         DESCRIPTION "Enables swagger" ENABLED TORREST_ENABLE_SWAGGER)
 target_optional_compile_definitions(torrest PUBLIC FEATURE NAME with_swagger_local_resources DEFAULT OFF
         DESCRIPTION "Enables swagger with local resources" ENABLED TORREST_ENABLE_SWAGGER
-        OATPP_SWAGGER_RES_PATH="${oatpp-swagger_INCLUDE_DIRS}/../bin/oatpp-swagger/res")
+        "OATPP_SWAGGER_RES_PATH=\"${swagger_local_resources}\"")
 target_optional_compile_definitions(torrest PUBLIC FEATURE NAME enable_shutdown DEFAULT ON
         DESCRIPTION "Enables shutdown endpoint" ENABLED TORREST_ENABLE_SHUTDOWN)
 target_optional_compile_definitions(torrest PUBLIC FEATURE NAME enable_extended_connections DEFAULT ON
@@ -75,6 +80,10 @@ target_optional_compile_definitions(torrest PUBLIC FEATURE NAME enable_torrent_b
         DESCRIPTION "Enables torrent buffering status" ENABLED TORREST_ENABLE_TORRENT_BUFFERING_STATUS)
 target_optional_compile_definitions(torrest PUBLIC FEATURE NAME legacy_read_piece DEFAULT OFF
         DESCRIPTION "Uses legacy read piece method" ENABLED TORREST_LEGACY_READ_PIECE)
+
+if (LibtorrentRasterbar_VERSION VERSION_GREATER_EQUAL 2 AND legacy_read_piece)
+    message(WARNING "legacy_read_piece not supported on libtorrent ${LibtorrentRasterbar_VERSION}")
+endif ()
 
 if (DEFINED target_path)
     add_custom_command(TARGET torrest POST_BUILD

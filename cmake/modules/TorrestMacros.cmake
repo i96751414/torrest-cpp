@@ -9,6 +9,14 @@ macro(feature_option _name _description _default)
     add_feature_info(${_name} ${_name} "${_description}")
 endmacro()
 
+# macro for issuing set() and add_feature_info() in a single call.
+# Synopsis:
+# feature(<feature_name> <feature_type> <feature_enabled> <feature_description> <default_value>)
+macro(feature _name _type _enabled _description _default)
+    set(${_name} "${_default}" CACHE ${_type} "${_description}")
+    add_feature_info(${_name} ${_enabled} "${_description}")
+endmacro()
+
 # function to add a simple build option which controls compile definition(s) for a target.
 # Synopsis:
 # target_optional_compile_definitions(<target> [FEATURE]
@@ -30,13 +38,13 @@ function(target_optional_compile_definitions _target _scope)
 
     if (${${TOCD_NAME}})
         target_compile_definitions(${_target} ${_scope} ${TOCD_ENABLED})
-    else()
+    else ()
         target_compile_definitions(${_target} ${_scope} ${TOCD_DISABLED})
-    endif()
+    endif ()
 
     if (${TOCD_FEATURE})
         add_feature_info(${TOCD_NAME} ${TOCD_NAME} "${TOCD_DESCRIPTION}")
-    endif()
+    endif ()
 endfunction()
 
 # function for parsing the version from a header file
@@ -45,6 +53,6 @@ function(read_version _verFile _outVarVersion)
     string(REGEX MATCH "\"([0-9]+(:?\\.[0-9]+)*)\"" _tmp "${verLine}")
     if (NOT _tmp)
         message(FATAL_ERROR "Could not detect version number from ${_verFile}")
-    endif()
+    endif ()
     set(${_outVarVersion} ${CMAKE_MATCH_1} PARENT_SCOPE)
 endfunction()
