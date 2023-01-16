@@ -300,11 +300,9 @@ namespace torrest { namespace bittorrent {
                 continue;
             }
 
-            // Check files buffering state
-            for (auto &file : torrent->mFiles) {
-                if (file->verify_buffering_state()) {
-                    has_files_buffering = true;
-                }
+            // Check torrent buffering state
+            if (torrent->verify_buffering_state()) {
+                has_files_buffering = true;
             }
 
             auto status = torrent->mHandle.status();

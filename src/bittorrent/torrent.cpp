@@ -334,4 +334,17 @@ namespace torrest { namespace bittorrent {
         return missing;
     }
 
+    bool Torrent::verify_buffering_state() const {
+        std::lock_guard<std::mutex> lock(mFilesMutex);
+        bool has_files_buffering = false;
+
+        for (auto &file : mFiles) {
+            if (file->verify_buffering_state()) {
+                has_files_buffering = true;
+            }
+        }
+
+        return has_files_buffering;
+    }
+
 }}

@@ -32,8 +32,6 @@ namespace torrest { namespace bittorrent {
     };
 
     class File {
-        friend class Service;
-
         friend class Torrent;
 
     public:

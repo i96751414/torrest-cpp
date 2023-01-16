@@ -105,6 +105,8 @@ namespace torrest { namespace bittorrent {
 
         std::int64_t get_bytes_missing(const std::vector<libtorrent::piece_index_t> &pPieces) const;
 
+        bool verify_buffering_state() const;
+
         std::shared_ptr<spdlog::logger> mLogger;
         libtorrent::torrent_handle mHandle;
         std::shared_ptr<ServiceSettings> mSettings;
