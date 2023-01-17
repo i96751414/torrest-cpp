@@ -85,6 +85,7 @@ if (LibtorrentRasterbar_VERSION VERSION_GREATER_EQUAL 2 AND legacy_read_piece)
     message(WARNING "legacy_read_piece not supported on libtorrent ${LibtorrentRasterbar_VERSION}")
 endif ()
 
+add_feature_info(target_path target_path "Path where to copy the target")
 if (DEFINED target_path)
     add_custom_command(TARGET torrest POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:torrest>" "${target_path}")
