@@ -47,7 +47,7 @@ torrest: $(TORREST_TARGETS)
 $(TORREST_TARGETS): PLATFORM = $(@:torrest-%=%)
 $(TORREST_TARGETS):
 	if [ "$(PLATFORM)" = dev ]; then OPTS='-DCMAKE_BUILD_TYPE=Debug'; else \
-		OPTS='-DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$${CMAKE_TOOLCHAIN_FILE} -DBUILD_SHARED_LIBS=OFF'; \
+		OPTS='-DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="$${CMAKE_TOOLCHAIN_FILE}" -DBUILD_SHARED_LIBS=OFF'; \
 		case "$(PLATFORM)" in \
 			windows*) OPTS="$${OPTS} -DCMAKE_EXE_LINKER_FLAGS='-static-libgcc -static-libstdc++ -static'" ;; \
 			android*) OPTS="$${OPTS} -DCMAKE_EXE_LINKER_FLAGS='-static-libstdc++'" ;; \
