@@ -67,21 +67,21 @@ namespace torrest { namespace bittorrent {
     }
 
     PieceData Torrent::read_scheduled_piece(libtorrent::piece_index_t pPiece,
-                                            const std::chrono::milliseconds &pTimeout) {
-        mLogger->trace("operation=read_scheduled_piece, piece={}, timeout={}", to_string(pPiece), pTimeout.count());
-        auto until = std::chrono::steady_clock::now() + pTimeout;
+                                            const boost::optional<std::chrono::time_point<std::chrono::steady_clock>> &pWaitUntil) {
+        mLogger->trace("operation=read_scheduled_piece, piece={}, withTimeout={}",
+                       to_string(pPiece), pWaitUntil.has_value());
         std::unique_lock<std::mutex> lock(mPiecesMutex);
 
         auto it = mPieces.find(pPiece);
         while (it == mPieces.end()) {
-            if (pTimeout <= std::chrono::milliseconds::zero()) {
+            if (!pWaitUntil) {
                 mPiecesCv.wait(lock);
-            } else if (std::chrono::steady_clock::now() > until) {
+            } else if (std::chrono::steady_clock::now() >= *pWaitUntil) {
                 mLogger->error("operation=read_scheduled_piece, message='Timed out waiting for piece', piece={}",
                                to_string(pPiece));
                 throw PieceException("Timed out waiting for piece");
             } else {
-                mPiecesCv.wait_until(lock, until);
+                mPiecesCv.wait_until(lock, *pWaitUntil);
             }
 
             it = mPieces.find(pPiece);
@@ -91,8 +91,9 @@ namespace torrest { namespace bittorrent {
         return it->second;
     }
 
-    PieceData Torrent::read_piece(libtorrent::piece_index_t pPiece, const std::chrono::milliseconds &pTimeout) {
-        mLogger->trace("operation=read_piece, piece={}, timeout={}", to_string(pPiece), pTimeout.count());
+    PieceData Torrent::read_piece(libtorrent::piece_index_t pPiece,
+                                  const boost::optional<std::chrono::time_point<std::chrono::steady_clock>> &pWaitUntil) {
+        mLogger->trace("operation=read_piece, piece={}, withTimeout={}", to_string(pPiece), pWaitUntil.has_value());
 
         {
             std::lock_guard<std::mutex> lock(mPiecesMutex);
@@ -104,12 +105,14 @@ namespace torrest { namespace bittorrent {
         }
 
         schedule_read_piece(pPiece);
-        return read_scheduled_piece(pPiece, pTimeout);
+        return read_scheduled_piece(pPiece, pWaitUntil);
     }
 
-    void Torrent::wait_for_piece(libtorrent::piece_index_t pPiece, const std::chrono::milliseconds &pTimeout) const {
+    void Torrent::wait_for_piece(libtorrent::piece_index_t pPiece,
+                                 const boost::optional<std::chrono::time_point<std::chrono::steady_clock>> &pUntil) const {
         mLogger->trace("operation=wait_for_piece, piece={}, infoHash={}", to_string(pPiece), mInfoHash);
         auto startTime = std::chrono::steady_clock::now();
+        std::chrono::time_point<std::chrono::steady_clock> time = std::chrono::steady_clock::now();
 
         while (!mHandle.have_piece(pPiece)) {
             if (mClosed.load()) {
@@ -118,8 +121,7 @@ namespace torrest { namespace bittorrent {
             if (mPaused.load()) {
                 throw PieceException("Torrent paused");
             }
-            if (std::chrono::milliseconds::zero() < pTimeout &&
-                std::chrono::steady_clock::now() - startTime >= pTimeout) {
+            if (pUntil && std::chrono::steady_clock::now() >= *pUntil) {
                 mLogger->warn("operation=wait_for_piece, message='Timed out', piece={}, infoHash={}",
                               to_string(pPiece), mInfoHash);
                 throw PieceException("Timeout reached");

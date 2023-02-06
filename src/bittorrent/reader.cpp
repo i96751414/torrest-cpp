@@ -46,8 +46,13 @@ namespace torrest { namespace bittorrent {
         auto startPiece = piece_from_offset(mPos);
         auto endPiece = piece_from_offset(mPos + size - 1);
         set_pieces_priorities(startPiece, endPiece - startPiece);
+        auto pieceWaitUntil = mPieceWaitTimeout > std::chrono::seconds::zero()
+                              ? boost::optional<std::chrono::time_point<std::chrono::steady_clock>>(
+                        std::chrono::steady_clock::now() + mPieceWaitTimeout)
+                              : boost::none;
+
         for (auto p = startPiece; p <= endPiece; p++) {
-            mTorrent->wait_for_piece(libtorrent::piece_index_t(p), mPieceWaitTimeout);
+            mTorrent->wait_for_piece(libtorrent::piece_index_t(p), pieceWaitUntil);
         }
 
 #if TORRENT_ABI_VERSION <= 2 && defined(TORREST_LEGACY_READ_PIECE)
@@ -75,14 +80,14 @@ namespace torrest { namespace bittorrent {
         }
 #else
         auto startPieceData = mTorrent->read_piece(
-                libtorrent::piece_index_t(startPiece), std::chrono::milliseconds(2000));
+                libtorrent::piece_index_t(startPiece), pieceWaitUntil);
         auto startPieceOffset = piece_offset_from_offset(mPos);
         auto n = std::min<std::int64_t>(size, startPieceData.size - startPieceOffset);
         memcpy(pBuf, &startPieceData.buffer[startPieceOffset], n);
 
         for (auto p = startPiece + 1; p <= endPiece; p++) {
             auto pieceData = mTorrent->read_piece(
-                    libtorrent::piece_index_t(p), std::chrono::milliseconds(2000));
+                    libtorrent::piece_index_t(p), pieceWaitUntil);
             auto pieceBufferSize = std::min<std::int64_t>(size - n, pieceData.size);
             memcpy((char *) pBuf + n, pieceData.buffer.get(), pieceBufferSize);
             n += pieceBufferSize;

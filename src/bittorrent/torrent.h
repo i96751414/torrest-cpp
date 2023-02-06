@@ -6,6 +6,7 @@
 #include <memory>
 #include <condition_variable>
 
+#include "boost/optional.hpp"
 #include "boost/shared_array.hpp"
 #include "spdlog/spdlog.h"
 #include "libtorrent/torrent_handle.hpp"
@@ -95,11 +96,14 @@ namespace torrest { namespace bittorrent {
 
         void schedule_read_piece(libtorrent::piece_index_t pPiece);
 
-        PieceData read_scheduled_piece(libtorrent::piece_index_t pPiece, const std::chrono::milliseconds &pTimeout);
+        PieceData read_scheduled_piece(libtorrent::piece_index_t pPiece,
+                                       const boost::optional<std::chrono::time_point<std::chrono::steady_clock>> &pWaitUntil);
 
-        PieceData read_piece(libtorrent::piece_index_t pPiece, const std::chrono::milliseconds &pTimeout);
+        PieceData read_piece(libtorrent::piece_index_t pPiece,
+                             const boost::optional<std::chrono::time_point<std::chrono::steady_clock>> &pWaitUntil);
 
-        void wait_for_piece(libtorrent::piece_index_t pPiece, const std::chrono::milliseconds &pTimeout) const;
+        void wait_for_piece(libtorrent::piece_index_t pPiece,
+                            const boost::optional<std::chrono::time_point<std::chrono::steady_clock>> &pUntil) const;
 
         State get_torrent_state() const;
 
