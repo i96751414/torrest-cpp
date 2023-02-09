@@ -41,6 +41,8 @@ namespace torrest { namespace bittorrent {
         mHasMetadata = true;
     }
 
+#if !TORREST_LEGACY_READ_PIECE
+
     void Torrent::store_piece(libtorrent::piece_index_t pPiece, int pSize, const boost::shared_array<char> &pBuffer) {
         mLogger->trace("operation=store_piece, piece={}, size={}", to_string(pPiece), pSize);
         std::lock_guard<std::mutex> lock(mPiecesMutex);
@@ -107,6 +109,8 @@ namespace torrest { namespace bittorrent {
         schedule_read_piece(pPiece);
         return read_scheduled_piece(pPiece, pWaitUntil);
     }
+
+#endif //TORREST_LEGACY_READ_PIECE
 
     void Torrent::wait_for_piece(libtorrent::piece_index_t pPiece,
                                  const boost::optional<std::chrono::time_point<std::chrono::steady_clock>> &pUntil) const {

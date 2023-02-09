@@ -109,7 +109,7 @@ namespace torrest { namespace bittorrent {
         configure(pSettings);
         mSession = std::make_shared<libtorrent::session>(mSettingsPack
 #if TORRENT_ABI_VERSION <= 2
-            , libtorrent::session::add_default_plugins
+                , libtorrent::session::add_default_plugins
 #endif
         );
 
@@ -117,8 +117,10 @@ namespace torrest { namespace bittorrent {
 
         mThreads.emplace_back(&Service::check_save_resume_data_handler, this);
         mThreads.emplace_back(&Service::consume_alerts_handler, this);
-        mThreads.emplace_back(&Service::piece_cleanup_handler, this);
         mThreads.emplace_back(&Service::progress_handler, this);
+#if !TORREST_LEGACY_READ_PIECE
+        mThreads.emplace_back(&Service::piece_cleanup_handler, this);
+#endif
     }
 
     Service::~Service() {
@@ -173,9 +175,11 @@ namespace torrest { namespace bittorrent {
                     case libtorrent::state_changed_alert::alert_type:
                         handle_state_changed(dynamic_cast<const libtorrent::state_changed_alert *>(alert));
                         break;
+#if !TORREST_LEGACY_READ_PIECE
                     case libtorrent::read_piece_alert::alert_type:
                         handle_read_piece_alert(dynamic_cast<const libtorrent::read_piece_alert *>(alert));
                         break;
+#endif
                 }
 
                 spdlog::level::level_enum level;
@@ -244,6 +248,8 @@ namespace torrest { namespace bittorrent {
         }
     }
 
+#if !TORREST_LEGACY_READ_PIECE
+
     void Service::handle_read_piece_alert(const libtorrent::read_piece_alert *pAlert) const {
         auto infoHash = get_info_hash(pAlert->handle.INFO_HASH_PARAM());
         if (pAlert->error.failed()) {
@@ -274,6 +280,8 @@ namespace torrest { namespace bittorrent {
 
         mLogger->debug("operation=piece_cleanup_handler, message='Terminating handler'");
     }
+
+#endif //TORREST_LEGACY_READ_PIECE
 
     void Service::progress_handler() {
         mLogger->debug("operation=progress_handler, message='Initializing handler'");

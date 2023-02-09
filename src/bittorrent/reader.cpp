@@ -2,7 +2,10 @@
 
 #include <thread>
 
-#if TORRENT_ABI_VERSION <= 2 && defined(TORREST_LEGACY_READ_PIECE)
+#if TORREST_LEGACY_READ_PIECE
+#if TORRENT_ABI_VERSION > 2
+#error legacy read piece only supported on ABI <= 2
+#endif
 #include "libtorrent/storage.hpp"
 #include "exceptions.h"
 #endif
@@ -55,7 +58,7 @@ namespace torrest { namespace bittorrent {
             mTorrent->wait_for_piece(libtorrent::piece_index_t(p), pieceWaitUntil);
         }
 
-#if TORRENT_ABI_VERSION <= 2 && defined(TORREST_LEGACY_READ_PIECE)
+#if TORREST_LEGACY_READ_PIECE
         libtorrent::storage_error storageError;
         libtorrent::iovec_t buf{static_cast<char *>(pBuf), static_cast<std::ptrdiff_t>(size)};
         std::int64_t n = 0;
