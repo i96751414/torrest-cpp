@@ -6,16 +6,6 @@ scripts_path=$(dirname "$(readlink -f "$0")")
 env_path="${scripts_path}/versions.env"
 jobs=$(nproc)
 
-: "${CXX_STANDARD:=14}"
-: "${PREFIX:=/usr/local}"
-: "${BOOST_CONFIG:="using gcc ;"}"
-
-if [ -z "${CMD}" ] && [ "$(id -u)" != 0 ]; then
-  if command -v sudo &>/dev/null; then
-    CMD=sudo
-  fi
-fi
-
 function printAllowedOptions() {
   IFS='|' read -ra options <<<"${allowed_opts}"
   for opt in "${options[@]}"; do
@@ -47,8 +37,8 @@ $(printAllowedOptions)
   --fix-mingw-headers   Fix mingw 'WinSock2' and 'WS2tcpip' headers name before building.
   -s, --static          Do a static build
   -r, --static-runtime  Build with static runtime
-  -e, --env             Path of file containing versions environment variables (default: ${env_path})
-  -j, --jobs            Build jobs number (default: ${jobs})
+  -e, --env             Path of file containing versions environment variables (default: ${scripts_path}/versions.env)
+  -j, --jobs            Build jobs number (default: $(nproc))
   -v, --verbose         Do a verbose build
   -h, --help            Show this message
 
@@ -82,6 +72,13 @@ function checkRequirement() {
     echo "'${package}' is not installed. Please install it by running 'sudo apt install ${apt_package}'"
     exit 1
   fi
+}
+
+function parseArgsToArray() {
+  ARGS=()
+  while IFS= read -r -d ''; do
+    ARGS+=("${REPLY}")
+  done < <(xargs -r printf '%s\0' <<<"${1}")
 }
 
 # Parse options
@@ -119,6 +116,20 @@ checkRequirement cmake
 # shellcheck source=versions.env
 source "${env_path}"
 
+: "${CXX_STANDARD:=14}"
+: "${PREFIX:=/usr/local}"
+: "${BOOST_CONFIG:="using gcc ;"}"
+
+cmd=()
+if [ -n "${CMD}" ]; then
+  parseArgsToArray "${CMD}"
+  cmd=("${ARGS[@]}")
+elif [ "$(id -u)" != 0 ]; then
+  if command -v sudo &>/dev/null; then
+    cmd=(sudo)
+  fi
+fi
+
 tmp_dir=$(mktemp -d /tmp/torrest-build-XXXXXXXXXXX)
 trap 'rm -rf "${tmp_dir}"' EXIT
 cd "${tmp_dir}"
@@ -135,7 +146,7 @@ function download() {
 }
 
 function cleanup() {
-  ${CMD} rm -rf "${tmp_dir:?}/"*
+  "${cmd[@]}" rm -rf "${tmp_dir:?}/"*
 }
 
 function buildCmake() {
@@ -146,19 +157,12 @@ function buildCmake() {
   [ -n "${CMAKE_TOOLCHAIN_FILE}" ] && cmake_options+=(-DCMAKE_TOOLCHAIN_FILE="${CMAKE_TOOLCHAIN_FILE}")
   cmake "${cmake_options[@]}" "$@"
   cmake --build "${cmake_build_dir}" -j"${jobs}"
-  ${CMD} cmake --install "${cmake_build_dir}"
+  "${cmd[@]}" cmake --install "${cmake_build_dir}"
 }
 
 function mingwFixHeaders() {
   echo "- Fixing mingw headers"
   find "${tmp_dir}" -type f -exec sed -i -e 's/WinSock2.h/winsock2.h/i' -e 's/WS2tcpip.h/ws2tcpip.h/i' {} +
-}
-
-function parseArgsToArray() {
-  ARGS=()
-  while IFS= read -r -d ''; do
-    ARGS+=("${REPLY}")
-  done < <(xargs -r printf '%s\0' <<<"${1}")
 }
 
 if requires "range-parser"; then
@@ -215,7 +219,7 @@ if requires "openssl"; then
     ./config "${opts[@]}"
   fi
   make -j"${jobs}"
-  ${CMD} make install
+  "${cmd[@]}" make install
   cleanup
 fi
 
@@ -230,7 +234,7 @@ if requires "boost"; then
   [ "${static}" == true ] && boost_options+=(link=static)
   [ "${static_runtime}" == true ] && boost_options+=(runtime-link=static)
   parseArgsToArray "${BOOST_OPTS}"
-  ${CMD} ./b2 "${boost_options[@]}" "${ARGS[@]}" install
+  "${cmd[@]}" ./b2 "${boost_options[@]}" "${ARGS[@]}" install
   cleanup
 fi
 
