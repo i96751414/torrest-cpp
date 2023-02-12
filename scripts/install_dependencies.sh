@@ -114,7 +114,7 @@ fi
 
 checkRequirement cmake
 # shellcheck source=versions.env
-source "${env_path}"
+[ -f "${env_path}" ] && . "${env_path}"
 
 : "${CXX_STANDARD:=14}"
 : "${PREFIX:=/usr/local}"
