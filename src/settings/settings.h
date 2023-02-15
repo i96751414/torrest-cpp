@@ -1,26 +1,7 @@
 #ifndef TORREST_SETTINGS_H
 #define TORREST_SETTINGS_H
 
-#include "nlohmann/json.hpp"
 #include "spdlog/spdlog.h"
-
-namespace nlohmann {
-
-    template<class T>
-    void to_json(nlohmann::json &pJson, const std::shared_ptr<T> &pValue) {
-        if (pValue) {
-            pJson = *pValue;
-        } else {
-            pJson = nullptr;
-        }
-    }
-
-    template<class T>
-    void from_json(const nlohmann::json &pJson, std::shared_ptr<T> &pValue) {
-        pValue = pJson.is_null() ? nullptr : std::make_shared<T>(pJson.get<T>());
-    }
-
-}
 
 namespace torrest { namespace settings {
 
@@ -65,13 +46,6 @@ namespace torrest { namespace settings {
         std::string username;
         std::string password;
 
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(ProxySettings,
-                                       type,
-                                       port,
-                                       hostname,
-                                       username,
-                                       password)
-
         void validate() const;
     };
 
@@ -107,45 +81,12 @@ namespace torrest { namespace settings {
         std::shared_ptr<ProxySettings> proxy = nullptr;
         std::int64_t buffer_size = 20 * 1024 * 1024;
         int piece_wait_timeout = 60;
+#if !TORREST_LEGACY_READ_PIECE
+        int piece_expiration = 5;
+#endif
         spdlog::level::level_enum service_log_level = spdlog::level::info;
         spdlog::level::level_enum alerts_log_level = spdlog::level::critical;
         spdlog::level::level_enum api_log_level = spdlog::level::err;
-
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(Settings,
-                                       listen_port,
-                                       listen_interfaces,
-                                       outgoing_interfaces,
-                                       disable_dht,
-                                       disable_upnp,
-                                       disable_natpmp,
-                                       disable_lsd,
-                                       download_path,
-                                       torrents_path,
-                                       user_agent,
-                                       session_save,
-                                       tuned_storage,
-                                       check_available_space,
-                                       connections_limit,
-                                       limit_after_buffering,
-                                       max_download_rate,
-                                       max_upload_rate,
-                                       share_ratio_limit,
-                                       seed_time_ratio_limit,
-                                       seed_time_limit,
-                                       active_downloads_limit,
-                                       active_seeds_limit,
-                                       active_checking_limit,
-                                       active_dht_limit,
-                                       active_tracker_limit,
-                                       active_lsd_limit,
-                                       active_limit,
-                                       encryption_policy,
-                                       proxy,
-                                       buffer_size,
-                                       piece_wait_timeout,
-                                       service_log_level,
-                                       alerts_log_level,
-                                       api_log_level)
 
         static Settings load(const std::string &pPath);
 

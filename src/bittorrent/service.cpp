@@ -273,7 +273,7 @@ namespace torrest { namespace bittorrent {
             if (!mTorrents.empty()) {
                 std::lock_guard<std::mutex> lock(mTorrentsMutex);
                 for (auto &torrent : mTorrents) {
-                    torrent->cleanup_pieces(std::chrono::seconds(5));
+                    torrent->cleanup_pieces(std::chrono::seconds(mSettings->get_piece_expiration()));
                 }
             }
         }

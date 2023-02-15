@@ -26,7 +26,7 @@ if (static_runtime)
 endif ()
 
 find_package(range_parser 1.0.1 REQUIRED)
-find_package(nlohmann_json 3.9.0 REQUIRED)
+find_package(nlohmann_json 3.11.0 REQUIRED)
 find_package(spdlog 1.8.5 REQUIRED)
 find_package(oatpp 1.3.0 REQUIRED)
 find_package(oatpp-swagger 1.3.0 REQUIRED)
