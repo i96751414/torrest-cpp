@@ -18,8 +18,8 @@ version 3.17). Additionally, you need a build system to actually schedule builds
 Torrest has several external dependencies. Below is a list of them and the minimum version required:
 
 -   [range-parser](https://github.com/i96751414/range-parser-cpp) (v1.0.1)
--   [nlohmann-json](https://github.com/nlohmann/json) (v3.9.0)
--   [spdlog](https://github.com/gabime/spdlog) (v1.9.1)
+-   [nlohmann-json](https://github.com/nlohmann/json) (v3.11.0)
+-   [spdlog](https://github.com/gabime/spdlog) (v1.8.5)
 -   [oatpp](https://github.com/oatpp/oatpp) (v1.3.0)
 -   [oatpp-swagger](https://github.com/oatpp/oatpp-swagger) (v1.3.0)
 -   [openssl](https://www.openssl.org) (1.1.1f)
