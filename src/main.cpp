@@ -6,11 +6,13 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_sinks.h"
 #include "oatpp/network/Server.hpp"
+
 #if TORREST_ENABLE_SWAGGER
 #ifdef OATPP_SWAGGER_RES_PATH
 #include "oatpp-swagger/Controller.hpp"
 typedef oatpp::swagger::Controller SwaggerController;
 #else
+
 #include "api/controller/swagger.h"
 
 typedef torrest::api::SwaggerController SwaggerController;
@@ -69,6 +71,7 @@ Options parse_arguments(int argc, const char *argv[]) {
     boost::program_options::notify(vm);
 
     if (vm.count("help")) {
+        std::cout << "Usage: " << boost::filesystem::path(argv[0]).filename().string() << " [options...]" << std::endl;
         std::cout << optionsDescription << std::endl;
         std::exit(0);
     } else if (vm.count("version")) {
