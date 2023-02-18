@@ -47,6 +47,7 @@ add_executable(torrest
         src/api/error_handler.cpp
         src/api/logger.cpp
         src/api/logger_interceptor.cpp
+        src/torrest.cpp
         src/main.cpp)
 
 target_include_directories(torrest PRIVATE src PUBLIC {Boost_INCLUDE_DIRS})
