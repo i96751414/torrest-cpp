@@ -1,8 +1,9 @@
-name: release
+name: full-build
 on:
   push:
     tags:
       - '*'
+  workflow_dispatch:
 jobs:
   build-artifacts:
     name: Build artifacts
@@ -24,7 +25,7 @@ jobs:
           - windows-x86
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build ${{ matrix.platform }}
         run: make -f docker/Makefile torrest-${{ matrix.platform }}
@@ -33,12 +34,12 @@ jobs:
         id: generate_zip
         run: |
           make -f docker/Makefile zip-${{ matrix.platform }}
-          asset_path=$(ls build/binaries/*.zip)
-          echo "::set-output name=asset_path::${asset_path}"
-          echo "::set-output name=asset_name::$(basename "${asset_path}")"
+          asset_path="$(ls build/binaries/*.zip)"
+          echo "asset_path=${asset_path}" >>"${GITHUB_OUTPUT}"
+          echo "asset_name=$(basename "${asset_path}")" >>"${GITHUB_OUTPUT}"
 
       - name: Upload ${{ matrix.platform }} zip
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.platform }}
           path: ${{ steps.generate_zip.outputs.asset_path }}
@@ -47,12 +48,13 @@ jobs:
     name: Release
     needs: build-artifacts
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Get all artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           path: artifacts
 

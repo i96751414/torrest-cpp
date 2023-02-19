@@ -1,7 +1,7 @@
 # torrest-cpp
 
 [![Build Status](https://github.com/i96751414/torrest-cpp/actions/workflows/build.yml/badge.svg)](https://github.com/i96751414/torrest-cpp/actions/workflows/build.yml)
-[![cross-build](https://github.com/i96751414/torrest-cpp/actions/workflows/cross.yml/badge.svg)](https://github.com/i96751414/torrest-cpp/actions/workflows/cross.yml)
+[![cross-build](https://github.com/i96751414/torrest-cpp/actions/workflows/cross-compilers.yml/badge.svg)](https://github.com/i96751414/torrest-cpp/actions/workflows/cross-compilers.yml)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/f16ca71d4f034660ac593fafce2479b7)](https://www.codacy.com/gh/i96751414/torrest-cpp/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=i96751414/torrest-cpp&amp;utm_campaign=Badge_Grade)
 [![CodeQL](https://github.com/i96751414/torrest-cpp/actions/workflows/codeql.yml/badge.svg)](https://github.com/i96751414/torrest-cpp/actions/workflows/codeql.yml)
 
