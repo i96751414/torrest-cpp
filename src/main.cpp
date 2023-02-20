@@ -29,23 +29,11 @@ typedef torrest::api::SwaggerController SwaggerController;
 #include "api/controller/serve.h"
 #include "utils/conversion.h"
 
-
-namespace spdlog { namespace level {
-
-    std::istream &operator>>(std::istream &pIs, level_enum &pLevel) {
-        std::string levelString;
-        pIs >> levelString;
-        boost::algorithm::to_lower(levelString);
-
-        pLevel = from_str(levelString);
-        if (pLevel == off && levelString != "off") {
-            pIs.setstate(std::ios_base::failbit);
-        }
-
-        return pIs;
-    }
-
-}}
+#if TORREST_LIBRARY
+#define EXPORT_C extern "C"
+#else
+#define EXPORT_C
+#endif
 
 struct Options {
     uint16_t port = 8080;
@@ -53,37 +41,7 @@ struct Options {
     spdlog::level::level_enum global_log_level = spdlog::level::info;
 };
 
-Options parse_arguments(int argc, const char *argv[]) {
-    Options options;
-    boost::program_options::options_description optionsDescription("Optional arguments");
-    optionsDescription.add_options()
-            ("port,p", boost::program_options::value<uint16_t>(&options.port),
-             "server listen port (default: 8080)")
-            ("settings,s", boost::program_options::value<std::string>(&options.settings_path),
-             "settings path (default: settings.json)")
-            ("log-level", boost::program_options::value<spdlog::level::level_enum>(&options.global_log_level),
-             "global log level (default: INFO)")
-            ("version,v", "print version")
-            ("help,h", "print help message");
-
-    boost::program_options::variables_map vm;
-    boost::program_options::store(boost::program_options::parse_command_line(argc, argv, optionsDescription), vm);
-    boost::program_options::notify(vm);
-
-    if (vm.count("help")) {
-        std::cout << "Usage: " << boost::filesystem::path(argv[0]).filename().string() << " [options...]" << std::endl;
-        std::cout << optionsDescription << std::endl;
-        std::exit(0);
-    } else if (vm.count("version")) {
-        std::cout << TORREST_VERSION << std::endl;
-        std::exit(0);
-    }
-
-    return options;
-}
-
-int main(int argc, const char *argv[]) {
-    auto options = parse_arguments(argc, argv);
+EXPORT_C void start(const Options &options) {
     spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e %l [%n] [thread-%t] %v");
     spdlog::set_level(options.global_log_level);
     auto logger = spdlog::stdout_logger_mt("main");
@@ -152,6 +110,60 @@ int main(int argc, const char *argv[]) {
     logger->trace("operation=main, oatppObjectsCount={}", oatpp::base::Environment::getObjectsCount());
     logger->trace("operation=main, oatppObjectsCreated={}", oatpp::base::Environment::getObjectsCreated());
     oatpp::base::Environment::destroy();
+}
 
+#if !TORREST_LIBRARY
+
+namespace spdlog { namespace level {
+
+    std::istream &operator>>(std::istream &pIs, level_enum &pLevel) {
+        std::string levelString;
+        pIs >> levelString;
+        boost::algorithm::to_lower(levelString);
+
+        pLevel = from_str(levelString);
+        if (pLevel == off && levelString != "off") {
+            pIs.setstate(std::ios_base::failbit);
+        }
+
+        return pIs;
+    }
+
+}}
+
+Options parse_arguments(int argc, const char *argv[]) {
+    Options options;
+    boost::program_options::options_description optionsDescription("Optional arguments");
+    optionsDescription.add_options()
+            ("port,p", boost::program_options::value<uint16_t>(&options.port),
+             "server listen port (default: 8080)")
+            ("settings,s", boost::program_options::value<std::string>(&options.settings_path),
+             "settings path (default: settings.json)")
+            ("log-level", boost::program_options::value<spdlog::level::level_enum>(&options.global_log_level),
+             "global log level (default: INFO)")
+            ("version,v", "print version")
+            ("help,h", "print help message");
+
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line(argc, argv, optionsDescription), vm);
+    boost::program_options::notify(vm);
+
+    if (vm.count("help")) {
+        std::cout << "Usage: " << boost::filesystem::path(argv[0]).filename().string() << " [options...]" << std::endl;
+        std::cout << optionsDescription << std::endl;
+        std::exit(0);
+    } else if (vm.count("version")) {
+        std::cout << TORREST_VERSION << std::endl;
+        std::exit(0);
+    }
+
+    return options;
+}
+
+int main(int argc, const char *argv[]) {
+    auto options = parse_arguments(argc, argv);
+    start(options);
     return 0;
 }
+
+#endif //TORREST_LIBRARY

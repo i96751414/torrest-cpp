@@ -14,13 +14,9 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-feature_option(BUILD_SHARED_LIBS "Build torrest as a shared library" ON)
+feature_option(build_library "Build torrest as a library" OFF)
 feature_option(static_runtime "Build torrest with static runtime" OFF)
 
-if (NOT BUILD_SHARED_LIBS)
-    set(Boost_USE_STATIC_LIBS ON)
-    set(OPENSSL_USE_STATIC_LIBS ON)
-endif ()
 if (static_runtime)
     set(Boost_USE_STATIC_RUNTIME ON)
 endif ()
@@ -34,7 +30,7 @@ find_package(OpenSSL 1.1.1 REQUIRED)
 find_package(Boost 1.72.0 REQUIRED COMPONENTS filesystem program_options)
 find_package(LibtorrentRasterbar 1.2.14 REQUIRED COMPONENTS torrent-rasterbar)
 
-add_executable(torrest
+set(torrest_sources
         src/utils/mime.cpp
         src/utils/conversion.cpp
         src/settings/settings.cpp
@@ -49,6 +45,14 @@ add_executable(torrest
         src/api/logger_interceptor.cpp
         src/torrest.cpp
         src/main.cpp)
+
+if (build_library)
+    feature_option(BUILD_SHARED_LIBS "Build torrest as a shared library" ON)
+    add_library(torrest ${torrest_sources})
+    target_compile_definitions(torrest PUBLIC TORREST_LIBRARY)
+else ()
+    add_executable(torrest ${torrest_sources})
+endif ()
 
 target_include_directories(torrest PRIVATE src PUBLIC {Boost_INCLUDE_DIRS})
 
