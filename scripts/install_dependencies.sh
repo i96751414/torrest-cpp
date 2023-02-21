@@ -24,12 +24,16 @@ Additional environment variables can also be passed, such as:
   CMD (default: automatic)
   CXX_STANDARD (default: 14)
   PREFIX (default: /usr/local)
+  RANGE_PARSER_OPTS (default: not set)
+  NLOHMANN_JSON_OPTS (default: not set)
+  SPDLOG_OPTS (default: not set)
   OATPP_OPTS (default: not set)
+  OATPP_SWAGGER_OPTS (default: not set)
   BOOST_CONFIG (default: "using gcc ;")
   BOOST_OPTS (default: not set)
   OPENSSL_OPTS (default: not set)
-  LIBTORRENT_OPTS (default: not set)
   OPENSSL_CROSS_COMPILE (default: not set)
+  LIBTORRENT_OPTS (default: not set)
   CMAKE_TOOLCHAIN_FILE (default: not set)
 
 optional arguments:
@@ -168,23 +172,27 @@ function mingwFixHeaders() {
 if requires "range-parser"; then
   echo "- Downloading range-parser ${RANGE_PARSER_VERSION}"
   download "https://github.com/i96751414/range-parser-cpp/archive/${RANGE_PARSER_VERSION}.tar.gz"
+  parseArgsToArray "${RANGE_PARSER_OPTS}"
   echo "- Building range-parser ${RANGE_PARSER_VERSION}"
-  buildCmake
+  buildCmake "${ARGS[@]}"
   cleanup
 fi
 
 if requires "nlohmann-json"; then
   echo "- Downloading nlohmann-json ${NLOHMANN_JSON_VERSION}"
   download "https://github.com/nlohmann/json/archive/${NLOHMANN_JSON_VERSION}.tar.gz"
+  parseArgsToArray "${NLOHMANN_JSON_OPTS}"
   echo "- Building nlohmann-json ${NLOHMANN_JSON_VERSION}"
-  buildCmake -DJSON_BuildTests=OFF
+  buildCmake -DJSON_BuildTests=OFF "${ARGS[@]}"
   cleanup
 fi
 
 if requires "spdlog"; then
   echo "- Downloading spdlog ${SPDLOG_VERSION}"
   download "https://github.com/gabime/spdlog/archive/${SPDLOG_VERSION}.tar.gz"
-  buildCmake
+  parseArgsToArray "${SPDLOG_OPTS}"
+  echo "- Building spdlog ${SPDLOG_VERSION}"
+  buildCmake "${ARGS[@]}"
   cleanup
 fi
 
@@ -201,8 +209,9 @@ fi
 if requires "oatpp-swagger"; then
   echo "- Downloading oatpp-swagger ${OATPP_SWAGGER_VERSION}"
   download "https://github.com/oatpp/oatpp-swagger/archive/${OATPP_SWAGGER_VERSION}.tar.gz"
+  parseArgsToArray "${OATPP_SWAGGER_OPTS}"
   echo "- Building oatpp-swagger ${OATPP_SWAGGER_VERSION}"
-  buildCmake -DOATPP_BUILD_TESTS=OFF
+  buildCmake -DOATPP_BUILD_TESTS=OFF "${ARGS[@]}"
   cleanup
 fi
 
