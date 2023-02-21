@@ -22,7 +22,7 @@ Torrest has several external dependencies. Below is a list of them and the minim
 -   [spdlog](https://github.com/gabime/spdlog) (v1.8.5)
 -   [oatpp](https://github.com/oatpp/oatpp) (v1.3.0)
 -   [oatpp-swagger](https://github.com/oatpp/oatpp-swagger) (v1.3.0)
--   [openssl](https://www.openssl.org) (1.1.1f)
+-   [openssl](https://www.openssl.org) (1.1.1)
 -   [boost](https://www.boost.org) (1.72.0)
 -   [libtorrent](https://github.com/arvidn/libtorrent) (v1.2.14)
 

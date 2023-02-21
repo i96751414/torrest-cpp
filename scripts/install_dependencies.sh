@@ -220,7 +220,7 @@ if requires "openssl"; then
   download "https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz"
   echo "- Building openssl ${OPENSSL_VERSION}"
   parseArgsToArray "${OPENSSL_OPTS}"
-  opts=(threads no-shared "${ARGS[@]}" --prefix="${PREFIX}")
+  opts=(--prefix="${PREFIX}" "${ARGS[@]}" threads)
   [ "${static}" == true ] && opts+=(no-shared) || opts+=(shared)
   if [ -n "${OPENSSL_CROSS_COMPILE}" ]; then
     CROSS_COMPILE="${OPENSSL_CROSS_COMPILE}" ./Configure "${opts[@]}"
