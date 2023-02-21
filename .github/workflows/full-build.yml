@@ -23,22 +23,25 @@ jobs:
           - linux-x86
           - windows-x64
           - windows-x86
+        target:
+          - torrest
+          - libtorrest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Build ${{ matrix.platform }}
-        run: make -f docker/Makefile torrest-${{ matrix.platform }}
+      - name: Build ${{ matrix.target }} (${{ matrix.platform }})
+        run: make -f docker/Makefile ${{ matrix.target }}-${{ matrix.platform }}
 
-      - name: Generate ${{ matrix.platform }} zip
+      - name: Generate ${{ matrix.target }} (${{ matrix.platform }}) zip
         id: generate_zip
         run: |
-          make -f docker/Makefile zip-${{ matrix.platform }}
+          make -f docker/Makefile zip-${{ matrix.target }}-${{ matrix.platform }}
           asset_path="$(ls build/binaries/*.zip)"
           echo "asset_path=${asset_path}" >>"${GITHUB_OUTPUT}"
           echo "asset_name=$(basename "${asset_path}")" >>"${GITHUB_OUTPUT}"
 
-      - name: Upload ${{ matrix.platform }} zip
+      - name: Upload ${{ matrix.target }} (${{ matrix.platform }}) zip
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.platform }}

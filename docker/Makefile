@@ -6,24 +6,50 @@ BUILD_DIR = build
 BINARIES_DIR = $(BUILD_DIR)/binaries
 VERSION ?= $(shell cut -s -d'"' -f2 "$(ROOT_DIR)/src/version.h")
 
-PLATFORMS = dev \
-	android-arm android-arm64 android-x64 android-x86 \
-	darwin-x64 \
-	linux-arm64 linux-armv7 linux-x64 linux-x86 \
-	windows-x64 windows-x86
+ANDROID_PLATFORMS = android-arm android-arm64 android-x64 android-x86
+DARWIN_PLATFORMS = darwin-x64
+LINUX_PLATFORMS = linux-arm64 linux-armv7 linux-x64 linux-x86
+WINDOWS_PLATFORMS = windows-x64 windows-x86
 
-BUILD_TARGETS = $(addprefix build-, $(PLATFORMS))
-PULL_TARGETS = $(addprefix pull-, $(PLATFORMS))
-PUSH_TARGETS = $(addprefix push-, $(PLATFORMS))
-TORREST_TARGETS = $(addprefix torrest-, $(PLATFORMS))
-LIBTORREST_TARGETS = $(addprefix libtorrest-, $(PLATFORMS))
-ZIP_TARGETS = $(addprefix zip-, $(PLATFORMS))
-.PHONY: build pull push torrest libtorrest zip clean \
-	$(BUILD_TARGETS) $(PULL_TARGETS) $(PUSH_TARGETS) $(TORREST_TARGETS) $(LIBTORREST_TARGETS) $(ZIP_TARGETS)
+DEV_PLATFORMS = dev
+RELEASE_PLATFORMS = $(ANDROID_PLATFORMS) $(DARWIN_PLATFORMS) $(LINUX_PLATFORMS) $(WINDOWS_PLATFORMS)
+PLATFORMS = $(DEV_PLATFORMS) $(RELEASE_PLATFORMS)
+
+BUILD_TARGET_PREFIX = build-
+PULL_TARGET_PREFIX = pull-
+PUSH_TARGET_PREFIX = push-
+TORREST_TARGET_PREFIX = torrest-
+LIBTORREST_TARGET_PREFIX = libtorrest-
+ZIP_TORREST_TARGET_PREFIX = zip-torrest-
+ZIP_LIBTORREST_TARGET_PREFIX = zip-libtorrest-
+
+BUILD_TARGETS = $(addprefix $(BUILD_TARGET_PREFIX), $(PLATFORMS))
+PULL_TARGETS = $(addprefix $(PULL_TARGET_PREFIX), $(PLATFORMS))
+PUSH_TARGETS = $(addprefix $(PUSH_TARGET_PREFIX), $(PLATFORMS))
+TORREST_TARGETS = $(addprefix $(TORREST_TARGET_PREFIX), $(PLATFORMS))
+LIBTORREST_TARGETS = $(addprefix $(LIBTORREST_TARGET_PREFIX), $(PLATFORMS))
+ZIP_TORREST_TARGETS = $(addprefix $(ZIP_TORREST_TARGET_PREFIX), $(PLATFORMS))
+ZIP_LIBTORREST_TARGETS = $(addprefix $(ZIP_LIBTORREST_TARGET_PREFIX), $(PLATFORMS))
+
+.PHONY: build pull push all torrest libtorrest zip zip-torrest zip-libtorrest clean \
+	$(BUILD_TARGETS) $(PULL_TARGETS) $(PUSH_TARGETS) \
+	$(TORREST_TARGETS) $(LIBTORREST_TARGETS) \
+	$(ZIP_TORREST_TARGETS) $(ZIP_LIBTORREST_TARGETS)
+
+# Helper targets for setting custom flags/options
+TORREST_DEV_TARGETS = $(addprefix $(TORREST_TARGET_PREFIX), $(DEV_PLATFORMS))
+TORREST_RELEASE_TARGETS = $(addprefix $(TORREST_TARGET_PREFIX), $(RELEASE_PLATFORMS))
+TORREST_WINDOWS_TARGETS = $(addprefix $(TORREST_TARGET_PREFIX), $(WINDOWS_PLATFORMS))
+TORREST_ANDROID_TARGETS = $(addprefix $(TORREST_TARGET_PREFIX), $(ANDROID_PLATFORMS))
+
+LIBTORREST_DEV_TARGETS = $(addprefix $(LIBTORREST_TARGET_PREFIX), $(DEV_PLATFORMS))
+LIBTORREST_RELEASE_TARGETS = $(addprefix $(LIBTORREST_TARGET_PREFIX), $(RELEASE_PLATFORMS))
+LIBTORREST_WINDOWS_TARGETS = $(addprefix $(LIBTORREST_TARGET_PREFIX), $(WINDOWS_PLATFORMS))
+LIBTORREST_ANDROID_TARGETS = $(addprefix $(LIBTORREST_TARGET_PREFIX), $(ANDROID_PLATFORMS))
 
 build: $(BUILD_TARGETS)
 
-$(BUILD_TARGETS): PLATFORM = $(@:build-%=%)
+$(BUILD_TARGETS): PLATFORM = $(@:$(BUILD_TARGET_PREFIX)%=%)
 $(BUILD_TARGETS):
 	docker build --pull \
 		--tag "$(IMAGE_PREFIX)-$(PLATFORM):$(IMAGE_TAG)" \
@@ -33,46 +59,50 @@ $(BUILD_TARGETS):
 
 pull: $(PULL_TARGETS)
 
-$(PULL_TARGETS): PLATFORM = $(@:pull-%=%)
+$(PULL_TARGETS): PLATFORM = $(@:$(PULL_TARGET_PREFIX)%=%)
 $(PULL_TARGETS):
 	docker pull "$(IMAGE_PREFIX)-$(PLATFORM):$(IMAGE_TAG)"
 
 push: $(PUSH_TARGETS)
 
-$(PUSH_TARGETS): PLATFORM = $(@:push-%=%)
+$(PUSH_TARGETS): PLATFORM = $(@:$(PUSH_TARGET_PREFIX)%=%)
 $(PUSH_TARGETS):
 	docker push "$(IMAGE_PREFIX)-$(PLATFORM):$(IMAGE_TAG)"
 
+all: torrest libtorrest
 torrest: $(TORREST_TARGETS)
 libtorrest: $(LIBTORREST_TARGETS)
 
-$(TORREST_TARGETS): PLATFORM = $(@:torrest-%=%)
+$(TORREST_TARGETS): PLATFORM = $(@:$(TORREST_TARGET_PREFIX)%=%)
 $(TORREST_TARGETS): BUILD_TYPE = EXE
-$(TORREST_TARGETS): EXTRA_FLAGS =
-$(LIBTORREST_TARGETS): PLATFORM = $(@:libtorrest-%=%)
+$(LIBTORREST_TARGETS): PLATFORM = $(@:$(LIBTORREST_TARGET_PREFIX)%=%)
 $(LIBTORREST_TARGETS): BUILD_TYPE = SHARED
-$(LIBTORREST_TARGETS): EXTRA_FLAGS = -Dbuild_library=ON
+$(LIBTORREST_TARGETS): EXTRA_FLAGS += -Dbuild_library=ON
+
+$(TORREST_DEV_TARGETS) $(LIBTORREST_DEV_TARGETS): EXTRA_FLAGS += -DCMAKE_BUILD_TYPE=Debug
+$(TORREST_RELEASE_TARGETS) $(LIBTORREST_RELEASE_TARGETS): EXTRA_FLAGS += -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="$${CMAKE_TOOLCHAIN_FILE}" -DBoost_USE_STATIC_LIBS=ON -DOPENSSL_USE_STATIC_LIBS=ON
+$(TORREST_WINDOWS_TARGETS) $(LIBTORREST_WINDOWS_TARGETS): EXTRA_FLAGS += -DCMAKE_$(BUILD_TYPE)_LINKER_FLAGS="-static-libgcc -static-libstdc++ -static"
+$(TORREST_ANDROID_TARGETS) $(LIBTORREST_ANDROID_TARGETS): EXTRA_FLAGS += -DCMAKE_$(BUILD_TYPE)_LINKER_FLAGS="-static-libstdc++"
+
 $(TORREST_TARGETS) $(LIBTORREST_TARGETS):
-	if [ "$(PLATFORM)" = dev ]; then OPTS='-DCMAKE_BUILD_TYPE=Debug'; else \
-		OPTS='-DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="$${CMAKE_TOOLCHAIN_FILE}"'; \
-		case "$(PLATFORM)" in \
-			windows*) OPTS="$${OPTS} -DCMAKE_$(BUILD_TYPE)_LINKER_FLAGS='-static-libgcc -static-libstdc++ -static'" ;; \
-			android*) OPTS="$${OPTS} -DCMAKE_$(BUILD_TYPE)_LINKER_FLAGS='-static-libstdc++'" ;; \
-		esac; \
-	fi; \
 	mkdir -p "$(ROOT_DIR)/$(BUILD_DIR)/$(PLATFORM)" && \
 	docker run --rm -u "$$(id -u):$$(id -g)" -v "$(ROOT_DIR):/workspace" -w "/workspace" \
-		"$(IMAGE_PREFIX)-$(PLATFORM):$(IMAGE_TAG)" bash -c "\
-			cmake -B /tmp/cmake-build $${OPTS} -Dtarget_path='/workspace/$(BUILD_DIR)/$(PLATFORM)/' $(EXTRA_FLAGS) && \
-			cmake --build /tmp/cmake-build --target torrest -- -j '$$(nproc)'"
+		"$(IMAGE_PREFIX)-$(PLATFORM):$(IMAGE_TAG)" bash -c '\
+			cmake -B /tmp/cmake-build -Dtarget_path="/workspace/$(BUILD_DIR)/$(PLATFORM)/" $(EXTRA_FLAGS) && \
+			cmake --build /tmp/cmake-build --target torrest -- -j "$$(nproc)"'
 
-zip: $(ZIP_TARGETS)
+zip: zip-torrest zip-libtorrest
+zip-torrest: $(ZIP_TORREST_TARGETS)
+zip-libtorrest: $(ZIP_LIBTORREST_TARGETS)
 
-$(ZIP_TARGETS): PLATFORM = $(@:zip-%=%)
-$(ZIP_TARGETS):
+$(ZIP_TORREST_TARGETS): PLATFORM = $(@:$(ZIP_TORREST_TARGET_PREFIX)%=%)
+$(ZIP_TORREST_TARGETS): NAME = torrest
+$(ZIP_LIBTORREST_TARGETS): PLATFORM = $(@:$(ZIP_LIBTORREST_TARGET_PREFIX)%=%)
+$(ZIP_LIBTORREST_TARGETS): NAME = libtorrest
+$(ZIP_TORREST_TARGETS) $(ZIP_LIBTORREST_TARGETS):
 	mkdir -p "$(ROOT_DIR)/$(BINARIES_DIR)" && \
 	cd "$(ROOT_DIR)/$(BUILD_DIR)/$(PLATFORM)" && \
-	zip -9 -r "$(ROOT_DIR)/$(BINARIES_DIR)/torrest.$(VERSION).$(subst -,_,$(PLATFORM)).zip" .
+	zip -9 "$(ROOT_DIR)/$(BINARIES_DIR)/$(NAME).$(VERSION).$(subst -,_,$(PLATFORM)).zip" $(NAME)*
 
 clean:
 	rm -rf "$(ROOT_DIR)/$(BUILD_DIR)"
