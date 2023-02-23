@@ -30,7 +30,11 @@ typedef torrest::api::SwaggerController SwaggerController;
 #include "utils/conversion.h"
 
 #if TORREST_LIBRARY
+#ifdef _WIN32
+#define EXPORT_C extern "C" __declspec(dllexport)
+#else
 #define EXPORT_C extern "C"
+#endif
 #else
 #define EXPORT_C
 #endif
@@ -41,7 +45,7 @@ struct Options {
     spdlog::level::level_enum global_log_level = spdlog::level::info;
 };
 
-EXPORT_C void start(const Options &options) {
+void start(const Options &options) {
     spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e %l [%n] [thread-%t] %v");
     spdlog::set_level(options.global_log_level);
     auto logger = spdlog::stdout_logger_mt("main");
@@ -104,15 +108,46 @@ EXPORT_C void start(const Options &options) {
 
         logger->debug("operation=main, message='Destroying OATPP environment'");
         connectionProvider->stop();
+        logger->trace("operation=main, message='Connection provider terminated'");
         connectionHandler->stop();
+        logger->trace("operation=main, message='Connection handler terminated'");
     }
 
     logger->trace("operation=main, oatppObjectsCount={}", oatpp::base::Environment::getObjectsCount());
     logger->trace("operation=main, oatppObjectsCreated={}", oatpp::base::Environment::getObjectsCreated());
     oatpp::base::Environment::destroy();
+
+    logger->trace("operation=main, message='Finished terminating'");
 }
 
-#if !TORREST_LIBRARY
+#if TORREST_LIBRARY
+
+struct String {
+    const char *ptr;
+    size_t size;
+
+    std::string to_string() const {
+        return std::move(std::string(ptr, size));
+    }
+};
+
+EXPORT_C int start(uint16_t port, String settings_path, int global_log_level) {
+    int return_code = 0;
+    Options options{
+            .port=port,
+            .settings_path=settings_path.to_string(),
+            .global_log_level=static_cast<spdlog::level::level_enum>(global_log_level)};
+
+    try {
+        start(options);
+    } catch (...) {
+        return_code = 127;
+    }
+
+    return return_code;
+}
+
+#else
 
 namespace spdlog { namespace level {
 
