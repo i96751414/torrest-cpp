@@ -19,7 +19,6 @@ typedef torrest::api::SwaggerController SwaggerController;
 #endif
 #endif
 
-#include "settings/settings.h"
 #include "torrest.h"
 #include "api/app_component.h"
 #include "api/controller/settings.h"
@@ -50,25 +49,14 @@ void start(const Options &options) {
     spdlog::set_level(options.global_log_level);
     auto logger = spdlog::stdout_logger_mt("main");
 
-    torrest::settings::Settings settings;
-    if (boost::filesystem::exists(options.settings_path)) {
-        logger->debug("operation=main, message='Loading settings file', settingsPath='{}'", options.settings_path);
-        settings = torrest::settings::Settings::load(options.settings_path);
-        settings.validate();
-    } else {
-        logger->debug("operation=main, message='Saving default settings file', settingsPath='{}'",
-                      options.settings_path);
-        settings.save(options.settings_path);
-    }
-
     logger->debug("operation=main, message='Initializing Torrest application', version=" TORREST_VERSION);
-    torrest::Torrest::initialize(options.settings_path, settings);
+    torrest::Torrest::initialize(options.settings_path);
 
     logger->debug("operation=main, message='Starting OATPP environment'");
     oatpp::base::Environment::init();
 
     auto apiLogger = torrest::api::ApiLogger::get_instance();
-    apiLogger->get_logger()->set_level(settings.api_log_level);
+    apiLogger->get_logger()->set_level(torrest::Torrest::get_instance().get_api_log_level());
     oatpp::base::Environment::setLogger(apiLogger);
 
     {
@@ -144,6 +132,7 @@ EXPORT_C int start(uint16_t port, String settings_path, int global_log_level) {
         return_code = 127;
     }
 
+    torrest::Torrest::destroy();
     return return_code;
 }
 

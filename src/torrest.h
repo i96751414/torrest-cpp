@@ -13,7 +13,9 @@ namespace torrest {
 
     class Torrest {
     public:
-        static void initialize(const std::string &pSettingsPath, const settings::Settings &pSettings);
+        static void initialize(const std::string &pSettingsPath);
+
+        static void destroy();
 
         static Torrest &get_instance() {
             assert(mInstance);
@@ -30,6 +32,8 @@ namespace torrest {
 
         std::int64_t get_buffer_size() const;
 
+        spdlog::level::level_enum get_api_log_level() const;
+
         void update_settings(const settings::Settings &pSettings, bool pReset);
 
         std::shared_ptr<bittorrent::Service> get_service() const {
@@ -41,7 +45,7 @@ namespace torrest {
         void operator=(Torrest const &) = delete;
 
     private:
-        explicit Torrest(std::string pSettingsPath, const settings::Settings &pSettings);
+        explicit Torrest(std::string pSettingsPath);
 
         static void shutdown_signal(int signum);
 
