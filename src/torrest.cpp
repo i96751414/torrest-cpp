@@ -16,11 +16,11 @@ namespace torrest {
 
         torrest::settings::Settings settings;
         if (boost::filesystem::exists(mSettingsPath)) {
-            mLogger->debug("operation=main, message='Loading settings file', settingsPath='{}'", mSettingsPath);
+            mLogger->debug("operation=initialize, message='Loading settings file', settingsPath='{}'", mSettingsPath);
             settings = torrest::settings::Settings::load(mSettingsPath);
             settings.validate();
         } else {
-            mLogger->debug("operation=main, message='Saving default settings file', settingsPath='{}'",
+            mLogger->debug("operation=initialize, message='Saving default settings file', settingsPath='{}'",
                            mSettingsPath);
             settings.save(mSettingsPath);
         }
@@ -32,7 +32,9 @@ namespace torrest {
     void Torrest::initialize(const std::string &pSettingsPath) {
         assert(mInstance == nullptr);
         mInstance = new Torrest(pSettingsPath);
+#if !TORREST_LIBRARY
         std::atexit(destroy);
+#endif
         std::signal(SIGINT, shutdown_signal);
         std::signal(SIGTERM, shutdown_signal);
 #ifndef _WIN32
