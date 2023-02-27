@@ -17,6 +17,8 @@ namespace torrest {
 
         static void destroy();
 
+        static void try_shutdown();
+
         static Torrest &get_instance() {
             assert(mInstance);
             return *mInstance;
@@ -50,6 +52,7 @@ namespace torrest {
         static void shutdown_signal(int signum);
 
         static Torrest *mInstance;
+        static std::mutex mInstanceMutex;
         mutable std::mutex mSettingsMutex;
         std::shared_ptr<spdlog::logger> mLogger;
         std::shared_ptr<bittorrent::Service> mService;

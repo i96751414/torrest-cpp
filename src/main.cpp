@@ -136,6 +136,10 @@ EXPORT_C int start(uint16_t port, String settings_path, int global_log_level) {
     return return_code;
 }
 
+EXPORT_C void stop() {
+    torrest::Torrest::try_shutdown();
+}
+
 #else
 
 namespace spdlog { namespace level {

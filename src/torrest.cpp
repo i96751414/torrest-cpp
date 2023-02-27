@@ -8,6 +8,7 @@
 namespace torrest {
 
     Torrest *Torrest::mInstance = nullptr;
+    std::mutex Torrest::mInstanceMutex;
 
     Torrest::Torrest(std::string pSettingsPath)
             : mLogger(spdlog::stdout_logger_mt("torrest")),
@@ -30,6 +31,7 @@ namespace torrest {
     }
 
     void Torrest::initialize(const std::string &pSettingsPath) {
+        std::lock_guard<std::mutex> lock(mInstanceMutex);
         assert(mInstance == nullptr);
         mInstance = new Torrest(pSettingsPath);
 #if !TORREST_LIBRARY
@@ -43,8 +45,16 @@ namespace torrest {
     }
 
     void Torrest::destroy() {
+        std::lock_guard<std::mutex> lock(mInstanceMutex);
         delete mInstance;
         mInstance = nullptr;
+    }
+
+    void Torrest::try_shutdown() {
+        std::lock_guard<std::mutex> lock(mInstanceMutex);
+        if (mInstance != nullptr) {
+            mInstance->shutdown();
+        }
     }
 
     void Torrest::shutdown() {
@@ -79,10 +89,12 @@ namespace torrest {
     }
 
     void Torrest::shutdown_signal(int signum) {
-        assert(mInstance);
-        mInstance->mLogger->debug(
-                "operation=shutdown_signal, message='Received shutdown signal', signum={}", signum);
-        mInstance->shutdown();
+        std::lock_guard<std::mutex> lock(mInstanceMutex);
+        if (mInstance != nullptr) {
+            mInstance->mLogger->debug(
+                    "operation=shutdown_signal, message='Received shutdown signal', signum={}", signum);
+            mInstance->shutdown();
+        }
     }
 
 }
