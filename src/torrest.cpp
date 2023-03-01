@@ -3,7 +3,8 @@
 #include <csignal>
 
 #include "boost/filesystem.hpp"
-#include "spdlog/sinks/stdout_sinks.h"
+
+#include "utils/log.h"
 
 namespace torrest {
 
@@ -11,7 +12,7 @@ namespace torrest {
     std::mutex Torrest::mInstanceMutex;
 
     Torrest::Torrest(std::string pSettingsPath)
-            : mLogger(spdlog::stdout_logger_mt("torrest")),
+            : mLogger(utils::create_logger("torrest")),
               mSettingsPath(std::move(pSettingsPath)),
               mIsRunning(true) {
 

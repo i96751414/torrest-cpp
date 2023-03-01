@@ -31,6 +31,7 @@ find_package(Boost 1.72.0 REQUIRED COMPONENTS filesystem program_options)
 find_package(LibtorrentRasterbar 1.2.14 REQUIRED COMPONENTS torrent-rasterbar)
 
 set(torrest_sources
+        src/utils/log.cpp
         src/utils/mime.cpp
         src/utils/conversion.cpp
         src/settings/settings.cpp

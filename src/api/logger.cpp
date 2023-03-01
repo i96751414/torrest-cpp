@@ -1,6 +1,6 @@
 #include "logger.h"
 
-#include "spdlog/sinks/stdout_sinks.h"
+#include "utils/log.h"
 
 namespace torrest { namespace api {
 
@@ -9,7 +9,7 @@ namespace torrest { namespace api {
         return instance;
     }
 
-    ApiLogger::ApiLogger() : mLogger(spdlog::stdout_logger_mt("api")) {}
+    ApiLogger::ApiLogger() : mLogger(utils::create_logger("api")) {}
 
     void ApiLogger::log(v_uint32 pPriority, const std::string &pTag, const std::string &pMessage) {
         mLogger->log(get_associated_level(pPriority), "tag={}, message='{}'", pTag, pMessage);

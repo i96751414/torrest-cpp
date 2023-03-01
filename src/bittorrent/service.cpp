@@ -3,7 +3,6 @@
 #include <thread>
 
 #include "boost/filesystem.hpp"
-#include "spdlog/sinks/stdout_sinks.h"
 #include "libtorrent/alert_types.hpp"
 #include "libtorrent/write_resume_data.hpp"
 #include "libtorrent/torrent_info.hpp"
@@ -13,6 +12,7 @@
 
 #include "utils/conversion.h"
 #include "utils/filesystem.h"
+#include "utils/log.h"
 #include "exceptions.h"
 
 #define EXT_PARTS ".parts"
@@ -97,8 +97,8 @@ namespace torrest { namespace bittorrent {
     }
 
     Service::Service(const settings::Settings &pSettings)
-            : mLogger(spdlog::stdout_logger_mt("bittorrent")),
-              mAlertsLogger(spdlog::stdout_logger_mt("alerts")),
+            : mLogger(utils::create_logger("bittorrent")),
+              mAlertsLogger(utils::create_logger("alerts")),
               mIsRunning(true),
               mDownloadRate(0),
               mUploadRate(0),

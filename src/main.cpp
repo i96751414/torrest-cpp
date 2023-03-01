@@ -4,7 +4,6 @@
 #include "boost/filesystem.hpp"
 #include "boost/algorithm/string.hpp"
 #include "spdlog/spdlog.h"
-#include "spdlog/sinks/stdout_sinks.h"
 #include "oatpp/network/Server.hpp"
 
 #if TORREST_ENABLE_SWAGGER
@@ -27,6 +26,7 @@ typedef torrest::api::SwaggerController SwaggerController;
 #include "api/controller/files.h"
 #include "api/controller/serve.h"
 #include "utils/conversion.h"
+#include "utils/log.h"
 
 #if TORREST_LIBRARY
 #ifdef _WIN32
@@ -47,7 +47,7 @@ struct Options {
 void start(const Options &options) {
     spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e %l [%n] [thread-%t] %v");
     spdlog::set_level(options.global_log_level);
-    auto logger = spdlog::stdout_logger_mt("main");
+    auto logger = torrest::utils::create_logger("main");
 
     logger->debug("operation=main, message='Initializing Torrest application', version=" TORREST_VERSION);
     torrest::Torrest::initialize(options.settings_path);
@@ -161,6 +161,7 @@ namespace spdlog { namespace level {
 
 Options parse_arguments(int argc, const char *argv[]) {
     Options options;
+    std::string logPath;
     boost::program_options::options_description optionsDescription("Optional arguments");
     optionsDescription.add_options()
             ("port,p", boost::program_options::value<uint16_t>(&options.port),
@@ -169,6 +170,8 @@ Options parse_arguments(int argc, const char *argv[]) {
              "settings path (default: settings.json)")
             ("log-level", boost::program_options::value<spdlog::level::level_enum>(&options.global_log_level),
              "global log level (default: INFO)")
+            ("log-path", boost::program_options::value<std::string>(&logPath),
+             "log output path (default: not set)")
             ("version,v", "print version")
             ("help,h", "print help message");
 
@@ -183,6 +186,10 @@ Options parse_arguments(int argc, const char *argv[]) {
     } else if (vm.count("version")) {
         std::cout << TORREST_VERSION << std::endl;
         std::exit(0);
+    }
+
+    if (!logPath.empty()) {
+        torrest::utils::add_file_sink(logPath);
     }
 
     return options;
