@@ -17,14 +17,14 @@ version 3.17). Additionally, you need a build system to actually schedule builds
 
 Torrest has several external dependencies. Below is a list of them and the minimum version required:
 
--   [range-parser](https://github.com/i96751414/range-parser-cpp) (v1.0.1)
--   [nlohmann-json](https://github.com/nlohmann/json) (v3.11.0)
--   [spdlog](https://github.com/gabime/spdlog) (v1.8.5)
--   [oatpp](https://github.com/oatpp/oatpp) (v1.3.0)
--   [oatpp-swagger](https://github.com/oatpp/oatpp-swagger) (v1.3.0)
--   [openssl](https://www.openssl.org) (1.1.1)
--   [boost](https://www.boost.org) (1.72.0)
--   [libtorrent](https://github.com/arvidn/libtorrent) (v1.2.14)
+- [range-parser](https://github.com/i96751414/range-parser-cpp) (v1.0.1)
+- [nlohmann-json](https://github.com/nlohmann/json) (v3.11.0)
+- [spdlog](https://github.com/gabime/spdlog) (v1.8.5)
+- [oatpp](https://github.com/oatpp/oatpp) (v1.3.0)
+- [oatpp-swagger](https://github.com/oatpp/oatpp-swagger) (v1.3.0)
+- [openssl](https://www.openssl.org) (1.1.1)
+- [boost](https://www.boost.org) (1.72.0)
+- [libtorrent](https://github.com/arvidn/libtorrent) (v1.2.14)
 
 ## Building
 
@@ -61,6 +61,7 @@ Below is the list of supported CMake build configurations (which are then mapped
 
 | CMake configuration             | Default | Maps to macro                           | Description                                                    |
 |---------------------------------|---------|-----------------------------------------|----------------------------------------------------------------|
+| build_library                   | OFF     | TORREST_LIBRARY                         | Build torrest as a library                                     |
 | enable_swagger                  | ON      | TORREST_ENABLE_SWAGGER                  | Enables swagger on http://localhost:8080/swagger/ui endpoint   |
 | with_swagger_local_resources    | OFF     | OATPP_SWAGGER_RES_PATH                  | Sets the swagger resources path to the oatpp-swagger directory |
 | enable_shutdown                 | ON      | TORREST_ENABLE_SHUTDOWN                 | Enables the shutdown endpoint (http://localhost:8080/shutdown) |
@@ -104,7 +105,8 @@ make -f docker/Makefile build-<platform>
 
 ### Cross compiling Torrest
 
-Similarly, one can also build Torrest using the pre-built docker image. To do so, one needs to use the `torrest` target:
+Similarly, one can also build Torrest using the pre-built docker image. To do so, one needs to use the `torrest` target
+to build the Torrest executable or `libtorrest` for building Torrest as a library:
 
 ```shell
 make -f docker/Makefile torrest
@@ -126,10 +128,12 @@ After building Torrest, one can run it like any other binary, that is:
 
 Although Torrest doesn't have any required arguments, it accepts optional arguments:
 
-| Argument       | Type   | Default       | Description            |
-|----------------|--------|---------------|------------------------|
-| -p, --port     | uint16 | 8080          | The server listen port |
-| -s, --settings | string | settings.json | The settings path      |
-| --log-level    | string | INFO          | The global log level   |
-| -v, --version  | n/a    | n/a           | Print version          |
-| -h, --help     | n/a    | n/a           | Print help message     |
+| Argument       | Type   | Default                                       | Description            |
+|----------------|--------|-----------------------------------------------|------------------------|
+| -p, --port     | uint16 | 8080                                          | The server listen port |
+| -s, --settings | string | settings.json                                 | The settings path      |
+| --log-level    | string | INFO                                          | The global log level   |
+| --log-pattern  | string | `%Y-%m-%d %H:%M:%S.%e %l [%n] [thread-%t] %v` | The log pattern        |
+| --log-path     | string | n/a                                           | The log path           |
+| -v, --version  | n/a    | n/a                                           | Print version          |
+| -h, --help     | n/a    | n/a                                           | Print help message     |
