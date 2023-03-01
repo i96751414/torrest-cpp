@@ -42,10 +42,11 @@ struct Options {
     uint16_t port = 8080;
     std::string settings_path = "settings.json";
     spdlog::level::level_enum global_log_level = spdlog::level::info;
+    std::string log_pattern = "%Y-%m-%d %H:%M:%S.%e %l [%n] [thread-%t] %v";
 };
 
 void start(const Options &options) {
-    spdlog::set_pattern("%Y-%m-%d %H:%M:%S.%e %l [%n] [thread-%t] %v");
+    spdlog::set_pattern(options.log_pattern);
     spdlog::set_level(options.global_log_level);
     auto logger = torrest::utils::create_logger("main");
 
@@ -170,6 +171,8 @@ Options parse_arguments(int argc, const char *argv[]) {
              "settings path (default: settings.json)")
             ("log-level", boost::program_options::value<spdlog::level::level_enum>(&options.global_log_level),
              "global log level (default: INFO)")
+            ("log-pattern", boost::program_options::value<std::string>(&options.log_pattern),
+             "log pattern")
             ("log-path", boost::program_options::value<std::string>(&logPath),
              "log output path (default: not set)")
             ("version,v", "print version")
