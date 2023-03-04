@@ -6,7 +6,7 @@
 #include "oatpp/network/tcp/server/ConnectionProvider.hpp"
 #endif
 
-#include "logger.h"
+#include "torrest.h"
 
 namespace torrest { namespace api {
 
@@ -37,7 +37,7 @@ namespace torrest { namespace api {
         }
 
         auto &startingLine = pRequest->getStartingLine();
-        ApiLogger::get_instance()->get_logger()->log(
+        torrest::Torrest::get_instance().get_api_logger()->log(
                 level, "operation=intercept"
                        ", method={}"
 #if TORREST_EXTENDED_CONNECTIONS

@@ -6,8 +6,8 @@
 
 #include "spdlog/spdlog.h"
 
-#include "settings/settings.h"
 #include "bittorrent/service.h"
+#include "settings/settings.h"
 
 namespace torrest {
 
@@ -34,12 +34,14 @@ namespace torrest {
 
         std::int64_t get_buffer_size() const;
 
-        spdlog::level::level_enum get_api_log_level() const;
-
         void update_settings(const settings::Settings &pSettings, bool pReset);
 
         std::shared_ptr<bittorrent::Service> get_service() const {
             return mService;
+        }
+
+        std::shared_ptr<spdlog::logger> get_api_logger() const {
+            return mApiLogger;
         }
 
         Torrest(Torrest const &) = delete;
@@ -55,6 +57,7 @@ namespace torrest {
         static std::mutex mInstanceMutex;
         mutable std::mutex mSettingsMutex;
         std::shared_ptr<spdlog::logger> mLogger;
+        std::shared_ptr<spdlog::logger> mApiLogger;
         std::shared_ptr<bittorrent::Service> mService;
         std::string mSettingsPath;
         settings::Settings mSettings;

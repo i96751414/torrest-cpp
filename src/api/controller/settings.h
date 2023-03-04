@@ -7,7 +7,6 @@
 
 #include "torrest.h"
 #include "api/dto/error_response.h"
-#include "api/logger.h"
 
 namespace torrest { namespace api {
 
@@ -46,7 +45,6 @@ public:
         settings.validate();
 
         Torrest::get_instance().update_settings(settings, reset);
-        ApiLogger::get_instance()->get_logger()->set_level(settings.api_log_level);
 
         auto response = createResponse(Status::CODE_200, body);
         response->putHeader(Header::CONTENT_TYPE, "application/json");

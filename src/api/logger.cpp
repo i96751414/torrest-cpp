@@ -1,15 +1,13 @@
 #include "logger.h"
 
+#include <utility>
+
 #include "utils/log.h"
 
 namespace torrest { namespace api {
 
-    std::shared_ptr<ApiLogger> ApiLogger::get_instance() {
-        static std::shared_ptr<ApiLogger> instance{new ApiLogger};
-        return instance;
-    }
-
-    ApiLogger::ApiLogger() : mLogger(utils::create_logger("api")) {}
+    ApiLogger::ApiLogger(std::shared_ptr<spdlog::logger> pLogger)
+        : mLogger(std::move(pLogger)) {}
 
     void ApiLogger::log(v_uint32 pPriority, const std::string &pTag, const std::string &pMessage) {
         mLogger->log(get_associated_level(pPriority), "tag={}, message='{}'", pTag, pMessage);
@@ -17,10 +15,6 @@ namespace torrest { namespace api {
 
     bool ApiLogger::isLogPriorityEnabled(v_uint32 pPriority) {
         return get_associated_level(pPriority) >= mLogger->level();
-    }
-
-    std::shared_ptr<spdlog::logger> ApiLogger::get_logger() {
-        return mLogger;
     }
 
     spdlog::level::level_enum ApiLogger::get_associated_level(v_uint32 pPriority) {

@@ -17,6 +17,7 @@ typedef torrest::api::SwaggerController SwaggerController;
 #endif
 
 #include "torrest.h"
+#include "api/logger.h"
 #include "api/app_component.h"
 #include "api/controller/settings.h"
 #include "api/controller/service.h"
@@ -52,11 +53,8 @@ void start(const Options &options) {
     torrest::Torrest::initialize(options.settings_path);
 
     logger->debug("operation=start, message='Starting OATPP environment'");
-    oatpp::base::Environment::init();
-
-    auto apiLogger = torrest::api::ApiLogger::get_instance();
-    apiLogger->get_logger()->set_level(torrest::Torrest::get_instance().get_api_log_level());
-    oatpp::base::Environment::setLogger(apiLogger);
+    auto apiLogger = std::make_shared<torrest::api::ApiLogger>(torrest::Torrest::get_instance().get_api_logger());
+    oatpp::base::Environment::init(apiLogger);
 
     {
         torrest::api::AppComponent component(options.port);

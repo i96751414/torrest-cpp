@@ -13,6 +13,7 @@ namespace torrest {
 
     Torrest::Torrest(std::string pSettingsPath)
             : mLogger(utils::create_logger("torrest")),
+              mApiLogger(utils::create_logger("api")),
               mSettingsPath(std::move(pSettingsPath)),
               mIsRunning(true) {
 
@@ -28,6 +29,7 @@ namespace torrest {
         }
 
         mSettings = settings;
+        mApiLogger->set_level(settings.api_log_level);
         mService = std::make_shared<bittorrent::Service>(settings);
     }
 
@@ -75,16 +77,11 @@ namespace torrest {
         return mSettings.buffer_size;
     }
 
-    spdlog::level::level_enum Torrest::get_api_log_level() const {
-        mLogger->trace("operation=get_api_log_level");
-        std::lock_guard<std::mutex> lock(mSettingsMutex);
-        return mSettings.api_log_level;
-    }
-
     void Torrest::update_settings(const settings::Settings &pSettings, bool pReset) {
-        mLogger->debug("operation=update_settings, message='Updating settings'");
+        mLogger->debug("operation=update_settings, message='Updating settings', reset={}", pReset);
         std::lock_guard<std::mutex> lock(mSettingsMutex);
         mService->reconfigure(pSettings, pReset);
+        mApiLogger->set_level(pSettings.api_log_level);
         mSettings = pSettings;
         mSettings.save(mSettingsPath);
     }
