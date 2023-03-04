@@ -48,10 +48,10 @@ void start(const Options &options) {
     spdlog::set_level(options.global_log_level);
     auto logger = torrest::utils::create_logger("main");
 
-    logger->debug("operation=main, message='Initializing Torrest application', version=" TORREST_VERSION);
+    logger->debug("operation=start, message='Initializing Torrest application', version=" TORREST_VERSION);
     torrest::Torrest::initialize(options.settings_path);
 
-    logger->debug("operation=main, message='Starting OATPP environment'");
+    logger->debug("operation=start, message='Starting OATPP environment'");
     oatpp::base::Environment::init();
 
     auto apiLogger = torrest::api::ApiLogger::get_instance();
@@ -81,30 +81,30 @@ void start(const Options &options) {
 
 #if TORREST_ENABLE_SWAGGER
         router->addController(SwaggerController::createShared(docEndpoints));
-        logger->debug("operation=main, message='Swagger available at http://localhost:{}/swagger/ui'", options.port);
+        logger->debug("operation=start, message='Swagger available at http://localhost:{}/swagger/ui'", options.port);
 #endif
 
         OATPP_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, connectionHandler);
         OATPP_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, connectionProvider);
         oatpp::network::Server server(connectionProvider, connectionHandler);
 
-        logger->info("operation=main, message='Starting HTTP server', port={}", options.port);
+        logger->info("operation=start, message='Starting HTTP server', port={}", options.port);
         server.run(static_cast<std::function<bool()>>([] {
             return torrest::Torrest::get_instance().is_running();
         }));
 
-        logger->debug("operation=main, message='Destroying OATPP environment'");
+        logger->debug("operation=start, message='Destroying OATPP environment'");
         connectionProvider->stop();
-        logger->trace("operation=main, message='Connection provider terminated'");
+        logger->trace("operation=start, message='Connection provider terminated'");
         connectionHandler->stop();
-        logger->trace("operation=main, message='Connection handler terminated'");
+        logger->trace("operation=start, message='Connection handler terminated'");
     }
 
-    logger->trace("operation=main, oatppObjectsCount={}", oatpp::base::Environment::getObjectsCount());
-    logger->trace("operation=main, oatppObjectsCreated={}", oatpp::base::Environment::getObjectsCreated());
+    logger->trace("operation=start, oatppObjectsCount={}", oatpp::base::Environment::getObjectsCount());
+    logger->trace("operation=start, oatppObjectsCreated={}", oatpp::base::Environment::getObjectsCreated());
     oatpp::base::Environment::destroy();
 
-    logger->trace("operation=main, message='Finished terminating'");
+    logger->trace("operation=start, message='Finished terminating'");
 }
 
 #if TORREST_LIBRARY
