@@ -11,9 +11,7 @@
 #include "oatpp-swagger/Controller.hpp"
 typedef oatpp::swagger::Controller SwaggerController;
 #else
-
 #include "api/controller/swagger.h"
-
 typedef torrest::api::SwaggerController SwaggerController;
 #endif
 #endif
@@ -120,6 +118,8 @@ struct String {
     }
 };
 
+typedef void (*log_callback_fn)(int, String);
+
 EXPORT_C int start(uint16_t port, String settings_path, int global_log_level) {
     int return_code = 0;
     Options options{
@@ -139,6 +139,25 @@ EXPORT_C int start(uint16_t port, String settings_path, int global_log_level) {
 
 EXPORT_C void stop() {
     torrest::Torrest::try_shutdown();
+}
+
+EXPORT_C void clear_logging_sinks() {
+    torrest::utils::clear_sinks();
+}
+
+EXPORT_C void add_logging_stdout_sink(String file_path) {
+    torrest::utils::add_stdout_sink();
+}
+
+EXPORT_C void add_logging_file_sink(String file_path) {
+    torrest::utils::add_file_sink(file_path.to_string());
+}
+
+EXPORT_C void add_logging_callback_sink(log_callback_fn callback) {
+    torrest::utils::add_callback_sink([callback](const spdlog::details::log_msg &pMsg) {
+        String payload{.ptr=pMsg.payload.data(), .size=pMsg.payload.size()};
+        callback(pMsg.level, payload);
+    });
 }
 
 #else
