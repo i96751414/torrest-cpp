@@ -146,7 +146,7 @@ EXPORT_C void clear_logging_sinks() {
     torrest::utils::clear_sinks();
 }
 
-EXPORT_C void add_logging_stdout_sink(String file_path) {
+EXPORT_C void add_logging_stdout_sink() {
     torrest::utils::add_stdout_sink();
 }
 
