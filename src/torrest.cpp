@@ -73,6 +73,12 @@ namespace torrest {
         return mSettings.buffer_size;
     }
 
+    void Torrest::update_settings(const std::string &pSettings, bool pReset) {
+        settings::Settings settings = settings::Settings::parse(pSettings);
+        settings.validate();
+        update_settings(settings, pReset);
+    }
+
     void Torrest::update_settings(const settings::Settings &pSettings, bool pReset) {
         mLogger->debug("operation=update_settings, message='Updating settings', reset={}", pReset);
         std::lock_guard<std::mutex> lock(mSettingsMutex);

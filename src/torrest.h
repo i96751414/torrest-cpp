@@ -33,6 +33,8 @@ namespace torrest {
 
         std::int64_t get_buffer_size() const;
 
+        void update_settings(const std::string &pSettings, bool pReset);
+
         void update_settings(const settings::Settings &pSettings, bool pReset);
 
         std::shared_ptr<bittorrent::Service> get_service() const {

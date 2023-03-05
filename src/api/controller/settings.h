@@ -41,10 +41,7 @@ public:
     }
 
     ENDPOINT("POST", "/settings/set", setSettings, QUERY(Boolean, reset, "reset", "false"), BODY_STRING(String, body)) {
-        settings::Settings settings = settings::Settings::parse(body);
-        settings.validate();
-
-        Torrest::get_instance()->update_settings(settings, reset);
+        Torrest::get_instance()->update_settings(body, reset);
 
         auto response = createResponse(Status::CODE_200, body);
         response->putHeader(Header::CONTENT_TYPE, "application/json");
