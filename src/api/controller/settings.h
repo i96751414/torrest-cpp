@@ -24,7 +24,7 @@ public:
     }
 
     ENDPOINT("GET", "/settings/get", getSettings) {
-        auto response = createResponse(Status::CODE_200, Torrest::get_instance().dump_settings().c_str());
+        auto response = createResponse(Status::CODE_200, Torrest::get_instance()->dump_settings().c_str());
         response->putHeader(Header::CONTENT_TYPE, "application/json");
         return response;
     }
@@ -44,7 +44,7 @@ public:
         settings::Settings settings = settings::Settings::parse(body);
         settings.validate();
 
-        Torrest::get_instance().update_settings(settings, reset);
+        Torrest::get_instance()->update_settings(settings, reset);
 
         auto response = createResponse(Status::CODE_200, body);
         response->putHeader(Header::CONTENT_TYPE, "application/json");

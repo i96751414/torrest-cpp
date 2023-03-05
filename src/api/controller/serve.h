@@ -46,7 +46,7 @@ public:
     std::shared_ptr<OutgoingResponse> serve(const std::shared_ptr<IncomingRequest> &pRequest,
                                             const String &pInfoHash,
                                             const Int32 &pFile) {
-        auto logger = torrest::Torrest::get_instance().get_api_logger();
+        auto logger = torrest::Torrest::get_instance()->get_api_logger();
         auto file = GET_FILE(pInfoHash, pFile);
         auto mime = utils::guess_mime_type(boost::filesystem::path(file->get_name()).extension().string());
         logger->trace("operation=serve, infoHash={}, name='{}', mime='{}'", pInfoHash->c_str(), file->get_name(), mime);

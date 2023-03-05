@@ -10,7 +10,7 @@
 #include "api/dto/file_info.h"
 #include "torrest.h"
 
-#define GET_FILE(infoHash, file) Torrest::get_instance().get_service()->get_torrent(infoHash)->get_file(file)
+#define GET_FILE(infoHash, file) Torrest::get_instance()->get_service()->get_torrent(infoHash)->get_file(file)
 
 namespace torrest { namespace api {
 
@@ -40,7 +40,7 @@ public:
         auto f = GET_FILE(infoHash, file);
         f->set_priority(libtorrent::default_priority);
         if (buffer) {
-            f->buffer(std::max(f->get_size() / 200, Torrest::get_instance().get_buffer_size()), 10 * 1024 * 1024);
+            f->buffer(std::max(f->get_size() / 200, Torrest::get_instance()->get_buffer_size()), 10 * 1024 * 1024);
         }
         return createDtoResponse(Status::CODE_200, MessageResponse::create("File downloading"));
     }

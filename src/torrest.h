@@ -19,9 +19,8 @@ namespace torrest {
 
         static void try_shutdown();
 
-        static Torrest &get_instance() {
-            assert(mInstance);
-            return *mInstance;
+        static std::shared_ptr<Torrest> get_instance() {
+            return mInstance;
         }
 
         bool is_running() const {
@@ -53,7 +52,7 @@ namespace torrest {
 
         static void shutdown_signal(int signum);
 
-        static Torrest *mInstance;
+        static std::shared_ptr<Torrest> mInstance;
         static std::mutex mInstanceMutex;
         mutable std::mutex mSettingsMutex;
         std::shared_ptr<spdlog::logger> mLogger;

@@ -53,7 +53,7 @@ void start(const Options &options) {
     torrest::Torrest::initialize(options.settings_path);
 
     logger->debug("operation=start, message='Starting OATPP environment'");
-    auto apiLogger = std::make_shared<torrest::api::ApiLogger>(torrest::Torrest::get_instance().get_api_logger());
+    auto apiLogger = std::make_shared<torrest::api::ApiLogger>(torrest::Torrest::get_instance()->get_api_logger());
     oatpp::base::Environment::init(apiLogger);
 
     {
@@ -88,7 +88,7 @@ void start(const Options &options) {
 
         logger->info("operation=start, message='Starting HTTP server', port={}", options.port);
         server.run(static_cast<std::function<bool()>>([] {
-            return torrest::Torrest::get_instance().is_running();
+            return torrest::Torrest::get_instance()->is_running();
         }));
 
         logger->debug("operation=start, message='Destroying OATPP environment'");
@@ -100,7 +100,9 @@ void start(const Options &options) {
 
     logger->trace("operation=start, oatppObjectsCount={}", oatpp::base::Environment::getObjectsCount());
     logger->trace("operation=start, oatppObjectsCreated={}", oatpp::base::Environment::getObjectsCreated());
+
     oatpp::base::Environment::destroy();
+    torrest::Torrest::destroy();
 
     logger->trace("operation=start, message='Finished terminating'");
 }
@@ -128,10 +130,11 @@ EXPORT_C int start(uint16_t port, String settings_path, int global_log_level) {
     try {
         start(options);
     } catch (...) {
+        oatpp::base::Environment::destroy();
+        torrest::Torrest::destroy();
         return_code = 127;
     }
 
-    torrest::Torrest::destroy();
     return return_code;
 }
 

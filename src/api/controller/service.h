@@ -17,7 +17,7 @@
 #include "utils/conversion.h"
 #include "bittorrent/exceptions.h"
 
-#define GET_SERVICE() Torrest::get_instance().get_service()
+#define GET_SERVICE() Torrest::get_instance()->get_service()
 
 namespace torrest { namespace api {
 
@@ -37,7 +37,7 @@ public:
     }
 
     ENDPOINT("GET", "/shutdown", shutdown) {
-        Torrest::get_instance().shutdown();
+        Torrest::get_instance()->shutdown();
         return createDtoResponse(Status::CODE_200, MessageResponse::create("Shutting down"));
     }
 
