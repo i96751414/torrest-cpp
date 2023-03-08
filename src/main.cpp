@@ -150,8 +150,8 @@ EXPORT_C void add_logging_stdout_sink() {
     torrest::utils::add_stdout_sink();
 }
 
-EXPORT_C void add_logging_file_sink(String file_path) {
-    torrest::utils::add_file_sink(file_path.to_string());
+EXPORT_C void add_logging_file_sink(String file_path, bool truncate) {
+    torrest::utils::add_file_sink(file_path.to_string(), truncate);
 }
 
 EXPORT_C void add_logging_callback_sink(log_callback_fn callback) {
