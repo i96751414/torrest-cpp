@@ -1,6 +1,5 @@
 #include "torrent.h"
 
-#include "boost/filesystem.hpp"
 #include "libtorrent/torrent_info.hpp"
 #include "libtorrent/torrent_status.hpp"
 
@@ -287,7 +286,7 @@ namespace torrest { namespace bittorrent {
         return mFiles.at(pIndex);
     }
 
-    void Torrent::check_available_space(const std::string &pPath) {
+    void Torrent::check_available_space(const boost::filesystem::path &pPath) {
         mLogger->debug("operation=check_available_space, message='Checking available space', infoHash={}", mInfoHash);
 
         auto status = mHandle.status(libtorrent::torrent_handle::query_accurate_download_counters

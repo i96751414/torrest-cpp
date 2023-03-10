@@ -8,6 +8,7 @@
 #include <regex>
 #include <vector>
 
+#include "boost/filesystem.hpp"
 #include "libtorrent/session.hpp"
 #include "libtorrent/settings_pack.hpp"
 #include "spdlog/spdlog.h"
@@ -29,7 +30,7 @@ namespace torrest { namespace bittorrent {
 
     class Service {
     public:
-        explicit Service(const settings::Settings &pSettings);
+        explicit Service(const settings::Settings &pSettings, boost::filesystem::path pWorkingDirectory = "");
 
         ~Service();
 
@@ -128,6 +129,7 @@ namespace torrest { namespace bittorrent {
         std::shared_ptr<libtorrent::session> mSession;
         std::vector<std::shared_ptr<Torrent>> mTorrents;
         std::shared_ptr<ServiceSettings> mSettings;
+        boost::filesystem::path mWorkingDirectory;
         mutable std::mutex mTorrentsMutex;
         mutable std::mutex mServiceMutex;
         mutable std::mutex mCvMutex;

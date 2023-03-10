@@ -1,6 +1,7 @@
 #include "service.h"
 
 #include <thread>
+#include <utility>
 
 #include "boost/filesystem.hpp"
 #include "libtorrent/alert_types.hpp"
@@ -95,14 +96,15 @@ namespace torrest { namespace bittorrent {
         return is;
     }
 
-    Service::Service(const settings::Settings &pSettings)
+    Service::Service(const settings::Settings &pSettings, boost::filesystem::path pWorkingDirectory)
             : mLogger(utils::create_logger("bittorrent")),
               mAlertsLogger(utils::create_logger("alerts")),
               mIsRunning(true),
               mDownloadRate(0),
               mUploadRate(0),
               mProgress(0),
-              mRateLimited(true) {
+              mRateLimited(true),
+              mWorkingDirectory(std::move(pWorkingDirectory)) {
 
         mSettings = std::make_shared<ServiceSettings>(pSettings);
         mSession = std::make_shared<libtorrent::session>(configure(pSettings)
@@ -238,7 +240,8 @@ namespace torrest { namespace bittorrent {
         if (mSettings->get_check_available_space() && pAlert->state == libtorrent::torrent_status::downloading) {
             auto infoHash = get_info_hash(pAlert->handle.INFO_HASH_PARAM());
             try {
-                get_torrent(infoHash)->check_available_space(mSettings->get_download_path());
+                get_torrent(infoHash)->check_available_space(
+                        utils::join_path(mWorkingDirectory, mSettings->get_download_path()));
             } catch (const std::exception &e) {
                 mLogger->error("operation=handle_state_changed, message='Failed handling state change', what='{}'",
                                e.what());
@@ -369,8 +372,8 @@ namespace torrest { namespace bittorrent {
     }
 
     libtorrent::settings_pack Service::configure(const settings::Settings &pSettings) {
-        boost::filesystem::create_directory(pSettings.download_path);
-        boost::filesystem::create_directory(pSettings.torrents_path);
+        boost::filesystem::create_directory(utils::join_path(mWorkingDirectory, pSettings.download_path));
+        boost::filesystem::create_directory(utils::join_path(mWorkingDirectory, pSettings.torrents_path));
 
         mLogger->set_level(pSettings.service_log_level);
         mAlertsLogger->set_level(pSettings.alerts_log_level);
@@ -601,7 +604,7 @@ namespace torrest { namespace bittorrent {
 
         if (!pIsResumeData) {
             mLogger->debug("operation=add_torrent_with_params, message='Setting params', infoHash={}", pInfoHash);
-            pTorrentParams.save_path = mSettings->get_download_path();
+            pTorrentParams.save_path = utils::join_path(mWorkingDirectory, mSettings->get_download_path()).string();
             pTorrentParams.flags |= libtorrent::torrent_flags::sequential_download;
         }
 
@@ -725,7 +728,8 @@ namespace torrest { namespace bittorrent {
         std::vector<std::string> torrentFiles;
         std::vector<std::string> magnetFiles;
 
-        for (auto &p : boost::filesystem::directory_iterator(mSettings->get_torrents_path())) {
+        for (auto &p : boost::filesystem::directory_iterator(
+                utils::join_path(mWorkingDirectory, mSettings->get_torrents_path()))) {
             if (boost::filesystem::is_regular_file(p.path())) {
                 auto ext = p.path().extension();
                 if (ext == EXT_FASTRESUME) {
@@ -788,7 +792,8 @@ namespace torrest { namespace bittorrent {
             }
         }
 
-        for (auto &p : boost::filesystem::directory_iterator(mSettings->get_download_path())) {
+        for (auto &p : boost::filesystem::directory_iterator(
+                utils::join_path(mWorkingDirectory, mSettings->get_download_path()))) {
             if (p.path().extension() == EXT_PARTS && boost::filesystem::is_regular_file(p.path())) {
                 auto infoHash = utils::ltrim_copy(p.path().stem().string(), ".");
                 if (!has_torrent(infoHash)) {
@@ -872,19 +877,20 @@ namespace torrest { namespace bittorrent {
     }
 
     inline std::string Service::get_parts_file(const std::string &pInfoHash) const {
-        return utils::join_path(mSettings->get_download_path(), "." + pInfoHash + EXT_PARTS).string();
+        return utils::join_path(mWorkingDirectory, mSettings->get_download_path(),
+                                "." + pInfoHash + EXT_PARTS).string();
     }
 
     inline std::string Service::get_fast_resume_file(const std::string &pInfoHash) const {
-        return utils::join_path(mSettings->get_torrents_path(), pInfoHash + EXT_FASTRESUME).string();
+        return utils::join_path(mWorkingDirectory, mSettings->get_torrents_path(), pInfoHash + EXT_FASTRESUME).string();
     }
 
     inline std::string Service::get_torrent_file(const std::string &pInfoHash) const {
-        return utils::join_path(mSettings->get_torrents_path(), pInfoHash + EXT_TORRENT).string();
+        return utils::join_path(mWorkingDirectory, mSettings->get_torrents_path(), pInfoHash + EXT_TORRENT).string();
     }
 
     inline std::string Service::get_magnet_file(const std::string &pInfoHash) const {
-        return utils::join_path(mSettings->get_torrents_path(), pInfoHash + EXT_MAGNET).string();
+        return utils::join_path(mWorkingDirectory, mSettings->get_torrents_path(), pInfoHash + EXT_MAGNET).string();
     }
 
     inline void Service::delete_parts_file(const std::string &pInfoHash) const {
