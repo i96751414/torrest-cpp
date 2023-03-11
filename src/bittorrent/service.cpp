@@ -102,10 +102,10 @@ namespace torrest { namespace bittorrent {
               mDownloadRate(0),
               mUploadRate(0),
               mProgress(0),
-              mRateLimited(true),
-              mSettings(std::make_shared<ServiceSettings>()) {
+              mRateLimited(true) {
 
         configure(pSettings);
+        mSettings = std::make_shared<ServiceSettings>(pSettings);
         mSession = std::make_shared<libtorrent::session>(mSettingsPack
 #if TORRENT_ABI_VERSION <= 2
                 , libtorrent::session::add_default_plugins
@@ -356,6 +356,8 @@ namespace torrest { namespace bittorrent {
         mLogger->debug("operation=reconfigure, message='Reconfiguring service', reset={}", pReset);
         std::lock_guard<std::mutex> lock(mServiceMutex);
         configure(pSettings);
+        mLogger->info("operation=reconfigure, message='Applying session settings'");
+        mSettings->update(pSettings);
         mSession->apply_settings(mSettingsPack);
 
         if (pReset) {
@@ -372,8 +374,6 @@ namespace torrest { namespace bittorrent {
 
         mLogger->set_level(pSettings.service_log_level);
         mAlertsLogger->set_level(pSettings.alerts_log_level);
-        mLogger->info("operation=configure, message='Applying session settings'");
-        mSettings->update(pSettings);
 
         auto userAgent = get_user_agent(pSettings.user_agent);
         mLogger->debug("operation=configure, userAgent='{}'", userAgent);
