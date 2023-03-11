@@ -16,16 +16,16 @@ typedef torrest::api::SwaggerController SwaggerController;
 #endif
 #endif
 
-#include "torrest.h"
-#include "api/logger.h"
 #include "api/app_component.h"
-#include "api/controller/settings.h"
-#include "api/controller/service.h"
-#include "api/controller/torrents.h"
 #include "api/controller/files.h"
 #include "api/controller/serve.h"
-#include "utils/conversion.h"
+#include "api/controller/service.h"
+#include "api/controller/settings.h"
+#include "api/controller/torrents.h"
+#include "api/logger.h"
+#include "torrest.h"
 #include "utils/log.h"
+#include "utils/utils.h"
 
 #if TORREST_LIBRARY
 #ifdef _WIN32
@@ -37,11 +37,35 @@ typedef torrest::api::SwaggerController SwaggerController;
 #define EXPORT_C
 #endif
 
+namespace spdlog { namespace level {
+
+    std::istream &operator>>(std::istream &pIs, level_enum &pLevel) {
+        std::string levelString;
+        pIs >> levelString;
+        boost::algorithm::to_lower(levelString);
+
+        pLevel = from_str(levelString);
+        if (pLevel == off && levelString != "off") {
+            pIs.setstate(std::ios_base::failbit);
+        }
+
+        return pIs;
+    }
+
+}}
+
 struct Options {
     uint16_t port = 8080;
     std::string settings_path = "settings.json";
     spdlog::level::level_enum global_log_level = spdlog::level::info;
     std::string log_pattern = "%Y-%m-%d %H:%M:%S.%e %l [%n] [thread-%t] %v";
+
+    void parse_env(bool pValid = true) {
+        torrest::utils::parse_env(port, "TORREST_PORT", pValid);
+        torrest::utils::parse_env(settings_path, "TORREST_SETTINGS_PATH", pValid);
+        torrest::utils::parse_env(global_log_level, "TORREST_GLOBAL_LOG_LEVEL", pValid);
+        torrest::utils::parse_env(log_pattern, "TORREST_LOG_PATTERN", pValid);
+    }
 };
 
 void start(const Options &options) {
@@ -120,12 +144,8 @@ struct String {
 
 typedef void (*log_callback_fn)(int, String);
 
-EXPORT_C int start(uint16_t port, String settings_path, int global_log_level) {
+int start_with_options(const Options &options) {
     int return_code = 0;
-    Options options{
-            .port=port,
-            .settings_path=settings_path.to_string(),
-            .global_log_level=static_cast<spdlog::level::level_enum>(global_log_level)};
 
     try {
         start(options);
@@ -136,6 +156,21 @@ EXPORT_C int start(uint16_t port, String settings_path, int global_log_level) {
     }
 
     return return_code;
+}
+
+EXPORT_C int start_with_env() {
+    Options options;
+    options.parse_env(false);
+    return start_with_options(options);
+}
+
+EXPORT_C int start(uint16_t port, String settings_path, int global_log_level) {
+    Options options{
+            .port=port,
+            .settings_path=settings_path.to_string(),
+            .global_log_level=static_cast<spdlog::level::level_enum>(global_log_level)};
+
+    return start_with_options(options);
 }
 
 EXPORT_C void stop() {
@@ -163,25 +198,10 @@ EXPORT_C void add_logging_callback_sink(log_callback_fn callback) {
 
 #else
 
-namespace spdlog { namespace level {
-
-    std::istream &operator>>(std::istream &pIs, level_enum &pLevel) {
-        std::string levelString;
-        pIs >> levelString;
-        boost::algorithm::to_lower(levelString);
-
-        pLevel = from_str(levelString);
-        if (pLevel == off && levelString != "off") {
-            pIs.setstate(std::ios_base::failbit);
-        }
-
-        return pIs;
-    }
-
-}}
-
 Options parse_arguments(int argc, const char *argv[]) {
     Options options;
+    options.parse_env(false);
+
     std::string logPath;
     boost::program_options::options_description optionsDescription("Optional arguments");
     optionsDescription.add_options()

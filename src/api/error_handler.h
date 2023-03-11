@@ -1,8 +1,8 @@
 #ifndef TORREST_ERROR_HANDLER_H
 #define TORREST_ERROR_HANDLER_H
 
-#include "oatpp/web/server/handler/ErrorHandler.hpp"
 #include "oatpp/core/data/mapping/ObjectMapper.hpp"
+#include "oatpp/web/server/handler/ErrorHandler.hpp"
 
 namespace torrest { namespace api {
 

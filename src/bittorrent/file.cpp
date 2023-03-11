@@ -1,9 +1,9 @@
 #include "file.h"
 
-#include "torrent.h"
-#include "settings.h"
-#include "reader.h"
 #include "exceptions.h"
+#include "reader.h"
+#include "settings.h"
+#include "torrent.h"
 
 #define CHECK_TORRENT(t) do { if (!t) throw torrest::bittorrent::InvalidTorrentException("Invalid torrent"); } while(0)
 

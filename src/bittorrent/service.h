@@ -1,21 +1,21 @@
 #ifndef TORREST_SERVICE_H
 #define TORREST_SERVICE_H
 
-#include <regex>
-#include <mutex>
-#include <vector>
 #include <atomic>
 #include <condition_variable>
 #include <memory>
+#include <mutex>
+#include <regex>
+#include <vector>
 
-#include "spdlog/spdlog.h"
-#include "libtorrent/settings_pack.hpp"
 #include "libtorrent/session.hpp"
+#include "libtorrent/settings_pack.hpp"
+#include "spdlog/spdlog.h"
 
-#include "settings/settings.h"
-#include "torrent.h"
 #include "file.h"
 #include "settings.h"
+#include "settings/settings.h"
+#include "torrent.h"
 
 namespace torrest { namespace bittorrent {
 

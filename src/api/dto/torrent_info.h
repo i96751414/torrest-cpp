@@ -2,6 +2,7 @@
 #define TORREST_TORRENT_INFO_H
 
 #include "api/dto/utils.h"
+#include "bittorrent/torrent.h"
 
 namespace torrest { namespace api {
 

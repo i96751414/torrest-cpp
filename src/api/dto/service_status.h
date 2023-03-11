@@ -2,7 +2,6 @@
 #define TORREST_SERVICE_STATUS_H
 
 #include "api/dto/utils.h"
-
 #include "bittorrent/service.h"
 
 namespace torrest { namespace api {

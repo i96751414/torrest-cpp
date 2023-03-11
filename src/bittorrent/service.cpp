@@ -4,16 +4,15 @@
 
 #include "boost/filesystem.hpp"
 #include "libtorrent/alert_types.hpp"
-#include "libtorrent/write_resume_data.hpp"
-#include "libtorrent/torrent_info.hpp"
 #include "libtorrent/create_torrent.hpp"
 #include "libtorrent/magnet_uri.hpp"
 #include "libtorrent/read_resume_data.hpp"
+#include "libtorrent/torrent_info.hpp"
+#include "libtorrent/write_resume_data.hpp"
 
-#include "utils/conversion.h"
-#include "utils/filesystem.h"
-#include "utils/log.h"
 #include "exceptions.h"
+#include "utils/log.h"
+#include "utils/utils.h"
 
 #define EXT_PARTS ".parts"
 #define EXT_TORRENT ".torrent"

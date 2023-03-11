@@ -1,7 +1,7 @@
 #ifndef TORREST_LOGGER_INTERCEPTOR_H
 #define TORREST_LOGGER_INTERCEPTOR_H
 
-#include <oatpp/web/server/interceptor/RequestInterceptor.hpp>
+#include "oatpp/web/server/interceptor/RequestInterceptor.hpp"
 #include "oatpp/web/server/interceptor/ResponseInterceptor.hpp"
 
 namespace torrest { namespace api {

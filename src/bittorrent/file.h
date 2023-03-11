@@ -1,16 +1,16 @@
 #ifndef TORREST_FILE_H
 #define TORREST_FILE_H
 
-#include <mutex>
 #include <atomic>
+#include <mutex>
 
-#include "spdlog/spdlog.h"
 #include "libtorrent/download_priority.hpp"
-#include "libtorrent/torrent_info.hpp"
 #include "libtorrent/file_storage.hpp"
+#include "libtorrent/torrent_info.hpp"
+#include "spdlog/spdlog.h"
 
-#include "fwd.h"
 #include "enums.h"
+#include "fwd.h"
 
 namespace torrest { namespace bittorrent {
 

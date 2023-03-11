@@ -1,11 +1,12 @@
 #include "torrent.h"
 
 #include "boost/filesystem.hpp"
-#include "libtorrent/torrent_status.hpp"
 #include "libtorrent/torrent_info.hpp"
-#include "service.h"
-#include "file.h"
+#include "libtorrent/torrent_status.hpp"
+
 #include "exceptions.h"
+#include "file.h"
+#include "service.h"
 
 namespace torrest { namespace bittorrent {
 

@@ -1,8 +1,8 @@
 #ifndef TORREST_EMPTY_BODY_H
 #define TORREST_EMPTY_BODY_H
 
-#include "oatpp/web/protocol/http/outgoing/Body.hpp"
 #include "oatpp/web/protocol/http/Http.hpp"
+#include "oatpp/web/protocol/http/outgoing/Body.hpp"
 
 namespace torrest { namespace api {
 

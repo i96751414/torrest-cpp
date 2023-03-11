@@ -33,7 +33,7 @@ find_package(LibtorrentRasterbar 1.2.14 REQUIRED COMPONENTS torrent-rasterbar)
 set(torrest_sources
         src/utils/log.cpp
         src/utils/mime.cpp
-        src/utils/conversion.cpp
+        src/utils/utils.cpp
         src/settings/settings.cpp
         src/bittorrent/service.cpp
         src/bittorrent/torrent.cpp

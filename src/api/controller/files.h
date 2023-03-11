@@ -1,13 +1,14 @@
 #ifndef TORREST_FILES_CONTROLLER_H
 #define TORREST_FILES_CONTROLLER_H
 
-#include "oatpp/web/server/api/ApiController.hpp"
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/macro/component.hpp"
+#include "oatpp/web/server/api/ApiController.hpp"
 
-#include "api/dto/message_response.h"
 #include "api/dto/error_response.h"
 #include "api/dto/file_info.h"
+#include "api/dto/file_status.h"
+#include "api/dto/message_response.h"
 #include "torrest.h"
 
 #define GET_FILE(infoHash, file) Torrest::get_instance()->get_service()->get_torrent(infoHash)->get_file(file)

@@ -1,8 +1,8 @@
 #ifndef TORREST_DTO_UTILS_H
 #define TORREST_DTO_UTILS_H
 
-#include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/Types.hpp"
+#include "oatpp/core/macro/codegen.hpp"
 
 #if TORREST_ENABLE_SWAGGER
 #include "oatpp-swagger/Types.hpp"

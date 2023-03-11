@@ -1,10 +1,10 @@
 #ifndef TORREST_APP_COMPONENT_H
 #define TORREST_APP_COMPONENT_H
 
+#include "oatpp/core/macro/component.hpp"
+#include "oatpp/network/tcp/server/ConnectionProvider.hpp"
 #include "oatpp/parser/json/mapping/ObjectMapper.hpp"
 #include "oatpp/web/server/HttpConnectionHandler.hpp"
-#include "oatpp/network/tcp/server/ConnectionProvider.hpp"
-#include "oatpp/core/macro/component.hpp"
 #include "oatpp/web/server/interceptor/AllowCorsGlobal.hpp"
 
 #if TORREST_ENABLE_SWAGGER
@@ -15,8 +15,8 @@
 #endif //TORREST_ENABLE_SWAGGER
 
 #include "error_handler.h"
-#include "version.h"
 #include "logger_interceptor.h"
+#include "version.h"
 
 namespace torrest { namespace api {
     /**

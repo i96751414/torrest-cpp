@@ -1,9 +1,10 @@
 #ifndef TORREST_TORRENT_INFO_STATUS_H
 #define TORREST_TORRENT_INFO_STATUS_H
 
-#include "api/dto/utils.h"
 #include "api/dto/torrent_info.h"
 #include "api/dto/torrent_status.h"
+#include "api/dto/utils.h"
+#include "bittorrent/torrent.h"
 
 namespace torrest { namespace api {
 

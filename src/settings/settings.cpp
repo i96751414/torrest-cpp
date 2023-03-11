@@ -1,9 +1,10 @@
 #include "settings.h"
+
 #include <fstream>
 #include <iomanip>
 
-#include "nlohmann/json.hpp"
 #include "libtorrent/version.hpp"
+#include "nlohmann/json.hpp"
 
 #include "utils/validation.h"
 #include "version.h"

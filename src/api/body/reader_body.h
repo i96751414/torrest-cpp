@@ -1,8 +1,8 @@
 #ifndef TORREST_READER_BODY_H
 #define TORREST_READER_BODY_H
 
-#include "oatpp/web/protocol/http/outgoing/Body.hpp"
 #include "oatpp/web/protocol/http/Http.hpp"
+#include "oatpp/web/protocol/http/outgoing/Body.hpp"
 
 #include "bittorrent/reader.h"
 

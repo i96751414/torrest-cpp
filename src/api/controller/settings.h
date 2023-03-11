@@ -1,12 +1,12 @@
 #ifndef TORREST_SETTINGS_CONTROLLER_H
 #define TORREST_SETTINGS_CONTROLLER_H
 
-#include "oatpp/web/server/api/ApiController.hpp"
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/macro/component.hpp"
+#include "oatpp/web/server/api/ApiController.hpp"
 
-#include "torrest.h"
 #include "api/dto/error_response.h"
+#include "torrest.h"
 
 namespace torrest { namespace api {
 

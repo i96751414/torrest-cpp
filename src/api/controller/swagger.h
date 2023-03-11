@@ -1,11 +1,11 @@
 #ifndef TORREST_SWAGGER_H
 #define TORREST_SWAGGER_H
 
-#include "oatpp/web/server/api/ApiController.hpp"
+#include "oatpp-swagger/Generator.hpp"
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/macro/component.hpp"
 #include "oatpp/parser/json/mapping/ObjectMapper.hpp"
-#include "oatpp-swagger/Generator.hpp"
+#include "oatpp/web/server/api/ApiController.hpp"
 
 #define SWAGGER_UI_URL "/swagger/ui"
 #define SWAGGER_DOC_URL "/api-docs/oas-3.0.0.json"

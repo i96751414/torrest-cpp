@@ -2,17 +2,17 @@
 #define TORREST_TORRENT_H
 
 #include <atomic>
-#include <mutex>
-#include <memory>
 #include <condition_variable>
+#include <memory>
+#include <mutex>
 
 #include "boost/optional.hpp"
 #include "boost/shared_array.hpp"
-#include "spdlog/spdlog.h"
 #include "libtorrent/torrent_handle.hpp"
+#include "spdlog/spdlog.h"
 
-#include "fwd.h"
 #include "enums.h"
+#include "fwd.h"
 
 namespace torrest { namespace bittorrent {
 
