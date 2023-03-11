@@ -354,9 +354,11 @@ namespace torrest { namespace bittorrent {
     void Service::reconfigure(const settings::Settings &pSettings, bool pReset) {
         mLogger->debug("operation=reconfigure, message='Reconfiguring service', reset={}", pReset);
         std::lock_guard<std::mutex> lock(mServiceMutex);
+
         mLogger->info("operation=reconfigure, message='Applying session settings'");
         mSession->apply_settings(configure(pSettings));
         mSettings->update(pSettings);
+        mRateLimited |= !pSettings.limit_after_buffering;
 
         if (pReset) {
             mLogger->debug("operation=reconfigure, message='Resetting torrents'");
@@ -433,7 +435,6 @@ namespace torrest { namespace bittorrent {
         if (!pSettings.limit_after_buffering || mRateLimited) {
             settingsPack.set_int(libtorrent::settings_pack::download_rate_limit, pSettings.max_download_rate);
             settingsPack.set_int(libtorrent::settings_pack::upload_rate_limit, pSettings.max_upload_rate);
-            mRateLimited = true;
         }
 
         settingsPack.set_int(libtorrent::settings_pack::share_ratio_limit,
@@ -569,8 +570,8 @@ namespace torrest { namespace bittorrent {
 
     void Service::set_buffering_rate_limits(bool pEnable) {
         if (mSettings->get_limit_after_buffering() && mRateLimited != pEnable) {
-            libtorrent::settings_pack settingsPack;
             mLogger->debug("operation=set_buffering_rate_limits, enable={}", pEnable);
+            libtorrent::settings_pack settingsPack;
             settingsPack.set_int(libtorrent::settings_pack::download_rate_limit,
                                  pEnable ? mSettings->get_max_download_rate() : 0);
             settingsPack.set_int(libtorrent::settings_pack::upload_rate_limit,
