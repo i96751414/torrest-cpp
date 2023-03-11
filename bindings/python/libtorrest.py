@@ -48,6 +48,10 @@ class TorrestLib(object):
         self._return_code = None
         self._return_code = self._dll.start(port, settings_path, 0)
 
+    def start_with_env(self):
+        self._return_code = None
+        self._return_code = self._dll.start_with_env()
+
     def stop(self):
         self._dll.stop()
 
@@ -73,18 +77,26 @@ class TorrestLib(object):
             self._return_code = -1
         return self._return_code
 
-    def start_thread(self, port, settings_path, name=None, daemon=None):
-        if self._thread is None:
-            self._return_code = None
-            self._thread = Thread(name=name, target=self.start, args=(port, settings_path))
-            if daemon is not None:
-                self._thread.setDaemon(daemon)
-            self._thread.start()
+    def start_threaded(self, port, settings_path, name=None, daemon=None):
+        self._start_thread(self.start, (port, settings_path), name, daemon)
+
+    def start_with_env_threaded(self, name=None, daemon=None):
+        self._start_thread(self.start_with_env, (), name, daemon)
 
     def join_thread(self, timeout=None):
         if self._thread is not None:
             self._thread.join(timeout=timeout)
             self._thread = None
+
+    def _start_thread(self, target, args, name, daemon):
+        if self._thread is None:
+            self._return_code = None
+            self._thread = Thread(name=name, target=target, args=args)
+            if daemon is not None:
+                self._thread.setDaemon(daemon)
+            self._thread.start()
+        else:
+            raise RuntimeError("thread already started")
 
 
 def main():
