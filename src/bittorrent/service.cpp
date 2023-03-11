@@ -104,9 +104,8 @@ namespace torrest { namespace bittorrent {
               mProgress(0),
               mRateLimited(true) {
 
-        configure(pSettings);
         mSettings = std::make_shared<ServiceSettings>(pSettings);
-        mSession = std::make_shared<libtorrent::session>(mSettingsPack
+        mSession = std::make_shared<libtorrent::session>(configure(pSettings)
 #if TORRENT_ABI_VERSION <= 2
                 , libtorrent::session::add_default_plugins
 #endif
@@ -355,10 +354,9 @@ namespace torrest { namespace bittorrent {
     void Service::reconfigure(const settings::Settings &pSettings, bool pReset) {
         mLogger->debug("operation=reconfigure, message='Reconfiguring service', reset={}", pReset);
         std::lock_guard<std::mutex> lock(mServiceMutex);
-        configure(pSettings);
         mLogger->info("operation=reconfigure, message='Applying session settings'");
+        mSession->apply_settings(configure(pSettings));
         mSettings->update(pSettings);
-        mSession->apply_settings(mSettingsPack);
 
         if (pReset) {
             mLogger->debug("operation=reconfigure, message='Resetting torrents'");
@@ -368,89 +366,90 @@ namespace torrest { namespace bittorrent {
         }
     }
 
-    void Service::configure(const settings::Settings &pSettings) {
+    libtorrent::settings_pack Service::configure(const settings::Settings &pSettings) {
         boost::filesystem::create_directory(pSettings.download_path);
         boost::filesystem::create_directory(pSettings.torrents_path);
 
         mLogger->set_level(pSettings.service_log_level);
         mAlertsLogger->set_level(pSettings.alerts_log_level);
 
+        libtorrent::settings_pack settingsPack;
         auto userAgent = get_user_agent(pSettings.user_agent);
         mLogger->debug("operation=configure, userAgent='{}'", userAgent);
-        mSettingsPack.set_str(libtorrent::settings_pack::user_agent, userAgent);
+        settingsPack.set_str(libtorrent::settings_pack::user_agent, userAgent);
 
         // Default settings
-        mSettingsPack.set_int(libtorrent::settings_pack::request_timeout, 2);
-        mSettingsPack.set_int(libtorrent::settings_pack::peer_connect_timeout, 2);
-        mSettingsPack.set_bool(libtorrent::settings_pack::strict_end_game_mode, true);
-        mSettingsPack.set_bool(libtorrent::settings_pack::announce_to_all_trackers, true);
-        mSettingsPack.set_bool(libtorrent::settings_pack::announce_to_all_tiers, true);
-        mSettingsPack.set_int(libtorrent::settings_pack::connection_speed, 500);
-        mSettingsPack.set_int(libtorrent::settings_pack::choking_algorithm,
-                              libtorrent::settings_pack::fixed_slots_choker);
-        mSettingsPack.set_int(libtorrent::settings_pack::share_ratio_limit, 0);
-        mSettingsPack.set_int(libtorrent::settings_pack::seed_time_ratio_limit, 0);
-        mSettingsPack.set_int(libtorrent::settings_pack::seed_time_limit, 0);
-        mSettingsPack.set_int(libtorrent::settings_pack::peer_tos, tos_min_delay);
-        mSettingsPack.set_int(libtorrent::settings_pack::torrent_connect_boost, 0);
-        mSettingsPack.set_bool(libtorrent::settings_pack::rate_limit_ip_overhead, true);
-        mSettingsPack.set_bool(libtorrent::settings_pack::no_atime_storage, true);
-        mSettingsPack.set_bool(libtorrent::settings_pack::deprecated_announce_double_nat, true);
-        mSettingsPack.set_bool(libtorrent::settings_pack::prioritize_partial_pieces, false);
-        mSettingsPack.set_bool(libtorrent::settings_pack::use_parole_mode, true);
-        mSettingsPack.set_int(libtorrent::settings_pack::seed_choking_algorithm,
-                              libtorrent::settings_pack::fastest_upload);
-        mSettingsPack.set_bool(libtorrent::settings_pack::upnp_ignore_nonrouters, true);
-        mSettingsPack.set_bool(libtorrent::settings_pack::deprecated_lazy_bitfield, true);
-        mSettingsPack.set_int(libtorrent::settings_pack::stop_tracker_timeout, 1);
-        mSettingsPack.set_int(libtorrent::settings_pack::auto_scrape_interval, 1200);
-        mSettingsPack.set_int(libtorrent::settings_pack::auto_scrape_min_interval, 900);
-        mSettingsPack.set_bool(libtorrent::settings_pack::deprecated_ignore_limits_on_local_network, true);
-        mSettingsPack.set_bool(libtorrent::settings_pack::deprecated_rate_limit_utp, true);
-        mSettingsPack.set_int(libtorrent::settings_pack::mixed_mode_algorithm, libtorrent::settings_pack::prefer_tcp);
+        settingsPack.set_int(libtorrent::settings_pack::request_timeout, 2);
+        settingsPack.set_int(libtorrent::settings_pack::peer_connect_timeout, 2);
+        settingsPack.set_bool(libtorrent::settings_pack::strict_end_game_mode, true);
+        settingsPack.set_bool(libtorrent::settings_pack::announce_to_all_trackers, true);
+        settingsPack.set_bool(libtorrent::settings_pack::announce_to_all_tiers, true);
+        settingsPack.set_int(libtorrent::settings_pack::connection_speed, 500);
+        settingsPack.set_int(libtorrent::settings_pack::choking_algorithm,
+                             libtorrent::settings_pack::fixed_slots_choker);
+        settingsPack.set_int(libtorrent::settings_pack::share_ratio_limit, 0);
+        settingsPack.set_int(libtorrent::settings_pack::seed_time_ratio_limit, 0);
+        settingsPack.set_int(libtorrent::settings_pack::seed_time_limit, 0);
+        settingsPack.set_int(libtorrent::settings_pack::peer_tos, tos_min_delay);
+        settingsPack.set_int(libtorrent::settings_pack::torrent_connect_boost, 0);
+        settingsPack.set_bool(libtorrent::settings_pack::rate_limit_ip_overhead, true);
+        settingsPack.set_bool(libtorrent::settings_pack::no_atime_storage, true);
+        settingsPack.set_bool(libtorrent::settings_pack::deprecated_announce_double_nat, true);
+        settingsPack.set_bool(libtorrent::settings_pack::prioritize_partial_pieces, false);
+        settingsPack.set_bool(libtorrent::settings_pack::use_parole_mode, true);
+        settingsPack.set_int(libtorrent::settings_pack::seed_choking_algorithm,
+                             libtorrent::settings_pack::fastest_upload);
+        settingsPack.set_bool(libtorrent::settings_pack::upnp_ignore_nonrouters, true);
+        settingsPack.set_bool(libtorrent::settings_pack::deprecated_lazy_bitfield, true);
+        settingsPack.set_int(libtorrent::settings_pack::stop_tracker_timeout, 1);
+        settingsPack.set_int(libtorrent::settings_pack::auto_scrape_interval, 1200);
+        settingsPack.set_int(libtorrent::settings_pack::auto_scrape_min_interval, 900);
+        settingsPack.set_bool(libtorrent::settings_pack::deprecated_ignore_limits_on_local_network, true);
+        settingsPack.set_bool(libtorrent::settings_pack::deprecated_rate_limit_utp, true);
+        settingsPack.set_int(libtorrent::settings_pack::mixed_mode_algorithm, libtorrent::settings_pack::prefer_tcp);
 
         // For Android external storage / OS-mounted NAS setups
         if (pSettings.tuned_storage) {
-            mSettingsPack.set_int(libtorrent::settings_pack::max_queued_disk_bytes, 10 * 1024 * 1024);
+            settingsPack.set_int(libtorrent::settings_pack::max_queued_disk_bytes, 10 * 1024 * 1024);
 #if TORRENT_ABI_VERSION <= 2
-            mSettingsPack.set_bool(libtorrent::settings_pack::use_read_cache, true);
-            mSettingsPack.set_bool(libtorrent::settings_pack::coalesce_reads, true);
-            mSettingsPack.set_bool(libtorrent::settings_pack::coalesce_writes, true);
-            mSettingsPack.set_int(libtorrent::settings_pack::cache_size, -1);
+            settingsPack.set_bool(libtorrent::settings_pack::use_read_cache, true);
+            settingsPack.set_bool(libtorrent::settings_pack::coalesce_reads, true);
+            settingsPack.set_bool(libtorrent::settings_pack::coalesce_writes, true);
+            settingsPack.set_int(libtorrent::settings_pack::cache_size, -1);
 #endif
         }
 
-        mSettingsPack.set_int(libtorrent::settings_pack::connections_limit,
-                              pSettings.connections_limit > 0 ? pSettings.connections_limit : 200);
+        settingsPack.set_int(libtorrent::settings_pack::connections_limit,
+                             pSettings.connections_limit > 0 ? pSettings.connections_limit : 200);
 #ifdef __arm__
         if (std::thread::hardware_concurrency() == 1) {
             mLogger->debug(
                     "operation=configure, message='Setting max single core connections limit', connectionsLimit={}",
                     MAX_SINGLE_CORE_CONNECTIONS);
-            mSettingsPack.set_int(libtorrent::settings_pack::connections_limit, MAX_SINGLE_CORE_CONNECTIONS);
+            settingsPack.set_int(libtorrent::settings_pack::connections_limit, MAX_SINGLE_CORE_CONNECTIONS);
         }
 #endif
 
         if (!pSettings.limit_after_buffering || mRateLimited) {
-            mSettingsPack.set_int(libtorrent::settings_pack::download_rate_limit, pSettings.max_download_rate);
-            mSettingsPack.set_int(libtorrent::settings_pack::upload_rate_limit, pSettings.max_upload_rate);
+            settingsPack.set_int(libtorrent::settings_pack::download_rate_limit, pSettings.max_download_rate);
+            settingsPack.set_int(libtorrent::settings_pack::upload_rate_limit, pSettings.max_upload_rate);
             mRateLimited = true;
         }
 
-        mSettingsPack.set_int(libtorrent::settings_pack::share_ratio_limit,
-                              pSettings.share_ratio_limit > 0 ? pSettings.share_ratio_limit : 200);
-        mSettingsPack.set_int(libtorrent::settings_pack::seed_time_ratio_limit,
-                              pSettings.seed_time_ratio_limit > 0 ? pSettings.seed_time_ratio_limit : 700);
-        mSettingsPack.set_int(libtorrent::settings_pack::seed_time_limit,
-                              pSettings.seed_time_limit > 0 ? pSettings.seed_time_limit : 24 * 60 * 60);
+        settingsPack.set_int(libtorrent::settings_pack::share_ratio_limit,
+                             pSettings.share_ratio_limit > 0 ? pSettings.share_ratio_limit : 200);
+        settingsPack.set_int(libtorrent::settings_pack::seed_time_ratio_limit,
+                             pSettings.seed_time_ratio_limit > 0 ? pSettings.seed_time_ratio_limit : 700);
+        settingsPack.set_int(libtorrent::settings_pack::seed_time_limit,
+                             pSettings.seed_time_limit > 0 ? pSettings.seed_time_limit : 24 * 60 * 60);
 
-        mSettingsPack.set_int(libtorrent::settings_pack::active_downloads, pSettings.active_downloads_limit);
-        mSettingsPack.set_int(libtorrent::settings_pack::active_seeds, pSettings.active_seeds_limit);
-        mSettingsPack.set_int(libtorrent::settings_pack::active_checking, pSettings.active_checking_limit);
-        mSettingsPack.set_int(libtorrent::settings_pack::active_dht_limit, pSettings.active_dht_limit);
-        mSettingsPack.set_int(libtorrent::settings_pack::active_tracker_limit, pSettings.active_tracker_limit);
-        mSettingsPack.set_int(libtorrent::settings_pack::active_lsd_limit, pSettings.active_lsd_limit);
-        mSettingsPack.set_int(libtorrent::settings_pack::active_limit, pSettings.active_limit);
+        settingsPack.set_int(libtorrent::settings_pack::active_downloads, pSettings.active_downloads_limit);
+        settingsPack.set_int(libtorrent::settings_pack::active_seeds, pSettings.active_seeds_limit);
+        settingsPack.set_int(libtorrent::settings_pack::active_checking, pSettings.active_checking_limit);
+        settingsPack.set_int(libtorrent::settings_pack::active_dht_limit, pSettings.active_dht_limit);
+        settingsPack.set_int(libtorrent::settings_pack::active_tracker_limit, pSettings.active_tracker_limit);
+        settingsPack.set_int(libtorrent::settings_pack::active_lsd_limit, pSettings.active_lsd_limit);
+        settingsPack.set_int(libtorrent::settings_pack::active_limit, pSettings.active_limit);
 
         libtorrent::settings_pack::enc_policy encPolicy;
         libtorrent::settings_pack::enc_level encLevel;
@@ -476,10 +475,10 @@ namespace torrest { namespace bittorrent {
         mLogger->debug(
                 "operation=configure, message='Applying encryption settings', encPolicy={}, encLevel={}, preferRc4={}",
                 encPolicy, encLevel, preferRc4);
-        mSettingsPack.set_int(libtorrent::settings_pack::out_enc_policy, encPolicy);
-        mSettingsPack.set_int(libtorrent::settings_pack::in_enc_policy, encPolicy);
-        mSettingsPack.set_int(libtorrent::settings_pack::allowed_enc_level, encLevel);
-        mSettingsPack.set_bool(libtorrent::settings_pack::prefer_rc4, preferRc4);
+        settingsPack.set_int(libtorrent::settings_pack::out_enc_policy, encPolicy);
+        settingsPack.set_int(libtorrent::settings_pack::in_enc_policy, encPolicy);
+        settingsPack.set_int(libtorrent::settings_pack::allowed_enc_level, encLevel);
+        settingsPack.set_bool(libtorrent::settings_pack::prefer_rc4, preferRc4);
 
         if (pSettings.proxy && pSettings.proxy->type != settings::pt_none) {
             libtorrent::settings_pack::proxy_type_t proxyType;
@@ -502,9 +501,9 @@ namespace torrest { namespace bittorrent {
                     break;
                 case settings::pt_i2psam:
                     proxyType = libtorrent::settings_pack::i2p_proxy;
-                    mSettingsPack.set_int(libtorrent::settings_pack::i2p_port, pSettings.proxy->port);
-                    mSettingsPack.set_str(libtorrent::settings_pack::i2p_hostname, pSettings.proxy->hostname);
-                    mSettingsPack.set_bool(libtorrent::settings_pack::allow_i2p_mixed, true);
+                    settingsPack.set_int(libtorrent::settings_pack::i2p_port, pSettings.proxy->port);
+                    settingsPack.set_str(libtorrent::settings_pack::i2p_hostname, pSettings.proxy->hostname);
+                    settingsPack.set_bool(libtorrent::settings_pack::allow_i2p_mixed, true);
                     break;
                 default:
                     mLogger->warn("operation=configure, message='Unknown proxy type', proxyType={}",
@@ -513,21 +512,21 @@ namespace torrest { namespace bittorrent {
             }
 
             mLogger->debug("operation=configure, message='Applying proxy settings', proxyType={}", proxyType);
-            mSettingsPack.set_int(libtorrent::settings_pack::proxy_type, proxyType);
-            mSettingsPack.set_int(libtorrent::settings_pack::proxy_port, pSettings.proxy->port);
-            mSettingsPack.set_str(libtorrent::settings_pack::proxy_hostname, pSettings.proxy->hostname);
-            mSettingsPack.set_str(libtorrent::settings_pack::proxy_username, pSettings.proxy->username);
-            mSettingsPack.set_str(libtorrent::settings_pack::proxy_password, pSettings.proxy->password);
-            mSettingsPack.set_bool(libtorrent::settings_pack::proxy_tracker_connections, true);
-            mSettingsPack.set_bool(libtorrent::settings_pack::proxy_peer_connections, true);
-            mSettingsPack.set_bool(libtorrent::settings_pack::proxy_hostnames, true);
-            mSettingsPack.set_bool(libtorrent::settings_pack::deprecated_force_proxy, true);
+            settingsPack.set_int(libtorrent::settings_pack::proxy_type, proxyType);
+            settingsPack.set_int(libtorrent::settings_pack::proxy_port, pSettings.proxy->port);
+            settingsPack.set_str(libtorrent::settings_pack::proxy_hostname, pSettings.proxy->hostname);
+            settingsPack.set_str(libtorrent::settings_pack::proxy_username, pSettings.proxy->username);
+            settingsPack.set_str(libtorrent::settings_pack::proxy_password, pSettings.proxy->password);
+            settingsPack.set_bool(libtorrent::settings_pack::proxy_tracker_connections, true);
+            settingsPack.set_bool(libtorrent::settings_pack::proxy_peer_connections, true);
+            settingsPack.set_bool(libtorrent::settings_pack::proxy_hostnames, true);
+            settingsPack.set_bool(libtorrent::settings_pack::deprecated_force_proxy, true);
         }
 
-        mSettingsPack.set_int(libtorrent::settings_pack::alert_mask,
-                              libtorrent::alert::status_notification
-                              | libtorrent::alert::storage_notification
-                              | libtorrent::alert::error_notification);
+        settingsPack.set_int(libtorrent::settings_pack::alert_mask,
+                             libtorrent::alert::status_notification
+                             | libtorrent::alert::storage_notification
+                             | libtorrent::alert::error_notification);
 
         std::vector<std::string> listenInterfaces;
         auto listenPort = ":" + std::to_string(pSettings.listen_port);
@@ -552,28 +551,31 @@ namespace torrest { namespace bittorrent {
         auto listenInterfacesStr = utils::join_string_vector(listenInterfaces, ",");
         mLogger->debug("operation=configure, message='Setting listen interfaces', listenInterfaces='{}'",
                        listenInterfacesStr);
-        mSettingsPack.set_str(libtorrent::settings_pack::listen_interfaces, listenInterfacesStr);
+        settingsPack.set_str(libtorrent::settings_pack::listen_interfaces, listenInterfacesStr);
 
         auto outgoingInterfaces = std::regex_replace(pSettings.outgoing_interfaces, mWhiteSpaceRegex, "");
         if (!outgoingInterfaces.empty()) {
-            mSettingsPack.set_str(libtorrent::settings_pack::outgoing_interfaces, outgoingInterfaces);
+            settingsPack.set_str(libtorrent::settings_pack::outgoing_interfaces, outgoingInterfaces);
         }
 
-        mSettingsPack.set_str(libtorrent::settings_pack::dht_bootstrap_nodes, DEFAULT_DHT_BOOTSTRAP_NODES);
-        mSettingsPack.set_bool(libtorrent::settings_pack::enable_dht, !pSettings.disable_dht);
-        mSettingsPack.set_bool(libtorrent::settings_pack::enable_upnp, !pSettings.disable_upnp);
-        mSettingsPack.set_bool(libtorrent::settings_pack::enable_natpmp, !pSettings.disable_natpmp);
-        mSettingsPack.set_bool(libtorrent::settings_pack::enable_lsd, !pSettings.disable_lsd);
+        settingsPack.set_str(libtorrent::settings_pack::dht_bootstrap_nodes, DEFAULT_DHT_BOOTSTRAP_NODES);
+        settingsPack.set_bool(libtorrent::settings_pack::enable_dht, !pSettings.disable_dht);
+        settingsPack.set_bool(libtorrent::settings_pack::enable_upnp, !pSettings.disable_upnp);
+        settingsPack.set_bool(libtorrent::settings_pack::enable_natpmp, !pSettings.disable_natpmp);
+        settingsPack.set_bool(libtorrent::settings_pack::enable_lsd, !pSettings.disable_lsd);
+
+        return settingsPack;
     }
 
     void Service::set_buffering_rate_limits(bool pEnable) {
         if (mSettings->get_limit_after_buffering() && mRateLimited != pEnable) {
+            libtorrent::settings_pack settingsPack;
             mLogger->debug("operation=set_buffering_rate_limits, enable={}", pEnable);
-            mSettingsPack.set_int(libtorrent::settings_pack::download_rate_limit,
-                                  pEnable ? mSettings->get_max_download_rate() : 0);
-            mSettingsPack.set_int(libtorrent::settings_pack::upload_rate_limit,
-                                  pEnable ? mSettings->get_max_upload_rate() : 0);
-            mSession->apply_settings(mSettingsPack);
+            settingsPack.set_int(libtorrent::settings_pack::download_rate_limit,
+                                 pEnable ? mSettings->get_max_download_rate() : 0);
+            settingsPack.set_int(libtorrent::settings_pack::upload_rate_limit,
+                                 pEnable ? mSettings->get_max_upload_rate() : 0);
+            mSession->apply_settings(settingsPack);
             mRateLimited = pEnable;
         }
     }

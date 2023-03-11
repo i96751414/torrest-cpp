@@ -76,7 +76,7 @@ namespace torrest { namespace bittorrent {
 
         void handle_state_changed(const libtorrent::state_changed_alert *pAlert) const;
 
-        void configure(const settings::Settings &pSettings);
+        libtorrent::settings_pack configure(const settings::Settings &pSettings);
 
         void set_buffering_rate_limits(bool pEnable);
 
@@ -125,7 +125,6 @@ namespace torrest { namespace bittorrent {
         const std::regex mIpRegex = std::regex("\\.\\d+");
         std::shared_ptr<spdlog::logger> mLogger;
         std::shared_ptr<spdlog::logger> mAlertsLogger;
-        libtorrent::settings_pack mSettingsPack;
         std::shared_ptr<libtorrent::session> mSession;
         std::vector<std::shared_ptr<Torrent>> mTorrents;
         std::shared_ptr<ServiceSettings> mSettings;

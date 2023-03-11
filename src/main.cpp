@@ -138,7 +138,7 @@ struct String {
     size_t size;
 
     std::string to_string() const {
-        return std::move(std::string(ptr, size));
+        return std::string(ptr, size);
     }
 };
 
