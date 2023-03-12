@@ -39,6 +39,8 @@ class TorrestLib(object):
         # Define start function
         self._dll.start.argtypes = [c_uint16, String, c_int]
         self._dll.start.restype = c_int
+        # Define start_with_env function
+        self._dll.start_with_env.restype = c_int
         # Define add_logging_file_sink function
         self._dll.add_logging_file_sink.argtypes = [String, c_bool]
         # Define add_logging_callback_sink callback
