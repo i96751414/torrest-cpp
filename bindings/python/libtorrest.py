@@ -29,6 +29,7 @@ class String(Structure):
 class TorrestLib(object):
     LOG_LEVELS = [logging.DEBUG, logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL]
     LOG_CALLBACK = staticmethod(logging.log)
+    DEFAULT_LOG_LEVEL = LOG_LEVELS.index(logging.INFO)
 
     def __init__(self, path):
         self._return_code = None
@@ -46,9 +47,9 @@ class TorrestLib(object):
         # Define add_logging_callback_sink callback
         self._c_log_callback = CFUNCTYPE(None, c_int, String)(self._log_callback)
 
-    def start(self, port, settings_path):
+    def start(self, port, settings_path, global_log_level=DEFAULT_LOG_LEVEL):
         self._return_code = None
-        self._return_code = self._dll.start(port, settings_path, 0)
+        self._return_code = self._dll.start(port, settings_path, global_log_level)
 
     def start_with_env(self):
         self._return_code = None
@@ -79,8 +80,8 @@ class TorrestLib(object):
             self._return_code = -1
         return self._return_code
 
-    def start_threaded(self, port, settings_path, name=None, daemon=None):
-        self._start_thread(self.start, (port, settings_path), name, daemon)
+    def start_threaded(self, port, settings_path, global_log_level=DEFAULT_LOG_LEVEL, name=None, daemon=None):
+        self._start_thread(self.start, (port, settings_path, global_log_level), name, daemon)
 
     def start_with_env_threaded(self, name=None, daemon=None):
         self._start_thread(self.start_with_env, (), name, daemon)
@@ -101,13 +102,25 @@ class TorrestLib(object):
             raise RuntimeError("thread already started")
 
 
+def log_level(s, levels=("trace", "debug", "info", "warn", "err", "critical")):
+    if s.isdigit():
+        value = int(s)
+        if not 0 <= value < len(levels):
+            raise argparse.ArgumentTypeError("log level must be an integer between 0 and 5 inclusive")
+    else:
+        value = levels.index(s.lower())
+
+    return value
+
+
 def main():
     parser = argparse.ArgumentParser(description="libtorrest python runner")
     parser.add_argument("-p", "--port", type=int, default=8080, help="The HTTP port")
     parser.add_argument("-s", "--settings-path", default="settings.json", help="The settings path")
     parser.add_argument("--stdout", action="store_true", help="Add stdout logging")
     parser.add_argument("--log-path", type=str, help="The log path")
-    parser.add_argument("--global-log-level", type=int, default=0, help="The global log level")
+    parser.add_argument("--global-log-level", type=log_level, default=TorrestLib.DEFAULT_LOG_LEVEL, metavar="[0-5]",
+                        help="The global log level")
     parser.add_argument("library_path", help="The libtorrest (.dll, .so, .dylib) path")
 
     args = parser.parse_args()
@@ -117,7 +130,7 @@ def main():
         lib.add_logging_stdout_sink()
     if args.log_path:
         lib.add_logging_file_sink(args.log_path, truncate=True)
-    lib.start(args.port, args.settings_path)
+    lib.start(args.port, args.settings_path, args.global_log_level)
 
 
 if __name__ == "__main__":
