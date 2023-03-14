@@ -44,6 +44,7 @@ set(torrest_sources
         src/api/error_handler.cpp
         src/api/logger.cpp
         src/api/logger_interceptor.cpp
+        src/api/connection_provider.cpp
         src/torrest.cpp
         src/main.cpp)
 

@@ -2,10 +2,11 @@
 #define TORREST_APP_COMPONENT_H
 
 #include "oatpp/core/macro/component.hpp"
-#include "oatpp/network/tcp/server/ConnectionProvider.hpp"
 #include "oatpp/parser/json/mapping/ObjectMapper.hpp"
 #include "oatpp/web/server/HttpConnectionHandler.hpp"
 #include "oatpp/web/server/interceptor/AllowCorsGlobal.hpp"
+
+#include "connection_provider.h"
 
 #if TORREST_ENABLE_SWAGGER
 #ifdef OATPP_SWAGGER_RES_PATH
@@ -36,7 +37,7 @@ namespace torrest { namespace api {
 
         // Create ConnectionProvider component which listens on the port
         OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, serverConnectionProvider)
-        (oatpp::network::tcp::server::ConnectionProvider::createShared(
+        (ConnectionProvider::createShared(
                 {"0.0.0.0", mPort, oatpp::network::Address::IP_4},
 #if TORREST_EXTENDED_CONNECTIONS
                 true
