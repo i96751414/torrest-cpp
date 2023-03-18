@@ -23,7 +23,7 @@ public:
         info->addResponse<oatpp::Any>(Status::CODE_200, "application/json");
     }
 
-    ENDPOINT("GET", "/settings/get", getSettings) {
+    ENDPOINT("GET", "/settings", getSettings) {
         auto response = createResponse(Status::CODE_200, Torrest::get_instance()->dump_settings().c_str());
         response->putHeader(Header::CONTENT_TYPE, "application/json");
         return response;
@@ -40,7 +40,7 @@ public:
         info->addResponse<Object<ErrorResponse>>(Status::CODE_500, "application/json");
     }
 
-    ENDPOINT("POST", "/settings/set", setSettings, QUERY(Boolean, reset, "reset", "false"), BODY_STRING(String, body)) {
+    ENDPOINT("PUT", "/settings", setSettings, QUERY(Boolean, reset, "reset", false), BODY_STRING(String, body)) {
         Torrest::get_instance()->update_settings(body, reset);
 
         auto response = createResponse(Status::CODE_200, body);

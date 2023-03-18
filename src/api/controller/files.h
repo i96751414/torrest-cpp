@@ -34,10 +34,10 @@ public:
         info->addResponse<List<Object<ErrorResponse>>>(Status::CODE_404, "application/json");
     }
 
-    ENDPOINT("GET", "/torrents/{infoHash}/files/{file}/download", downloadFile,
+    ENDPOINT("PUT", "/torrents/{infoHash}/files/{file}/download", downloadFile,
              PATH(String, infoHash, "infoHash"),
              PATH(Int32, file, "file"),
-             QUERY(Boolean, buffer, "buffer", "false")) {
+             QUERY(Boolean, buffer, "buffer", false)) {
         auto f = GET_FILE(infoHash, file);
         f->set_priority(libtorrent::default_priority);
         if (buffer) {
@@ -56,7 +56,7 @@ public:
         info->addResponse<List<Object<ErrorResponse>>>(Status::CODE_404, "application/json");
     }
 
-    ENDPOINT("GET", "/torrents/{infoHash}/files/{file}/stop", stopFile,
+    ENDPOINT("PUT", "/torrents/{infoHash}/files/{file}/stop", stopFile,
              PATH(String, infoHash, "infoHash"),
              PATH(Int32, file, "file")) {
         GET_FILE(infoHash, file)->set_priority(libtorrent::dont_download);

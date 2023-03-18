@@ -29,10 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update libtorrent to v2.0.8.
 - Update nlohmann json to v3.11.0.
 - Improve piece wait timeout so it is always respected.
+- Updated all API verbs for correctness.
 
 ### Fixed
 
 - Correctly close HTTP connections on server shutdown.
+- Fix query parameters default values.
 
 ## [v0.0.2] - 05/06/2022
 

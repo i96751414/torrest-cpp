@@ -28,7 +28,7 @@ public:
         info->addResponse<List<Object<TorrentInfoStatus>>>(Status::CODE_200, "application/json");
     }
 
-    ENDPOINT("GET", "/torrents", listTorrents, QUERY(Boolean, status, "status", "false")) {
+    ENDPOINT("GET", "/torrents", listTorrents, QUERY(Boolean, status, "status", false)) {
         auto torrents = Torrest::get_instance()->get_service()->get_torrents();
         auto responseList = oatpp::List<Object<TorrentInfoStatus>>::createShared();
         for (auto &torrent: torrents) {
@@ -51,9 +51,9 @@ public:
         info->addResponse<Object<ErrorResponse>>(Status::CODE_404, "application/json");
     }
 
-    ENDPOINT("GET", "/torrents/{infoHash}/remove", removeTorrent,
+    ENDPOINT("DELETE", "/torrents/{infoHash}", removeTorrent,
              PATH(String, infoHash, "infoHash"),
-             QUERY(Boolean, deleteFiles, "delete", "true")) {
+             QUERY(Boolean, deleteFiles, "delete", true)) {
         Torrest::get_instance()->get_service()->remove_torrent(infoHash, deleteFiles);
         return createDtoResponse(Status::CODE_200, MessageResponse::create("Torrent removed"));
     }
@@ -66,7 +66,7 @@ public:
         info->addResponse<Object<ErrorResponse>>(Status::CODE_404, "application/json");
     }
 
-    ENDPOINT("GET", "/torrents/{infoHash}/resume", resumeTorrent, PATH(String, infoHash, "infoHash")) {
+    ENDPOINT("PUT", "/torrents/{infoHash}/resume", resumeTorrent, PATH(String, infoHash, "infoHash")) {
         GET_TORRENT(infoHash)->resume();
         return createDtoResponse(Status::CODE_200, MessageResponse::create("Torrent resumed"));
     }
@@ -79,7 +79,7 @@ public:
         info->addResponse<Object<ErrorResponse>>(Status::CODE_404, "application/json");
     }
 
-    ENDPOINT("GET", "/torrents/{infoHash}/pause", pauseTorrent, PATH(String, infoHash, "infoHash")) {
+    ENDPOINT("PUT", "/torrents/{infoHash}/pause", pauseTorrent, PATH(String, infoHash, "infoHash")) {
         GET_TORRENT(infoHash)->pause();
         return createDtoResponse(Status::CODE_200, MessageResponse::create("Torrent paused"));
     }
@@ -121,7 +121,7 @@ public:
 
     ENDPOINT("GET", "/torrents/{infoHash}/files", torrentFiles,
              PATH(String, infoHash, "infoHash"),
-             QUERY(Boolean, status, "status", "false")) {
+             QUERY(Boolean, status, "status", false)) {
         auto files = GET_TORRENT(infoHash)->get_files();
         auto responseList = oatpp::List<Object<FileInfoStatus>>::createShared();
         for (auto &file : files) {
@@ -143,7 +143,7 @@ public:
         info->addResponse<Object<ErrorResponse>>(Status::CODE_500, "application/json");
     }
 
-    ENDPOINT("GET", "/torrents/{infoHash}/download", torrentDownload,
+    ENDPOINT("PUT", "/torrents/{infoHash}/download", torrentDownload,
              PATH(String, infoHash, "infoHash")) {
         GET_TORRENT(infoHash)->set_priority(libtorrent::default_priority);
         return createDtoResponse(Status::CODE_200, MessageResponse::create("Torrent downloading"));
@@ -158,7 +158,7 @@ public:
         info->addResponse<Object<ErrorResponse>>(Status::CODE_500, "application/json");
     }
 
-    ENDPOINT("GET", "/torrents/{infoHash}/stop", torrentStopDownload,
+    ENDPOINT("PUT", "/torrents/{infoHash}/stop", torrentStopDownload,
              PATH(String, infoHash, "infoHash")) {
         GET_TORRENT(infoHash)->set_priority(libtorrent::dont_download);
         return createDtoResponse(Status::CODE_200, MessageResponse::create("Stopped torrent download"));

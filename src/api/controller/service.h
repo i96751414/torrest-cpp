@@ -36,7 +36,7 @@ public:
         info->addResponse<Object<MessageResponse>>(Status::CODE_200, "application/json");
     }
 
-    ENDPOINT("GET", "/shutdown", shutdown) {
+    ENDPOINT("PUT", "/shutdown", shutdown) {
         Torrest::get_instance()->shutdown();
         return createDtoResponse(Status::CODE_200, MessageResponse::create("Shutting down"));
     }
@@ -59,7 +59,7 @@ public:
         info->addResponse<Object<MessageResponse>>(Status::CODE_200, "application/json");
     }
 
-    ENDPOINT("GET", "/pause", pause) {
+    ENDPOINT("PUT", "/pause", pause) {
         GET_SERVICE()->pause();
         return createDtoResponse(Status::CODE_200, MessageResponse::create("Service paused"));
     }
@@ -70,7 +70,7 @@ public:
         info->addResponse<Object<MessageResponse>>(Status::CODE_200, "application/json");
     }
 
-    ENDPOINT("GET", "/resume", resume) {
+    ENDPOINT("PUT", "/resume", resume) {
         GET_SERVICE()->resume();
         return createDtoResponse(Status::CODE_200, MessageResponse::create("Service resumed"));
     }
@@ -89,10 +89,10 @@ public:
         info->addResponse<Object<ErrorResponse>>(Status::CODE_500, "application/json");
     }
 
-    ENDPOINT("GET", "/add/magnet", addMagnet,
+    ENDPOINT("POST", "/add/magnet", addMagnet,
              QUERY(String, uri, "uri"),
-             QUERY(Boolean, download, "download", "false"),
-             QUERY(Boolean, ignoreDuplicate, "ignore_duplicate", "false")) {
+             QUERY(Boolean, download, "download", false),
+             QUERY(Boolean, ignoreDuplicate, "ignore_duplicate", false)) {
 
         auto magnet = utils::unescape_string(uri);
         OATPP_ASSERT_HTTP(magnet.compare(0, 7, "magnet:") == 0, Status::CODE_400, "Invalid magnet provided")
@@ -116,8 +116,8 @@ public:
 
     ENDPOINT("POST", "/add/torrent", addTorrent,
              REQUEST(std::shared_ptr<IncomingRequest>, request),
-             QUERY(Boolean, download, "download", "false"),
-             QUERY(Boolean, ignoreDuplicate, "ignore_duplicate", "false")) {
+             QUERY(Boolean, download, "download", false),
+             QUERY(Boolean, ignoreDuplicate, "ignore_duplicate", false)) {
 
         auto multipart = std::make_shared<oatpp::web::mime::multipart::PartList>(request->getHeaders());
         auto memoryReader = oatpp::web::mime::multipart::createInMemoryPartReader(20 * 1024 * 1024);
