@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve piece wait timeout so it is always respected.
 - Updated all API verbs for correctness.
 - Only set max single core connections if connections_limit is not explicitly set (arm devices only).
+- Improved proxy settings validation.
 
 ### Fixed
 

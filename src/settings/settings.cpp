@@ -40,7 +40,18 @@ namespace torrest { namespace settings {
 
     void ProxySettings::validate() const {
         VALIDATE(type, GTE(0), LT(pt_num_values));
-        VALIDATE(port, GTE(0), LTE(65535));
+
+        if (type != pt_none) {
+            VALIDATE(port, GTE(0), LTE(65535));
+            VALIDATE(hostname, NOT_EMPTY());
+
+            if (type == pt_socks4) {
+                VALIDATE(username, NOT_EMPTY());
+            } else if (type == pt_socks5_password || type == pt_http_password) {
+                VALIDATE(username, NOT_EMPTY());
+                VALIDATE(password, NOT_EMPTY());
+            }
+        }
     }
 
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
