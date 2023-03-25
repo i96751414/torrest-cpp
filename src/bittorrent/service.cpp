@@ -20,6 +20,7 @@
 #define EXT_FASTRESUME ".fastresume"
 #define MAX_FILES_PER_TORRENT 1000
 #define MAX_SINGLE_CORE_CONNECTIONS 50
+#define DEFAULT_CONNECTIONS 200
 #define DEFAULT_DHT_BOOTSTRAP_NODES "router.utorrent.com:6881" \
                                     ",router.bittorrent.com:6881" \
                                     ",dht.transmissionbt.com:6881" \
@@ -421,16 +422,20 @@ namespace torrest { namespace bittorrent {
 #endif
         }
 
-        settingsPack.set_int(libtorrent::settings_pack::connections_limit,
-                             pSettings.connections_limit > 0 ? pSettings.connections_limit : 200);
+        if (pSettings.connections_limit > 0) {
+            settingsPack.set_int(libtorrent::settings_pack::connections_limit, pSettings.connections_limit);
+        }
 #ifdef __arm__
-        if (std::thread::hardware_concurrency() == 1) {
+        else if (std::thread::hardware_concurrency() == 1) {
             mLogger->debug(
                     "operation=configure, message='Setting max single core connections limit', connectionsLimit={}",
                     MAX_SINGLE_CORE_CONNECTIONS);
             settingsPack.set_int(libtorrent::settings_pack::connections_limit, MAX_SINGLE_CORE_CONNECTIONS);
         }
 #endif
+        else {
+            settingsPack.set_int(libtorrent::settings_pack::connections_limit, DEFAULT_CONNECTIONS);
+        }
 
         if (!pSettings.limit_after_buffering || mRateLimited) {
             settingsPack.set_int(libtorrent::settings_pack::download_rate_limit, pSettings.max_download_rate);
