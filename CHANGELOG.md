@@ -20,9 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - void add_logging_stdout_sink()
     - void add_logging_file_sink(String file_path, bool truncate)
     - void add_logging_callback_sink(log_callback_fn callback)
-- Python bindings to the shared library.
+- C and Python bindings to the shared library.
 - Environment variables support.
-- Added new options to command line invocation: log pattern and log path.
+- New options to command line invocation: log pattern and log path.
 
 ### Changed
 
