@@ -71,6 +71,7 @@ struct Options {
 void start(const Options &options) {
     spdlog::set_pattern(options.log_pattern);
     spdlog::set_level(options.global_log_level);
+    spdlog::set_automatic_registration(false);
     auto logger = torrest::utils::create_logger("main");
 
     logger->debug("operation=start, message='Initializing Torrest application', version=" TORREST_VERSION);
