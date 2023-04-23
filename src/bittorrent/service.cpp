@@ -1,6 +1,7 @@
 #include "service.h"
 
 #include <thread>
+#include <fstream>
 
 #include "boost/filesystem.hpp"
 #include "libtorrent/alert_types.hpp"
