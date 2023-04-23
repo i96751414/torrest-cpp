@@ -532,6 +532,7 @@ namespace torrest { namespace bittorrent {
         settingsPack.set_int(libtorrent::settings_pack::alert_mask,
                              libtorrent::alert::status_notification
                              | libtorrent::alert::storage_notification
+                             | libtorrent::alert::performance_warning
                              | libtorrent::alert::error_notification);
 
         std::vector<std::string> listenInterfaces;
