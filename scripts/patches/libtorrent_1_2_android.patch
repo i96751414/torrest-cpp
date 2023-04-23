@@ -1,0 +1,60 @@
+diff --git a/include/libtorrent/config.hpp b/include/libtorrent/config.hpp
+index 5dcec2c41..84e2b8455 100644
+--- a/include/libtorrent/config.hpp
++++ b/include/libtorrent/config.hpp
+@@ -202,6 +202,18 @@ POSSIBILITY OF SUCH DAMAGE.
+ #define TORRENT_ANDROID
+ #define TORRENT_HAS_FALLOCATE 0
+ #define TORRENT_USE_ICONV 0
++
++// Starting Android 11 (API >= 30), the enum_routes using NETLINK
++// is not possible anymore. For other functions, it's not clear
++// that IFADDRS is working as expected for API >= 30, but at least
++// it is supported.
++// See https://developer.android.com/training/articles/user-data-ids#mac-11-plus
++#if __ANDROID_API__ >= 24
++#undef TORRENT_USE_NETLINK
++#undef TORRENT_USE_IFADDRS
++#define TORRENT_USE_NETLINK 0
++#define TORRENT_USE_IFADDRS 1
++#endif // API >= 24
+ #else // ANDROID
+ 
+ // posix_fallocate() is not available in glibc under these condition
+diff --git a/src/enum_net.cpp b/src/enum_net.cpp
+index 7bd474b82..377bcaac6 100644
+--- a/src/enum_net.cpp
++++ b/src/enum_net.cpp
+@@ -1408,6 +1408,8 @@ int _System __libsocket_sysctl(int* mib, u_int namelen, void *oldp, size_t *oldl
+ 			return std::vector<ip_route>();
+ 		}
+ 
++#elif defined TORRENT_ANDROID && __ANDROID_API__ >= 24
++		ec = boost::asio::error::operation_not_supported;
+ #else
+ #error "don't know how to enumerate network routes on this platform"
+ #endif
+diff --git a/src/session_impl.cpp b/src/session_impl.cpp
+index ecdb5fcf6..e43b72916 100644
+--- a/src/session_impl.cpp
++++ b/src/session_impl.cpp
+@@ -1965,7 +1965,19 @@ namespace {
+ #endif
+ 			}
+ 
++#if defined TORRENT_ANDROID && __ANDROID_API__ >= 24
++			// For Android API >= 24, enum_routes with the current NETLINK based
++			// implementation is unsupported (maybe in the future the operation
++			// will be restore using another implementation). If routes is empty,
++			// allow using unspecified address is a best effort approach that
++			// seems to work. The issue with this approach is with the DHTs,
++			// because for IPv6 this is not following BEP 32 and BEP 45. See:
++			// https://www.bittorrent.org/beps/bep_0032.html
++			// https://www.bittorrent.org/beps/bep_0045.html
++			if (!routes.empty()) expand_unspecified_address(ifs, routes, eps);
++#else
+ 			expand_unspecified_address(ifs, routes, eps);
++#endif
+ 			expand_devices(ifs, eps);
+ 		}
+ 

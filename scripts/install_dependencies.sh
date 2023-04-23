@@ -38,7 +38,9 @@ Additional environment variables can also be passed, such as:
 
 optional arguments:
 $(printAllowedOptions)
-  --fix-mingw-headers   Fix mingw 'WinSock2' and 'WS2tcpip' headers name before building.
+  --fix-mingw-headers   Fix mingw 'WinSock2' and 'WS2tcpip' headers name before building
+  --default-to-win7     Set libtorrent build to require windows 7 - applicable to windows builds only
+  --apply-android-patch Apply Android patch for libtorrent 1.2 versions
   -s, --static          Do a static build
   -r, --static-runtime  Build with static runtime
   -e, --env             Path of file containing versions environment variables (default: ${scripts_path}/versions.env)
@@ -90,6 +92,8 @@ all=true
 static=false
 static_runtime=false
 fix_mingw_headers=false
+default_to_win7=false
+apply_android_patch=false
 verbose=false
 
 while [ $# -gt 0 ]; do
@@ -102,6 +106,8 @@ while [ $# -gt 0 ]; do
   -e | --env) validateFile "$2" "$1" && shift && env_path="$1" ;;
   -j | --jobs) validateNumber "$2" "$1" && shift && jobs="$1" ;;
   --fix-mingw-headers) fix_mingw_headers=true ;;
+  --default-to-win7) default_to_win7=true ;;
+  --apply-android-patch) apply_android_patch=true ;;
   --*) [[ "${1:2}" =~ ^(${allowed_opts})$ ]] || invalidOpt "$1" && declare "${1//-/}"=true && all=false ;;
   -*) invalidOpt "$1" ;;
   *) break ;;
@@ -250,10 +256,16 @@ fi
 if requires "libtorrent"; then
   echo "- Downloading libtorrent ${LIBTORRENT_VERSION}"
   download "https://github.com/arvidn/libtorrent/releases/download/${LIBTORRENT_VERSION}/libtorrent-rasterbar-${LIBTORRENT_VERSION#v}.tar.gz"
-  # Fix for Windows - https://github.com/arvidn/libtorrent/issues/7190
-  sed -i "s|\(-D_WIN32_WINNT\)=[[:digit:]x]\+|\1=0x0601|g" "${tmp_dir}/CMakeLists.txt"
+  if [ "${default_to_win7}" == true ]; then
+    # Fix for Windows - https://github.com/arvidn/libtorrent/issues/7190
+    sed -i "s|\(-D_WIN32_WINNT\)=[[:digit:]x]\+|\1=0x0601|g" "${tmp_dir}/CMakeLists.txt"
+  fi
   # Fix for MingGW - https://github.com/godotengine/godot/issues/59409
   # find "${tmp_dir}/src" -name "*.cpp" -type f -exec sed -i "s|\(#include <iphlpapi.h>\)|#include <wincrypt.h>\n\1|g" {} +
+  if [ "${apply_android_patch}" == true ] && [[ "${LIBTORRENT_VERSION}" == v1.2.* ]]; then
+    echo "- Applying libtorrent android patch"
+    patch -p1 --quiet <"${scripts_path}/patches/libtorrent_1_2_android.patch"
+  fi
   echo "- Building libtorrent ${LIBTORRENT_VERSION}"
   parseArgsToArray "${LIBTORRENT_OPTS}"
   opts=("${ARGS[@]}" -Ddeprecated-functions=OFF)

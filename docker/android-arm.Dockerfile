@@ -20,5 +20,6 @@ ENV LIBTORRENT_OPTS "${CMAKE_OPTS}"
 # ENV CMAKE_TOOLCHAIN_FILE is already set on the base image
 
 COPY install_dependencies.sh versions.env /tmp/
-RUN /tmp/install_dependencies.sh --static \
-    && rm /tmp/*
+COPY patches /tmp/patches
+RUN /tmp/install_dependencies.sh --static --apply-android-patch \
+    && rm -rf /tmp/*
