@@ -2,7 +2,7 @@
 # To build, run the following command from the project root directory:
 # docker build -t i96751414/torrest-cpp-dev:latest -f docker/dev.Dockerfile scripts/
 
-FROM debian:stretch-slim
+FROM debian:buster-slim
 
 ARG CMAKE_VERSION=3.20.3
 
