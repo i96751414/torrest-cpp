@@ -13,8 +13,8 @@ ENV SPDLOG_OPTS "${CMAKE_OPTS}"
 ENV OATPP_OPTS "-DOATPP_LINK_ATOMIC=OFF ${CMAKE_OPTS}"
 ENV OATPP_SWAGGER_OPTS "${CMAKE_OPTS}"
 ENV BOOST_CONFIG "using clang : : ${CROSS_TRIPLE}-clang++ ;"
-ENV BOOST_OPTS target-os=linux cxxflags=-fPIC cflags=-fPIC
-ENV OPENSSL_OPTS linux-armv4
+ENV BOOST_OPTS target-os=android cxxflags=-fPIC cflags=-fPIC
+ENV OPENSSL_OPTS android-arm
 ENV OPENSSL_CROSS_COMPILE "${CROSS_TRIPLE}-"
 ENV LIBTORRENT_OPTS "${CMAKE_OPTS}"
 # ENV CMAKE_TOOLCHAIN_FILE is already set on the base image
