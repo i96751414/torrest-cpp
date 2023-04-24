@@ -13,5 +13,5 @@ ENV OPENSSL_CROSS_COMPILE "${CROSS_TRIPLE}-"
 # ENV CMAKE_TOOLCHAIN_FILE is already set on the base image
 
 COPY install_dependencies.sh versions.env /tmp/
-RUN /tmp/install_dependencies.sh --static --fix-mingw-headers \
+RUN /tmp/install_dependencies.sh --static --fix-mingw-headers --default-to-win7 \
     && rm /tmp/*
