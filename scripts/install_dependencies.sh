@@ -87,6 +87,10 @@ function parseArgsToArray() {
   done < <(xargs -r printf '%s\0' <<<"${1}")
 }
 
+function versionGte() {
+  printf "%s\n%s" "${2}" "${1}" | sort -C -V
+}
+
 # Parse options
 all=true
 static=false
@@ -256,13 +260,13 @@ fi
 if requires "libtorrent"; then
   echo "- Downloading libtorrent ${LIBTORRENT_VERSION}"
   download "https://github.com/arvidn/libtorrent/releases/download/${LIBTORRENT_VERSION}/libtorrent-rasterbar-${LIBTORRENT_VERSION#v}.tar.gz"
-  if [ "${default_to_win7}" == true ]; then
+  if [ "${default_to_win7}" == true ] && versionGte "${LIBTORRENT_VERSION}" v2; then
     # Fix for Windows - https://github.com/arvidn/libtorrent/issues/7190
     sed -i "s|\(-D_WIN32_WINNT\)=[[:digit:]x]\+|\1=0x0601|g" "${tmp_dir}/CMakeLists.txt"
   fi
   # Fix for MingGW - https://github.com/godotengine/godot/issues/59409
   # find "${tmp_dir}/src" -name "*.cpp" -type f -exec sed -i "s|\(#include <iphlpapi.h>\)|#include <wincrypt.h>\n\1|g" {} +
-  if [ "${apply_android_patch}" == true ] && [[ "${LIBTORRENT_VERSION}" == v1.2.* ]]; then
+  if [ "${apply_android_patch}" == true ] && versionGte "${LIBTORRENT_VERSION}" v1.2 && ! versionGte "${LIBTORRENT_VERSION}" v2; then
     echo "- Applying libtorrent android patch"
     patch -p1 --quiet <"${scripts_path}/patches/libtorrent_1_2_android.patch"
   fi
