@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Allow setting a custom user-agent
+- Downgrade to last libtorrent v1.2 (1.2.18)
 
 ## [v0.0.3] - 08/04/2023
 
