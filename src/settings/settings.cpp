@@ -3,11 +3,9 @@
 #include <fstream>
 #include <iomanip>
 
-#include "libtorrent/version.hpp"
 #include "nlohmann/json.hpp"
 
 #include "utils/validation.h"
-#include "version.h"
 
 namespace nlohmann {
 
@@ -121,7 +119,6 @@ namespace torrest { namespace settings {
         VALIDATE(listen_port, GTE(0), LTE(65535));
         VALIDATE(download_path, NOT_EMPTY());
         VALIDATE(torrents_path, NOT_EMPTY());
-        VALIDATE(user_agent, GTE(0), LT(ua_num_values));
         VALIDATE(session_save, GT(0));
         VALIDATE(max_download_rate, GTE(0));
         VALIDATE(max_upload_rate, GTE(0));
@@ -138,35 +135,6 @@ namespace torrest { namespace settings {
         VALIDATE(api_log_level, GTE(0), LT(spdlog::level::n_levels));
 
         if (proxy) { proxy->validate(); }
-    }
-
-    std::string get_user_agent(UserAgent pUserAgent) {
-        switch (pUserAgent) {
-            case ua_libtorrent:
-                return "libtorrent/" LIBTORRENT_VERSION;
-            case ua_libtorrent_rasterbar_1_1_0:
-                return "libtorrent (Rasterbar) 1.1.0";
-            case ua_bittorrent_7_5_0:
-                return "BitTorrent 7.5.0";
-            case ua_bittorrent_7_4_3:
-                return "BitTorrent 7.4.3";
-            case ua_utorrent_3_4_9:
-                return "µTorrent 3.4.9";
-            case ua_utorrent_3_2_0:
-                return "µTorrent 3.2.0";
-            case ua_utorrent_2_2_1:
-                return "µTorrent 2.2.1";
-            case ua_transmission_2_92:
-                return "Transmission 2.92";
-            case ua_deluge_1_3_6_0:
-                return "Deluge 1.3.6.0";
-            case ua_deluge_1_3_12_0:
-                return "Deluge 1.3.12.0";
-            case ua_vuze_5_7_3_0:
-                return "Vuze 5.7.3.0";
-            default:
-                return "torrest/" TORREST_VERSION " libtorrent/" LIBTORRENT_VERSION;
-        }
     }
 
 }}

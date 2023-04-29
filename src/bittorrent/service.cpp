@@ -9,11 +9,13 @@
 #include "libtorrent/magnet_uri.hpp"
 #include "libtorrent/read_resume_data.hpp"
 #include "libtorrent/torrent_info.hpp"
+#include "libtorrent/version.hpp"
 #include "libtorrent/write_resume_data.hpp"
 
 #include "exceptions.h"
 #include "utils/log.h"
 #include "utils/utils.h"
+#include "version.h"
 
 #define EXT_PARTS ".parts"
 #define EXT_TORRENT ".torrent"
@@ -378,7 +380,9 @@ namespace torrest { namespace bittorrent {
         mAlertsLogger->set_level(pSettings.alerts_log_level);
 
         libtorrent::settings_pack settingsPack;
-        auto userAgent = get_user_agent(pSettings.user_agent);
+        auto userAgent = pSettings.user_agent.empty()
+                         ? "torrest/" TORREST_VERSION " libtorrent/" LIBTORRENT_VERSION
+                         : pSettings.user_agent;
         mLogger->debug("operation=configure, userAgent='{}'", userAgent);
         settingsPack.set_str(libtorrent::settings_pack::user_agent, userAgent);
 

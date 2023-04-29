@@ -5,22 +5,6 @@
 
 namespace torrest { namespace settings {
 
-    enum UserAgent {
-        ua_torrest_default,
-        ua_libtorrent,
-        ua_libtorrent_rasterbar_1_1_0,
-        ua_bittorrent_7_5_0,
-        ua_bittorrent_7_4_3,
-        ua_utorrent_3_4_9,
-        ua_utorrent_3_2_0,
-        ua_utorrent_2_2_1,
-        ua_transmission_2_92,
-        ua_deluge_1_3_6_0,
-        ua_deluge_1_3_12_0,
-        ua_vuze_5_7_3_0,
-        ua_num_values
-    };
-
     enum EncryptionPolicy {
         ep_enabled,
         ep_disabled,
@@ -59,7 +43,7 @@ namespace torrest { namespace settings {
         bool disable_lsd = false;
         std::string download_path = "downloads";
         std::string torrents_path = "downloads/torrents";
-        UserAgent user_agent = ua_torrest_default;
+        std::string user_agent;
         int session_save = 30;
         bool tuned_storage = false;
         bool check_available_space = true;
@@ -98,8 +82,6 @@ namespace torrest { namespace settings {
 
         void validate() const;
     };
-
-    std::string get_user_agent(UserAgent pUserAgent);
 
 }}
 
