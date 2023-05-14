@@ -266,7 +266,7 @@ if requires "libtorrent"; then
   fi
   # Fix for MingGW - https://github.com/godotengine/godot/issues/59409
   # find "${tmp_dir}/src" -name "*.cpp" -type f -exec sed -i "s|\(#include <iphlpapi.h>\)|#include <wincrypt.h>\n\1|g" {} +
-  if [ "${apply_android_patch}" == true ] && versionGte "${LIBTORRENT_VERSION}" v1.2 && ! versionGte "${LIBTORRENT_VERSION}" v2; then
+  if [ "${apply_android_patch}" == true ] && versionGte "${LIBTORRENT_VERSION}" v1.2 && ! versionGte "${LIBTORRENT_VERSION}" v1.2.19; then
     echo "- Applying libtorrent android patch"
     patch -p1 --quiet <"${scripts_path}/patches/libtorrent_1_2_android.patch"
   fi
