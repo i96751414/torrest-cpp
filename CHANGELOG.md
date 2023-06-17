@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Always include "Accept-Ranges" header in serve responses.
+- Update to libtorrent 1.2.19
 
 ## [v0.0.4] - 30/04/2023
 
