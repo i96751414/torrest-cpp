@@ -3,6 +3,7 @@
 #include <thread>
 #include <fstream>
 
+#include "boost/algorithm/string.hpp"
 #include "boost/filesystem.hpp"
 #include "libtorrent/alert_types.hpp"
 #include "libtorrent/create_torrent.hpp"
@@ -811,29 +812,33 @@ namespace torrest { namespace bittorrent {
         }
     }
 
-    std::vector<std::shared_ptr<Torrent>>::const_iterator Service::find_torrent(const std::string &pInfoHash,
-                                                                                bool pMustFind) const {
+    std::vector<std::shared_ptr<Torrent>>::const_iterator Service::find_torrent(const std::string &pInfoHash) const {
         mLogger->trace("operation=find_torrent, infoHash={}", pInfoHash);
-        auto torrent = std::find_if(
+        return std::find_if(
                 mTorrents.begin(), mTorrents.end(),
-                [&pInfoHash](const std::shared_ptr<Torrent> &t) { return t->get_info_hash() == pInfoHash; });
+                [&pInfoHash](const std::shared_ptr<Torrent> &t) {
+                    return boost::iequals(t->get_info_hash(), pInfoHash);
+                });
+    }
 
-        if (pMustFind && torrent == mTorrents.end()) {
-            mLogger->error("operation=get_torrent, message='Unable to find torrent', infoHash={}", pInfoHash);
+    std::vector<std::shared_ptr<Torrent>>::const_iterator
+    Service::must_find_torrent(const std::string &pInfoHash) const {
+        auto torrent = find_torrent(pInfoHash);
+        if (torrent == mTorrents.end()) {
+            mLogger->error("operation=must_find_torrent, message='Unable to find torrent', infoHash={}", pInfoHash);
             throw InvalidInfoHashException("No such info hash");
         }
-
         return torrent;
     }
 
     bool Service::has_torrent(const std::string &pInfoHash) const {
-        return find_torrent(pInfoHash, false) != mTorrents.end();
+        return find_torrent(pInfoHash) != mTorrents.end();
     }
 
     std::shared_ptr<Torrent> Service::get_torrent(const std::string &pInfoHash) const {
         mLogger->trace("operation=get_torrent, infoHash={}", pInfoHash);
         std::lock_guard<std::mutex> lock(mTorrentsMutex);
-        return *find_torrent(pInfoHash);
+        return *must_find_torrent(pInfoHash);
     }
 
     std::vector<std::shared_ptr<Torrent>> Service::get_torrents() const {
@@ -845,7 +850,7 @@ namespace torrest { namespace bittorrent {
     void Service::remove_torrent(const std::string &pInfoHash, bool pRemoveFiles) {
         mLogger->debug("operation=remove_torrent, infoHash={}, removeFiles={}", pInfoHash, pRemoveFiles);
         std::lock_guard<std::mutex> lock(mTorrentsMutex);
-        auto it = find_torrent(pInfoHash);
+        auto it = must_find_torrent(pInfoHash);
 
         delete_parts_file(pInfoHash);
         delete_fast_resume_file(pInfoHash);

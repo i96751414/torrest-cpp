@@ -95,8 +95,9 @@ namespace torrest { namespace bittorrent {
 
         void load_torrent_files();
 
-        std::vector<std::shared_ptr<Torrent>>::const_iterator find_torrent(const std::string &pInfoHash,
-                                                                           bool pMustFind = true) const;
+        std::vector<std::shared_ptr<Torrent>>::const_iterator find_torrent(const std::string &pInfoHash) const;
+
+        std::vector<std::shared_ptr<Torrent>>::const_iterator must_find_torrent(const std::string &pInfoHash) const;
 
         bool has_torrent(const std::string &pInfoHash) const;
 
