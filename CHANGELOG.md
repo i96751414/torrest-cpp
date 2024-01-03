@@ -5,12 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [v0.0.5] - 03/01/2024
 
 ### Fixed
 
 - Always include "Accept-Ranges" header in serve responses.
 - Update to libtorrent 1.2.19
+
+### Changed
+
+- Make info hash case insensitive
 
 ## [v0.0.4] - 30/04/2023
 
@@ -75,7 +79,7 @@ First release.
 - Configurable service with a comprehensive list of settings.
 - Buffering functionality to prioritize certain pieces making them available first.
 
-[Unreleased]: https://github.com/i96751414/torrest-cpp/compare/v0.0.4...master
+[v0.0.5]: https://github.com/i96751414/torrest-cpp/compare/v0.0.4...v0.0.5
 
 [v0.0.4]: https://github.com/i96751414/torrest-cpp/compare/v0.0.3...v0.0.4
 
