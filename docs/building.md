@@ -109,3 +109,18 @@ Or for a specific platform:
 ```shell
 make -f docker/Makefile torrest-<platform>
 ```
+
+### Docker tag conventions
+
+The below table correlates the libtorrent version with the expected docker tags.
+
+| Libtorrent Version | Docker Tag             | Latest Tags           |
+|--------------------|------------------------|-----------------------|
+| `2.<x>.<y>`        | `2.<x>.<y>-r<release>` | `latest` `lt2-latest` |
+| `1.2.<y>`          | `1.2.<y>-r<release>`   | `lt1.2-latest`        |
+
+where `x` and `y` are the minor and patch versions of libtorrent, respectively, and `release` is the release number for
+the published docker image - this number should start at 0 and be incremented at each release for the same libtorrent
+version.
+
+A valid example for a docker image for libtorrent v2.0.10 would be `2.0.10-r0`. 
