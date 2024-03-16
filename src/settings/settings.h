@@ -1,9 +1,19 @@
 #ifndef TORREST_SETTINGS_H
 #define TORREST_SETTINGS_H
 
+#include "libtorrent/aux_/export.hpp"
 #include "spdlog/spdlog.h"
 
 namespace torrest { namespace settings {
+
+#if TORRENT_ABI_VERSION > 2
+    enum WriteMode {
+        wm_auto,
+        wm_pwrite,
+        wm_mmap_write,
+        wm_num_values
+    };
+#endif
 
     enum EncryptionPolicy {
         ep_enabled,
@@ -61,6 +71,9 @@ namespace torrest { namespace settings {
         int active_tracker_limit = 1600;
         int active_lsd_limit = 60;
         int active_limit = 500;
+#if TORRENT_ABI_VERSION > 2
+        WriteMode write_mode = wm_auto;
+#endif
         EncryptionPolicy encryption_policy = ep_enabled;
         std::shared_ptr<ProxySettings> proxy = nullptr;
         std::int64_t buffer_size = 20 * 1024 * 1024;

@@ -9,7 +9,7 @@
 
 namespace nlohmann {
 
-    template <typename T>
+    template<typename T>
     struct adl_serializer<std::shared_ptr<T>> {
         static void to_json(nlohmann::json &pJson, const std::shared_ptr<T> &pValue) {
             if (pValue) {
@@ -81,6 +81,9 @@ namespace torrest { namespace settings {
             active_tracker_limit,
             active_lsd_limit,
             active_limit,
+#if TORRENT_ABI_VERSION > 2
+            write_mode,
+#endif
             encryption_policy,
             proxy,
             buffer_size,
@@ -125,6 +128,9 @@ namespace torrest { namespace settings {
         VALIDATE(share_ratio_limit, GTE(0));
         VALIDATE(seed_time_ratio_limit, GTE(0));
         VALIDATE(seed_time_limit, GTE(0));
+#if TORRENT_ABI_VERSION > 2
+        VALIDATE(write_mode, GTE(0), LT(wm_num_values));
+#endif
         VALIDATE(encryption_policy, GTE(0), LT(ep_num_values));
         VALIDATE(piece_wait_timeout, GTE(0));
 #if !TORREST_LEGACY_READ_PIECE

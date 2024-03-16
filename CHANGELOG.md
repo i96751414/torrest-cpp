@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add support to `write_mode` setting. It supports `0: auto`, `1: pwrite` and `2: mmap_write` values, defaulting
+  to `0: auto`.
+
 ## [v0.0.5] - 03/01/2024
 
 ### Fixed
@@ -16,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Make info hash case insensitive
+- Make info hash case-insensitive
 
 ## [v0.0.4] - 30/04/2023
 

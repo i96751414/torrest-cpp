@@ -463,6 +463,23 @@ namespace torrest { namespace bittorrent {
         settingsPack.set_int(libtorrent::settings_pack::active_lsd_limit, pSettings.active_lsd_limit);
         settingsPack.set_int(libtorrent::settings_pack::active_limit, pSettings.active_limit);
 
+#if TORRENT_ABI_VERSION > 2
+        libtorrent::settings_pack::mmap_write_mode_t writeMode;
+
+        switch (pSettings.write_mode) {
+            case settings::wm_pwrite:
+                writeMode = libtorrent::settings_pack::always_pwrite;
+                break;
+            case settings::wm_mmap_write:
+                writeMode = libtorrent::settings_pack::always_mmap_write;
+                break;
+            default:
+                writeMode = libtorrent::settings_pack::auto_mmap_write;
+        }
+
+        settingsPack.set_int(libtorrent::settings_pack::disk_write_mode, writeMode);
+#endif
+
         libtorrent::settings_pack::enc_policy encPolicy;
         libtorrent::settings_pack::enc_level encLevel;
         bool preferRc4;
