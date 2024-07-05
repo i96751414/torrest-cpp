@@ -9,7 +9,7 @@ jobs=$(nproc)
 function printAllowedOptions() {
   IFS='|' read -ra options <<<"${allowed_opts}"
   for opt in "${options[@]}"; do
-    printf '  --%-19s Build and install %s\n' "${opt}" "${opt}"
+    printf '  --%-20s Build and install %s\n' "${opt}" "${opt}"
   done
 }
 
@@ -38,15 +38,16 @@ Additional environment variables can also be passed, such as:
 
 optional arguments:
 $(printAllowedOptions)
-  --fix-mingw-headers   Fix mingw 'WinSock2' and 'WS2tcpip' headers name before building
-  --default-to-win7     Set libtorrent build to require windows 7 - applicable to windows builds only
-  --apply-android-patch Apply Android patch for libtorrent 1.2 versions
-  -s, --static          Do a static build
-  -r, --static-runtime  Build with static runtime
-  -e, --env             Path of file containing versions environment variables (default: ${scripts_path}/versions.env)
-  -j, --jobs            Build jobs number (default: $(nproc))
-  -v, --verbose         Do a verbose build
-  -h, --help            Show this message
+  --fix-mingw-headers    Fix mingw 'WinSock2' and 'WS2tcpip' headers name before building
+  --default-to-win7      Set libtorrent build to require windows 7 - applicable to windows builds only
+  --apply-android-patch  Apply Android patch for libtorrent 1.2 versions
+  -s, --static           Do a static build
+  -r, --static-runtime   Build with static runtime
+  -e, --env              Path of file containing versions environment variables (default: ${scripts_path}/versions.env)
+  -j, --jobs             Build jobs number (default: $(nproc))
+  -i, --install-manifest Path for the generated install manifest file. If omitted, this file is not generated.
+  -v, --verbose          Do a verbose build
+  -h, --help             Show this message
 
 EOF
   exit "$1"
@@ -55,6 +56,13 @@ EOF
 function invalidOpt() {
   echo "Invalid option/argument provided: $1"
   usage 1
+}
+
+function validateNotEmpty() {
+  if [ -z "${1}" ]; then
+    echo "${2} parameter must contain a not empty value"
+    usage 1
+  fi
 }
 
 function validateFile() {
@@ -95,6 +103,7 @@ function versionGte() {
 all=true
 static=false
 static_runtime=false
+install_manifest=
 fix_mingw_headers=false
 default_to_win7=false
 apply_android_patch=false
@@ -109,6 +118,7 @@ while [ $# -gt 0 ]; do
   -r | --static-runtime) static_runtime=true ;;
   -e | --env) validateFile "$2" "$1" && shift && env_path="$1" ;;
   -j | --jobs) validateNumber "$2" "$1" && shift && jobs="$1" ;;
+  -i | --install-manifest) validateNotEmpty "$2" "$1" && shift && install_manifest="$(realpath "$1")" ;;
   --fix-mingw-headers) fix_mingw_headers=true ;;
   --default-to-win7) default_to_win7=true ;;
   --apply-android-patch) apply_android_patch=true ;;
@@ -172,12 +182,18 @@ function buildCmake() {
   cmake "${cmake_options[@]}" "$@"
   cmake --build "${cmake_build_dir}" -j"${jobs}"
   "${cmd[@]}" cmake --install "${cmake_build_dir}"
+  [ -n "${install_manifest}" ] && cat "${cmake_build_dir}/install_manifest.txt" >>"${install_manifest}"
 }
 
 function mingwFixHeaders() {
   echo "- Fixing mingw headers"
   find "${tmp_dir}" -type f -exec sed -i -e 's/WinSock2.h/winsock2.h/i' -e 's/WS2tcpip.h/ws2tcpip.h/i' {} +
 }
+
+if [ -n "${install_manifest}" ]; then
+  [ -d "${install_manifest}" ] && install_manifest="${install_manifest}/install_manifest.txt"
+  : >"${install_manifest}"
+fi
 
 if requires "range-parser"; then
   echo "- Downloading range-parser ${RANGE_PARSER_VERSION}"
@@ -239,6 +255,15 @@ if requires "openssl"; then
   fi
   make -j"${jobs}"
   "${cmd[@]}" make install
+
+  # Very hackish way of generating install_manifest
+  if [ -n "${install_manifest}" ]; then
+    make -n uninstall |
+      sed -e "s/--remove/--dry-run/g" -e "s/^\(\s*\)\(echo\|rmdir\)/\1# \2/g" -e "s/\brm\( -[rf][rf]*\)*/echo/g" |
+      /bin/sh |
+      sed -e "s/ -> .*//g" >>"${install_manifest}"
+  fi
+
   cleanup
 fi
 
@@ -254,6 +279,15 @@ if requires "boost"; then
   [ "${static_runtime}" == true ] && boost_options+=(runtime-link=static)
   parseArgsToArray "${BOOST_OPTS}"
   "${cmd[@]}" ./b2 "${boost_options[@]}" "${ARGS[@]}" install
+
+  if [ -n "${install_manifest}" ]; then
+    {
+      find "${PREFIX}/lib/" -maxdepth 1 -mindepth 1 -name "libboost*" -exec find {} -not -type d \;
+      find "${PREFIX}/include/boost/" -not -type d
+      find "${PREFIX}/lib/cmake/" -maxdepth 1 -mindepth 1 -name "[Bb]oost*" -exec find {} -not -type d \;
+    } >>"${install_manifest}"
+  fi
+
   cleanup
 fi
 
