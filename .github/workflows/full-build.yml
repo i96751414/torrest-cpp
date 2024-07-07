@@ -28,7 +28,7 @@ jobs:
           - libtorrest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Build ${{ matrix.target }} (${{ matrix.platform }})
         run: make -f docker/Makefile ${{ matrix.target }}-${{ matrix.platform }} IMAGE_TAG=lt1.2-latest
@@ -42,7 +42,7 @@ jobs:
           echo "asset_name=$(basename "${asset_path}")" >>"${GITHUB_OUTPUT}"
 
       - name: Upload ${{ matrix.target }} (${{ matrix.platform }}) zip
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.target }}-${{ matrix.platform }}
           path: ${{ steps.generate_zip.outputs.asset_path }}
@@ -54,20 +54,16 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
 
       - name: Perform release
         run: |
-          assets=()
-          for asset in artifacts/*/*.zip; do
-            assets+=("${asset}")
-          done
           git_tag="$(sed 's|refs/tags/||' <<< "${{ github.ref }}")"
-          gh release create "${git_tag}" "${assets[@]}"
+          gh release create "${git_tag}" artifacts/*/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
