@@ -111,18 +111,18 @@ verbose=false
 
 while [ $# -gt 0 ]; do
   case "$1" in
-  --) shift && break ;;
+  --) shift; break ;;
   -h | --help) usage 0 ;;
   -v | --verbose) verbose=true ;;
   -s | --static) static=true ;;
   -r | --static-runtime) static_runtime=true ;;
-  -e | --env) validateFile "$2" "$1" && shift && env_path="$1" ;;
-  -j | --jobs) validateNumber "$2" "$1" && shift && jobs="$1" ;;
-  -i | --install-manifest) validateNotEmpty "$2" "$1" && shift && install_manifest="$(realpath "$1")" ;;
+  -e | --env) validateFile "$2" "$1"; shift; env_path="$1" ;;
+  -j | --jobs) validateNumber "$2" "$1"; shift; jobs="$1" ;;
+  -i | --install-manifest) validateNotEmpty "$2" "$1"; shift; install_manifest="$(realpath "$1")" ;;
   --fix-mingw-headers) fix_mingw_headers=true ;;
   --default-to-win7) default_to_win7=true ;;
   --apply-android-patch) apply_android_patch=true ;;
-  --*) [[ "${1:2}" =~ ^(${allowed_opts})$ ]] || invalidOpt "$1" && declare "${1//-/}"=true && all=false ;;
+  --*) [[ "${1:2}" =~ ^(${allowed_opts})$ ]] || invalidOpt "$1"; declare "${1//-/}"=true; all=false ;;
   -*) invalidOpt "$1" ;;
   *) break ;;
   esac
@@ -182,7 +182,9 @@ function buildCmake() {
   cmake "${cmake_options[@]}" "$@"
   cmake --build "${cmake_build_dir}" -j"${jobs}"
   "${cmd[@]}" cmake --install "${cmake_build_dir}"
-  [ -n "${install_manifest}" ] && cat "${cmake_build_dir}/install_manifest.txt" >>"${install_manifest}"
+  if [ -n "${install_manifest}" ]; then
+    cat "${cmake_build_dir}/install_manifest.txt" >>"${install_manifest}"
+  fi
 }
 
 function mingwFixHeaders() {
