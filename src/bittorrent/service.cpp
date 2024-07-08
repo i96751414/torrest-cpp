@@ -570,7 +570,7 @@ namespace torrest { namespace bittorrent {
                 std::string interface;
                 std::getline(ss, interface, ',');
 
-                if (!std::regex_match(interface, mPortRegex)) {
+                if (!std::regex_search(interface, mPortRegex)) {
                     interface += listenPort;
                 }
 

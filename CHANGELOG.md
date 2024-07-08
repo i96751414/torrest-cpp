@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix listen_interfaces port matching
+
 ### Added
 
 - Add support to `write_mode` setting. It supports `0: auto`, `1: pwrite` and `2: mmap_write` values, defaulting
