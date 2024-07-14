@@ -28,6 +28,8 @@ namespace torrest { namespace utils {
         return path;
     }
 
+    std::string sanitize_ip_address(const std::string &pIp, const int &pLeadingGroups = 2);
+
     std::string join_string_vector(const std::vector<std::string> &pVector, const std::string &pDelimiter);
 
     std::string unescape_string(const std::string &pStr);
@@ -39,6 +41,10 @@ namespace torrest { namespace utils {
 
     inline std::string ltrim_copy(std::string pStr, const char *pChars = " \t\n\r\f\v") {
         return ltrim(pStr, pChars);
+    }
+
+    inline bool starts_with(const std::string &pStr, const std::string &pStart) {
+        return pStr.rfind(pStart, 0) == 0;
     }
 
 }}

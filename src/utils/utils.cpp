@@ -4,6 +4,27 @@
 
 namespace torrest { namespace utils {
 
+    std::string sanitize_ip_address(const std::string &pIp, const int &pLeadingGroups) {
+        std::string out;
+        std::size_t prev = 0;
+        std::size_t pos;
+        int count = 0;
+
+        while ((pos = pIp.find_first_of(":.", prev)) != std::string::npos) {
+            if (pos > prev) {
+                out += count++ < pLeadingGroups ? pIp.substr(prev, pos - prev) : std::string(pos - prev, 'X');
+            }
+            out += pIp[pos];
+            prev = pos + 1;
+        }
+
+        if (prev < pIp.length()) {
+            out += count < pLeadingGroups ? pIp.substr(prev, std::string::npos) : std::string(pIp.length() - prev, 'X');
+        }
+
+        return out;
+    }
+
     std::string join_string_vector(const std::vector<std::string> &pVector, const std::string &pDelimiter) {
         std::ostringstream s;
         auto it = pVector.begin();

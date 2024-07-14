@@ -14,6 +14,7 @@
 #include "libtorrent/write_resume_data.hpp"
 
 #include "exceptions.h"
+#include "utils/ifaces.h"
 #include "utils/log.h"
 #include "utils/utils.h"
 #include "version.h"
@@ -22,6 +23,7 @@
 #define EXT_TORRENT ".torrent"
 #define EXT_MAGNET ".magnet"
 #define EXT_FASTRESUME ".fastresume"
+#define IF_AUTO_PREFIX "auto:"
 #define MAX_FILES_PER_TORRENT 1000
 #define MAX_SINGLE_CORE_CONNECTIONS 50
 #define DEFAULT_CONNECTIONS 200
@@ -169,9 +171,11 @@ namespace torrest { namespace bittorrent {
                     case libtorrent::save_resume_data_alert::alert_type:
                         handle_save_resume_data(dynamic_cast<const libtorrent::save_resume_data_alert *>(alert));
                         break;
-                    case libtorrent::external_ip_alert::alert_type:
-                        alertMessage = std::regex_replace(alertMessage, mIpRegex, ".XX");
+                    case libtorrent::external_ip_alert::alert_type: {
+                        auto ip = dynamic_cast<const libtorrent::external_ip_alert *>(alert)->external_address.to_string();
+                        boost::algorithm::replace_all(alertMessage, ip, utils::sanitize_ip_address(ip));
                         break;
+                    }
                     case libtorrent::metadata_received_alert::alert_type:
                         handle_metadata_received(dynamic_cast<const libtorrent::metadata_received_alert *>(alert));
                         break;
@@ -564,6 +568,35 @@ namespace torrest { namespace bittorrent {
 
         if (configListenInterfaces.empty()) {
             listenInterfaces = {"0.0.0.0" + listenPort, "[::]" + listenPort};
+        } else if (utils::starts_with(configListenInterfaces, IF_AUTO_PREFIX)) {
+            auto ifNames = configListenInterfaces.substr(strlen(IF_AUTO_PREFIX));
+            auto ifAddresses = utils::list_interfaces_addresses();
+
+            std::stringstream ss(ifNames);
+            while (ss.good()) {
+                std::string ifName;
+                std::getline(ss, ifName, ',');
+
+                std::string ifPort;
+                std::smatch portMatch;
+                if (std::regex_search(ifName, portMatch, mPortRegex)) {
+                    ifPort = portMatch[0];
+                    ifName = ifName.substr(0, ifName.length() - ifPort.length());
+                } else {
+                    ifPort = listenPort;
+                }
+
+                if (ifName.empty()) continue;
+
+                for (const auto &ifAddress : ifAddresses) {
+                    if (ifAddress.name == ifName) {
+                        listenInterfaces.push_back(
+                                ifAddress.is_v4
+                                ? ifAddress.address + ifPort
+                                : '[' + ifAddress.address + ']' + ifPort);
+                    }
+                }
+            }
         } else {
             std::stringstream ss(configListenInterfaces);
             while (ss.good()) {

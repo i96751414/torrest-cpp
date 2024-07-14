@@ -121,9 +121,8 @@ namespace torrest { namespace bittorrent {
 
         bool wait_for_abort(const std::chrono::seconds &pSeconds) const;
 
-        const std::regex mPortRegex = std::regex(":\\d+$");
+        const std::regex mPortRegex = std::regex(":(\\d+)$");
         const std::regex mWhiteSpaceRegex = std::regex("\\s+");
-        const std::regex mIpRegex = std::regex("\\.\\d+");
         std::shared_ptr<spdlog::logger> mLogger;
         std::shared_ptr<spdlog::logger> mAlertsLogger;
         std::shared_ptr<libtorrent::session> mSession;
