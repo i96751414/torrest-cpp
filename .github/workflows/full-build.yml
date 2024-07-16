@@ -64,6 +64,7 @@ jobs:
       - name: Perform release
         run: |
           git_tag="$(sed 's|refs/tags/||' <<< "${{ github.ref }}")"
-          gh release create "${git_tag}" artifacts/*/*.zip
+          changelog="$(awk '/^## /{ if (p) exit; p=1; next } p' CHANGELOG.md)"
+          gh release create "${git_tag}" artifacts/*/*.zip --notes "${changelog}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
