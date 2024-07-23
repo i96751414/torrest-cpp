@@ -5,11 +5,11 @@
 ARG CROSS_COMPILER_TAG=latest
 FROM i96751414/cross-compiler-windows-x86:${CROSS_COMPILER_TAG}
 
-ENV PREFIX "${CROSS_ROOT}"
-ENV BOOST_CONFIG "using gcc : : ${CROSS_TRIPLE}-c++ ;"
-ENV BOOST_OPTS target-os=windows address-model=32 architecture=x86 threadapi=win32
-ENV OPENSSL_OPTS mingw
-ENV OPENSSL_CROSS_COMPILE "${CROSS_TRIPLE}-"
+ENV PREFIX="${CROSS_ROOT}"
+ENV BOOST_CONFIG="using gcc : : ${CROSS_TRIPLE}-c++ ;"
+ENV BOOST_OPTS="target-os=windows address-model=32 architecture=x86 threadapi=win32"
+ENV OPENSSL_OPTS="mingw"
+ENV OPENSSL_CROSS_COMPILE="${CROSS_TRIPLE}-"
 # ENV CMAKE_TOOLCHAIN_FILE is already set on the base image
 
 COPY install_dependencies.sh versions.env /tmp/
