@@ -24,6 +24,7 @@ void clear_logging_sinks();
 void add_logging_stdout_sink();
 void add_logging_file_sink(String file_path, bool truncate);
 void add_logging_callback_sink(log_callback_fn callback);
+const char* version();
 
 #ifdef __cplusplus
 }

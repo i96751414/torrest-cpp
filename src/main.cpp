@@ -197,6 +197,10 @@ EXPORT_C void add_logging_callback_sink(log_callback_fn callback) {
     });
 }
 
+EXPORT_C const char* version() {
+	return TORREST_VERSION;
+}
+
 #else
 
 Options parse_arguments(int argc, const char *argv[]) {

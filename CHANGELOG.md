@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to `0: auto`.
 - Automatically find interfaces addresses when `listen_interfaces` is set to `auto:<interface-name[:port]>` (for
   instance, `auto:wlan0` or `auto:wlan0:61000,wlan1`). Multiple values are supported and must be comma separated.
+- Add version method to libtorrest and bindings
 
 ## [v0.0.5] - 03/01/2024
 

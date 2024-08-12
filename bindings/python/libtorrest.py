@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 
+import argparse
 import logging
 import os
-import argparse
 from ctypes import cdll, Structure, c_uint16, c_char_p, c_int, c_size_t, string_at, c_bool, CFUNCTYPE
 from threading import Thread
+
+
+def ensure_string(s):
+    if not isinstance(s, str):
+        s = s.decode()
+    return s
 
 
 class String(Structure):
@@ -20,10 +26,7 @@ class String(Structure):
         return string_at(self.ptr, self.size)
 
     def __str__(self):
-        s = self.__bytes__()
-        if not isinstance(s, str):
-            s = s.decode()
-        return s
+        return ensure_string(self.__bytes__())
 
 
 class TorrestLib(object):
@@ -46,6 +49,8 @@ class TorrestLib(object):
         self._dll.add_logging_file_sink.argtypes = [String, c_bool]
         # Define add_logging_callback_sink callback
         self._c_log_callback = CFUNCTYPE(None, c_int, String)(self._log_callback)
+        # Define version function
+        self._dll.version.restype = c_char_p
 
     def start(self, port, settings_path, global_log_level=DEFAULT_LOG_LEVEL):
         self._return_code = None
@@ -69,6 +74,9 @@ class TorrestLib(object):
 
     def add_logging_callback_sink(self):
         self._dll.add_logging_callback_sink(self._c_log_callback)
+
+    def version(self):
+        return ensure_string(self._dll.version())
 
     @classmethod
     def _log_callback(cls, level, string):
@@ -115,16 +123,22 @@ def log_level(s, levels=("trace", "debug", "info", "warn", "err", "critical")):
 
 def main():
     parser = argparse.ArgumentParser(description="libtorrest python runner")
-    parser.add_argument("-p", "--port", type=int, default=8080, help="The HTTP port")
-    parser.add_argument("-s", "--settings-path", default="settings.json", help="The settings path")
-    parser.add_argument("--stdout", action="store_true", help="Add stdout logging")
-    parser.add_argument("--log-path", type=str, help="The log path")
+    parser.add_argument("-v", "--version", action="store_true", help="print the library version and exit")
+    parser.add_argument("-p", "--port", type=int, default=8080, help="the HTTP port")
+    parser.add_argument("-s", "--settings-path", default="settings.json", help="the settings path")
+    parser.add_argument("--stdout", action="store_true", help="add stdout logging")
+    parser.add_argument("--log-path", type=str, help="the log path")
     parser.add_argument("--global-log-level", type=log_level, default=TorrestLib.DEFAULT_LOG_LEVEL, metavar="[0-5]",
-                        help="The global log level")
-    parser.add_argument("library_path", help="The libtorrest (.dll, .so, .dylib) path")
+                        help="the global log level")
+    parser.add_argument("library_path", help="the libtorrest (.dll, .so, .dylib) path")
 
     args = parser.parse_args()
     lib = TorrestLib(os.path.abspath(args.library_path))
+
+    if args.version:
+        print(lib.version())
+        return
+
     lib.clear_logging_sinks()
     if args.stdout:
         lib.add_logging_stdout_sink()
