@@ -14,6 +14,7 @@
 #include "libtorrent/write_resume_data.hpp"
 
 #include "exceptions.h"
+#include "utils/enum_fmt.h"
 #include "utils/ifaces.h"
 #include "utils/log.h"
 #include "utils/utils.h"

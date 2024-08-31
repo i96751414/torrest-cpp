@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix listen_interfaces port matching
 
+### Changed
+
+- Updated nlohmann JSON to v3.11.3
+- Updated spdlog to v1.14.1
+- Updated Oatpp (including swagger) to 1.3.0-latest
+- Updated openssl to 1.1.1w
+- Updated Boost to 1.86.0
+
 ### Added
 
 - Add support to `write_mode` setting. It supports `0: auto`, `1: pwrite` and `2: mmap_write` values, defaulting

@@ -7,6 +7,7 @@
 #include "exceptions.h"
 #include "file.h"
 #include "service.h"
+#include "utils/enum_fmt.h"
 
 namespace torrest { namespace bittorrent {
 
