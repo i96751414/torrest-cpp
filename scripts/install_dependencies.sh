@@ -220,7 +220,7 @@ if requires "spdlog"; then
   download "https://github.com/gabime/spdlog/archive/${SPDLOG_VERSION}.tar.gz"
   parseArgsToArray "${SPDLOG_OPTS}"
   echo "- Building spdlog ${SPDLOG_VERSION}"
-  buildCmake "${ARGS[@]}"
+  buildCmake "${ARGS[@]}" -DSPDLOG_BUILD_EXAMPLE=OFF
   cleanup
 fi
 
