@@ -472,6 +472,9 @@ namespace torrest { namespace bittorrent {
         libtorrent::settings_pack::mmap_write_mode_t writeMode;
 
         switch (pSettings.write_mode) {
+            case settings::wm_force_pread_pwrite:
+                // Force pread/pwrite while https://github.com/arvidn/libtorrent/pull/7013 is not implemented
+                settingsPack.set_int(libtorrent::settings_pack::mmap_file_size_cutoff, std::numeric_limits<int>::max());
             case settings::wm_pwrite:
                 writeMode = libtorrent::settings_pack::always_pwrite;
                 break;

@@ -20,8 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add support to `write_mode` setting. It supports `0: auto`, `1: pwrite` and `2: mmap_write` values, defaulting
-  to `0: auto`.
+- Add support to `write_mode` setting. It supports `0: auto`, `1: pwrite`, `2: mmap_write` and `3:force_pread_pwrite`
+  values, defaulting to `0: auto`.
 - Automatically find interfaces addresses when `listen_interfaces` is set to `auto:<interface-name[:port]>` (for
   instance, `auto:wlan0` or `auto:wlan0:61000,wlan1`). Multiple values are supported and must be comma separated.
 - Add version method to libtorrest and bindings

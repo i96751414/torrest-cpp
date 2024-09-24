@@ -11,6 +11,7 @@ namespace torrest { namespace settings {
         wm_auto,
         wm_pwrite,
         wm_mmap_write,
+        wm_force_pread_pwrite,
         wm_num_values
     };
 #endif
