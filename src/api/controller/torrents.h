@@ -33,7 +33,7 @@ public:
     ENDPOINT("GET", "/torrents", listTorrents, QUERY(Boolean, status, "status", false)) {
         auto torrents = Torrest::get_instance()->get_service()->get_torrents();
         auto responseList = List<Object<TorrentInfoStatus>>::createShared();
-        for (auto &torrent: torrents) {
+        for (const auto &torrent: torrents) {
             responseList->push_back(status ? TorrentInfoStatus::create(torrent->get_info(), torrent->get_status())
                                            : TorrentInfoStatus::create(torrent->get_info()));
         }
@@ -111,6 +111,8 @@ public:
         info->summary = "Torrent files";
         info->description = "Get torrent files";
         info->pathParams.add<String>("infoHash").description = "Torrent info hash";
+        info->queryParams.add<String>("prefix").description = "Filter result by prefix";
+        info->queryParams.add<String>("prefix").required = false;
         info->queryParams.add<Boolean>("status").description = "Get files status";
         info->queryParams.add<Boolean>("status").required = false;
         info->addResponse<List<Object<FileInfoStatus>>>(Status::CODE_200, "application/json");
@@ -120,14 +122,22 @@ public:
 
     ENDPOINT("GET", "/torrents/{infoHash}/files", torrentFiles,
              PATH(String, infoHash, "infoHash"),
+             QUERY(String, prefixEscaped, "prefix", ""),
              QUERY(Boolean, status, "status", false)) {
         auto files = GET_TORRENT(infoHash)->get_files();
         auto responseList = oatpp::List<Object<FileInfoStatus>>::createShared();
-        for (auto &file : files) {
-            responseList->push_back(status ? FileInfoStatus::create(file->get_info(), file->get_status())
-                                           : FileInfoStatus::create(file->get_info()));
+        auto prefix = utils::unescape_string(prefixEscaped);
+
+        for (const auto &file : files) {
+            if (prefix.empty() || file->get_path().rfind(prefix, 0) == 0) {
+                responseList->push_back(status ? FileInfoStatus::create(file->get_info(), file->get_status())
+                                               : FileInfoStatus::create(file->get_info()));
+            }
         }
-        return createDtoResponse(Status::CODE_200, responseList);
+
+        return (!prefix.empty() && responseList->empty())
+                       ? createDtoResponse(Status::CODE_404, ErrorResponse::create("Invalid prefix provided"))
+                       : createDtoResponse(Status::CODE_200, responseList);
     }
 
     ENDPOINT_INFO(torrentItems) {

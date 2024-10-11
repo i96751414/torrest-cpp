@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added `/torrents/{infoHash}/items` endpoint to allow getting items by folders.
+- Added `prefix` query parameter to get files API. By providing a prefix, one can filter results by path.
 
 ## [v0.0.6] - 24/09/2024
 
