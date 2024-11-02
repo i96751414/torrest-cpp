@@ -24,6 +24,13 @@ class FileInfoStatus : public FileInfo {
         info->status = nullptr;
         return info;
     }
+
+    static oatpp::data::mapping::type::DTOWrapper<FileInfoStatus> create(const bittorrent::FileInfo &pInfo,
+                                                                         const bittorrent::FileStatus &pStatus) {
+        auto info = create(pInfo);
+        info->status = FileStatus::create(pStatus);
+        return info;
+    }
 };
 
 #include OATPP_CODEGEN_END(DTO)

@@ -23,6 +23,13 @@ class TorrentInfoStatus : public TorrentInfo {
         info->status = nullptr;
         return info;
     }
+
+    static oatpp::data::mapping::type::DTOWrapper<TorrentInfoStatus> create(const bittorrent::TorrentInfo &pInfo,
+                                                                            const bittorrent::TorrentStatus &pStatus) {
+        auto info = create(pInfo);
+        info->status = TorrentStatus::create(pStatus);
+        return info;
+    }
 };
 
 #include OATPP_CODEGEN_END(DTO)

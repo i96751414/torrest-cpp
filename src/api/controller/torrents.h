@@ -32,11 +32,8 @@ public:
         auto torrents = Torrest::get_instance()->get_service()->get_torrents();
         auto responseList = oatpp::List<Object<TorrentInfoStatus>>::createShared();
         for (auto &torrent: torrents) {
-            auto info = TorrentInfoStatus::create(torrent->get_info());
-            if (status) {
-                info->status = TorrentStatus::create(torrent->get_status());
-            }
-            responseList->push_back(info);
+            responseList->push_back(status ? TorrentInfoStatus::create(torrent->get_info(), torrent->get_status())
+                                           : TorrentInfoStatus::create(torrent->get_info()));
         }
         return createDtoResponse(Status::CODE_200, responseList);
     }
@@ -125,11 +122,8 @@ public:
         auto files = GET_TORRENT(infoHash)->get_files();
         auto responseList = oatpp::List<Object<FileInfoStatus>>::createShared();
         for (auto &file : files) {
-            auto info = FileInfoStatus::create(file->get_info());
-            if (status) {
-                info->status = FileStatus::create(file->get_status());
-            }
-            responseList->push_back(info);
+            responseList->push_back(status ? FileInfoStatus::create(file->get_info(), file->get_status())
+                                           : FileInfoStatus::create(file->get_info()));
         }
         return createDtoResponse(Status::CODE_200, responseList);
     }
