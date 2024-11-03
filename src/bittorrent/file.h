@@ -43,6 +43,8 @@ namespace torrest { namespace bittorrent {
 
         const std::string &get_name() const { return mName; }
 
+        const std::string &get_path() const { return mPath; }
+
         FileInfo get_info() const;
 
         FileStatus get_status() const;
