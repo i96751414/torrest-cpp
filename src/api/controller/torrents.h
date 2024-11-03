@@ -193,7 +193,7 @@ public:
                     // Build or update our response
                     auto it = std::find_if(folderInfoList->begin(), folderInfoList->end(),
                                  [folderPath](const oatpp::data::mapping::type::DTOWrapper<FolderInfoStatus> &f)
-                                           { return f->path == folderPath; });
+                                           { return f->path == folderPath.string(); });
 
                     if (it == folderInfoList->end()) {
                         auto folderInfoStatus = FolderInfoStatus::createShared();
