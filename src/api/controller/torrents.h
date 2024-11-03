@@ -187,6 +187,8 @@ public:
                     // If there are more than one component, add the first component as a directory
                     auto folderName = *mismatch.second;
                     auto folderPath = prefixPath / folderName;
+                    // Keep the trailing slash to mark this as directory
+                    folderPath += boost::filesystem::path::preferred_separator;
 
                     // Build or update our response
                     auto it = std::find_if(folderInfoList->begin(), folderInfoList->end(),
@@ -235,15 +237,37 @@ public:
         info->summary = "Download";
         info->description = "Download all torrent files";
         info->pathParams.add<String>("infoHash").description = "Torrent info hash";
+        info->queryParams.add<String>("prefix").description = "Download files by prefix";
+        info->queryParams.add<String>("prefix").required = false;
         info->addResponse<Object<MessageResponse>>(Status::CODE_200, "application/json");
         info->addResponse<Object<ErrorResponse>>(Status::CODE_404, "application/json");
         info->addResponse<Object<ErrorResponse>>(Status::CODE_500, "application/json");
     }
 
     ENDPOINT("PUT", "/torrents/{infoHash}/download", torrentDownload,
-             PATH(String, infoHash, "infoHash")) {
-        GET_TORRENT(infoHash)->set_priority(libtorrent::default_priority);
-        return createDtoResponse(Status::CODE_200, MessageResponse::create("Torrent downloading"));
+             PATH(String, infoHash, "infoHash"),
+             QUERY(String, prefixEscaped, "prefix", "")) {
+        auto prefix = utils::unescape_string(prefixEscaped);
+
+        if (prefix.empty()) {
+            GET_TORRENT(infoHash)->set_priority(libtorrent::default_priority);
+        } else {
+            bool isDownloading = false;
+            auto files = GET_TORRENT(infoHash)->get_files();
+
+            for (const auto &file : files) {
+                if (file->get_path().rfind(prefix, 0) == 0) {
+                    file->set_priority(libtorrent::default_priority);
+                    isDownloading = true;
+                }
+            }
+
+            if (!isDownloading) {
+                return createDtoResponse(Status::CODE_404, ErrorResponse::create("Invalid prefix provided"));
+            }
+        }
+
+        return createDtoResponse(Status::CODE_200, MessageResponse::create("Download started"));
     }
 
     ENDPOINT_INFO(torrentStopDownload) {
