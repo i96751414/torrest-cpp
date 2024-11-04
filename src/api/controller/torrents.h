@@ -207,8 +207,7 @@ public:
                             folderInfoStatus->status = FolderStatus::createShared();
                             folderInfoStatus->status->total = fileStatus.total;
                             folderInfoStatus->status->total_done = fileStatus.total_done;
-                            folderInfoStatus->status->progress = 100.0 * static_cast<double>(folderInfoStatus->status->total_done)
-                                                                 / static_cast<double>(folderInfoStatus->status->total);
+                            folderInfoStatus->status->wanted_count = fileStatus.priority ? 1 : 0;
                         }
 
                         folderInfoList->push_back(folderInfoStatus);
@@ -220,11 +219,17 @@ public:
                             auto fileStatus = file->get_status();
                             (*it)->status->total = (*it)->status->total + fileStatus.total;
                             (*it)->status->total_done = (*it)->status->total_done + fileStatus.total_done;
-                            (*it)->status->progress = 100.0 * static_cast<double>((*it)->status->total_done)
-                                                      / static_cast<double>((*it)->status->total);
+                            if (fileStatus.priority) (*it)->status->wanted_count = (*it)->status->wanted_count + 1;
                         }
                     }
                 }
+            }
+        }
+
+        if (status) {
+            for (auto &folder : *folderInfoList) {
+                auto &fs = folder->status;
+                fs->progress = fs->total > 0 ? 100.0 * static_cast<double>(fs->total_done) / static_cast<double>(fs->total) : 100;
             }
         }
 

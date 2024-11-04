@@ -15,6 +15,8 @@ class FolderStatus : public oatpp::DTO {
     FIELD(Int64, total_done, "Total done size")
 
     FIELD(Float64, progress, "Progress")
+
+    FIELD(Int32, wanted_count, "Wanted files count")
 };
 
 #include OATPP_CODEGEN_END(DTO)
