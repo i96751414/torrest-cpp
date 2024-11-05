@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `/torrents/{infoHash}/items` endpoint to allow getting items by folders.
 - Added `prefix` query parameter to get files API. By providing a prefix, one can filter results by path.
-- Added `prefix` query parameter to torrent download API. By providing a prefix, one can filter which files are downloaded.
+- Added `prefix` query parameter to torrent download/stop API. By providing a prefix, one can filter which files are downloaded.
 
 ## [v0.0.6] - 24/09/2024
 

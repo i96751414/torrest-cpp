@@ -33,10 +33,14 @@ public:
     ENDPOINT("GET", "/torrents", listTorrents, QUERY(Boolean, status, "status", false)) {
         auto torrents = Torrest::get_instance()->get_service()->get_torrents();
         auto responseList = List<Object<TorrentInfoStatus>>::createShared();
+        auto createTorrentInfoStatus = status
+                ? [](const std::shared_ptr<bittorrent::Torrent> &t) { return TorrentInfoStatus::create(t->get_info(), t->get_status()); }
+                : [](const std::shared_ptr<bittorrent::Torrent> &t) { return TorrentInfoStatus::create(t->get_info()); };
+
         for (const auto &torrent: torrents) {
-            responseList->push_back(status ? TorrentInfoStatus::create(torrent->get_info(), torrent->get_status())
-                                           : TorrentInfoStatus::create(torrent->get_info()));
+            responseList->push_back(createTorrentInfoStatus(torrent));
         }
+
         return createDtoResponse(Status::CODE_200, responseList);
     }
 
@@ -127,11 +131,13 @@ public:
         auto files = GET_TORRENT(infoHash)->get_files();
         auto responseList = oatpp::List<Object<FileInfoStatus>>::createShared();
         auto prefix = utils::unescape_string(prefixEscaped);
+        auto createFileInfoStatus = status
+                ? [](const std::shared_ptr<bittorrent::File> &f) { return FileInfoStatus::create(f->get_info(), f->get_status()); }
+                : [](const std::shared_ptr<bittorrent::File> &f) { return FileInfoStatus::create(f->get_info()); };
 
         for (const auto &file : files) {
             if (prefix.empty() || file->get_path().rfind(prefix, 0) == 0) {
-                responseList->push_back(status ? FileInfoStatus::create(file->get_info(), file->get_status())
-                                               : FileInfoStatus::create(file->get_info()));
+                responseList->push_back(createFileInfoStatus(file));
             }
         }
 
@@ -159,6 +165,9 @@ public:
              QUERY(Boolean, status, "status", false)) {
         auto fileInfoList = List<Object<FileInfoStatus>>::createShared();
         auto folderInfoList = List<Object<FolderInfoStatus>>::createShared();
+        auto createFileInfoStatus = status
+                ? [](const std::shared_ptr<bittorrent::File> &f) { return FileInfoStatus::create(f->get_info(), f->get_status()); }
+                : [](const std::shared_ptr<bittorrent::File> &f) { return FileInfoStatus::create(f->get_info()); };
 
         // Normalize the prefix to remove any trailing slash
         boost::filesystem::path prefixPath(utils::unescape_string(prefix));
@@ -181,8 +190,7 @@ public:
 
                 if (numComponents == 1) {
                     // If there's only one component, it's a file at the prefix level
-                    fileInfoList->push_back(status ? FileInfoStatus::create(file->get_info(), file->get_status())
-                                                   : FileInfoStatus::create(file->get_info()));
+                    fileInfoList->push_back(createFileInfoStatus(file));
                 } else if (numComponents > 1) {
                     // If there are more than one component, add the first component as a directory
                     auto folderName = *mismatch.second;
@@ -191,11 +199,11 @@ public:
                     folderPath += boost::filesystem::path::preferred_separator;
 
                     // Build or update our response
-                    auto it = std::find_if(folderInfoList->begin(), folderInfoList->end(),
+                    auto it = std::find_if(folderInfoList->rbegin(), folderInfoList->rend(),
                                  [folderPath](const oatpp::data::mapping::type::DTOWrapper<FolderInfoStatus> &f)
                                            { return f->path == folderPath.string(); });
 
-                    if (it == folderInfoList->end()) {
+                    if (it == folderInfoList->rend()) {
                         auto folderInfoStatus = FolderInfoStatus::createShared();
                         folderInfoStatus->name = folderName.string();
                         folderInfoStatus->path = folderPath.string();
@@ -251,18 +259,40 @@ public:
 
     ENDPOINT("PUT", "/torrents/{infoHash}/download", torrentDownload,
              PATH(String, infoHash, "infoHash"),
-             QUERY(String, prefixEscaped, "prefix", "")) {
-        auto prefix = utils::unescape_string(prefixEscaped);
+             QUERY(String, prefix, "prefix", "")) {
+        return set_priority(libtorrent::default_priority, infoHash, utils::unescape_string(prefix), "Download started");
+    }
 
+    ENDPOINT_INFO(torrentStopDownload) {
+        info->summary = "Stop download";
+        info->description = "Stop downloading all torrent files";
+        info->pathParams.add<String>("infoHash").description = "Torrent info hash";
+        info->queryParams.add<String>("prefix").description = "Stop files download by prefix";
+        info->queryParams.add<String>("prefix").required = false;
+        info->addResponse<Object<MessageResponse>>(Status::CODE_200, "application/json");
+        info->addResponse<Object<ErrorResponse>>(Status::CODE_404, "application/json");
+        info->addResponse<Object<ErrorResponse>>(Status::CODE_500, "application/json");
+    }
+
+    ENDPOINT("PUT", "/torrents/{infoHash}/stop", torrentStopDownload,
+             PATH(String, infoHash, "infoHash"),
+             QUERY(String, prefix, "prefix", "")) {
+        return set_priority(libtorrent::dont_download, infoHash, utils::unescape_string(prefix), "Download stopped");
+    }
+
+    std::shared_ptr<OutgoingResponse> set_priority(libtorrent::download_priority_t priority,
+                                                   const std::string &infoHash,
+                                                   const std::string &prefix,
+                                                   const std::string &successMessage) {
         if (prefix.empty()) {
-            GET_TORRENT(infoHash)->set_priority(libtorrent::default_priority);
+            GET_TORRENT(infoHash)->set_priority(priority);
         } else {
             bool isDownloading = false;
             auto files = GET_TORRENT(infoHash)->get_files();
 
             for (const auto &file : files) {
                 if (file->get_path().rfind(prefix, 0) == 0) {
-                    file->set_priority(libtorrent::default_priority);
+                    file->set_priority(priority);
                     isDownloading = true;
                 }
             }
@@ -272,22 +302,7 @@ public:
             }
         }
 
-        return createDtoResponse(Status::CODE_200, MessageResponse::create("Download started"));
-    }
-
-    ENDPOINT_INFO(torrentStopDownload) {
-        info->summary = "Stop download";
-        info->description = "Stop downloading all torrent files";
-        info->pathParams.add<String>("infoHash").description = "Torrent info hash";
-        info->addResponse<Object<MessageResponse>>(Status::CODE_200, "application/json");
-        info->addResponse<Object<ErrorResponse>>(Status::CODE_404, "application/json");
-        info->addResponse<Object<ErrorResponse>>(Status::CODE_500, "application/json");
-    }
-
-    ENDPOINT("PUT", "/torrents/{infoHash}/stop", torrentStopDownload,
-             PATH(String, infoHash, "infoHash")) {
-        GET_TORRENT(infoHash)->set_priority(libtorrent::dont_download);
-        return createDtoResponse(Status::CODE_200, MessageResponse::create("Stopped torrent download"));
+        return createDtoResponse(Status::CODE_200, MessageResponse::create(successMessage));
     }
 };
 
