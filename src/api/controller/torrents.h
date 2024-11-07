@@ -248,7 +248,7 @@ public:
 
     ENDPOINT_INFO(torrentDownload) {
         info->summary = "Download";
-        info->description = "Download all torrent files";
+        info->description = "Download torrent files";
         info->pathParams.add<String>("infoHash").description = "Torrent info hash";
         info->queryParams.add<String>("prefix").description = "Download files by prefix";
         info->queryParams.add<String>("prefix").required = false;
@@ -265,7 +265,7 @@ public:
 
     ENDPOINT_INFO(torrentStopDownload) {
         info->summary = "Stop download";
-        info->description = "Stop downloading all torrent files";
+        info->description = "Stop downloading torrent files";
         info->pathParams.add<String>("infoHash").description = "Torrent info hash";
         info->queryParams.add<String>("prefix").description = "Stop files download by prefix";
         info->queryParams.add<String>("prefix").required = false;

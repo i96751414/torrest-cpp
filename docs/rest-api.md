@@ -321,9 +321,34 @@ Get torrent files.
 
 ##### Parameters
 
+| Name     | Located in | Description             | Required | Schema  |
+|----------|------------|-------------------------|----------|---------|
+| infoHash | path       | Torrent info hash       | Yes      | string  |
+| prefix   | query      | Filter result by prefix | No       | string  |
+| status   | query      | Get files status        | No       | boolean |
+
+##### Responses
+
+| Code | Description           |
+|------|-----------------------|
+| 200  | OK                    |
+| 404  | Not Found             |
+| 500  | Internal Server Error |
+
+</details>
+<details>
+<summary><code>GET</code> <code><b>/torrents/{infoHash}/items</b></code> <code>Torrent items</code></summary>
+
+##### Description
+
+Get torrent items.
+
+##### Parameters
+
 | Name     | Located in | Description       | Required | Schema  |
 |----------|------------|-------------------|----------|---------|
 | infoHash | path       | Torrent info hash | Yes      | string  |
+| folder   | query      | Items folder      | No       | string  |
 | status   | query      | Get files status  | No       | boolean |
 
 ##### Responses
@@ -340,13 +365,14 @@ Get torrent files.
 
 ##### Description
 
-Download all torrent files.
+Download torrent files.
 
 ##### Parameters
 
-| Name     | Located in | Description       | Required | Schema |
-|----------|------------|-------------------|----------|--------|
-| infoHash | path       | Torrent info hash | Yes      | string |
+| Name     | Located in | Description              | Required | Schema |
+|----------|------------|--------------------------|----------|--------|
+| infoHash | path       | Torrent info hash        | Yes      | string |
+| prefix   | query      | Download files by prefix | No       | string |
 
 ##### Responses
 
@@ -362,13 +388,14 @@ Download all torrent files.
 
 ##### Description
 
-Stop downloading all torrent files.
+Stop downloading torrent files.
 
 ##### Parameters
 
-| Name     | Located in | Description       | Required | Schema |
-|----------|------------|-------------------|----------|--------|
-| infoHash | path       | Torrent info hash | Yes      | string |
+| Name     | Located in | Description                   | Required | Schema |
+|----------|------------|-------------------------------|----------|--------|
+| infoHash | path       | Torrent info hash             | Yes      | string |
+| prefix   | query      | Stop files download by prefix | No       | string |
 
 ##### Responses
 
