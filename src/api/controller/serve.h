@@ -16,8 +16,8 @@
     ENDPOINT_INFO(name) {                                                                       \
         info->summary = "Serve file";                                                           \
         info->description = "Serve file from torrent";                                          \
-        info->pathParams.add<String>("infoHash").description = "Torrent info hash";             \
-        info->pathParams.add<String>("file").description = "File index";                        \
+        info->pathParams["infoHash"].description = "Torrent info hash";                         \
+        info->pathParams["file"].description = "File index";                                    \
         info->addResponse<List<Object<FileStatus>>>(code, "application/octet-stream");          \
         info->addResponse<List<Object<ErrorResponse>>>(Status::CODE_400, "application/json");   \
         info->addResponse<List<Object<ErrorResponse>>>(Status::CODE_404, "application/json");   \

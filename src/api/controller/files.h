@@ -25,10 +25,10 @@ public:
     ENDPOINT_INFO(downloadFile) {
         info->summary = "Download file";
         info->description = "Download file from torrent";
-        info->pathParams.add<String>("infoHash").description = "Torrent info hash";
-        info->pathParams.add<String>("file").description = "File index";
-        info->queryParams.add<Boolean>("buffer").description = "Start buffering";
-        info->queryParams.add<Boolean>("buffer").required = false;
+        info->pathParams["infoHash"].description = "Torrent info hash";
+        info->pathParams["file"].description = "File index";
+        info->queryParams["buffer"].description = "Start buffering";
+        info->queryParams["buffer"].required = false;
         info->addResponse<List<Object<MessageResponse>>>(Status::CODE_200, "application/json");
         info->addResponse<List<Object<ErrorResponse>>>(Status::CODE_400, "application/json");
         info->addResponse<List<Object<ErrorResponse>>>(Status::CODE_404, "application/json");
@@ -49,8 +49,8 @@ public:
     ENDPOINT_INFO(stopFile) {
         info->summary = "Stop file download";
         info->description = "Stop file download from torrent";
-        info->pathParams.add<String>("infoHash").description = "Torrent info hash";
-        info->pathParams.add<String>("file").description = "File index";
+        info->pathParams["infoHash"].description = "Torrent info hash";
+        info->pathParams["file"].description = "File index";
         info->addResponse<List<Object<MessageResponse>>>(Status::CODE_200, "application/json");
         info->addResponse<List<Object<ErrorResponse>>>(Status::CODE_400, "application/json");
         info->addResponse<List<Object<ErrorResponse>>>(Status::CODE_404, "application/json");
@@ -66,8 +66,8 @@ public:
     ENDPOINT_INFO(fileInfo) {
         info->summary = "Get file info";
         info->description = "Get file info from torrent";
-        info->pathParams.add<String>("infoHash").description = "Torrent info hash";
-        info->pathParams.add<String>("file").description = "File index";
+        info->pathParams["infoHash"].description = "Torrent info hash";
+        info->pathParams["file"].description = "File index";
         info->addResponse<List<Object<FileInfo>>>(Status::CODE_200, "application/json");
         info->addResponse<List<Object<ErrorResponse>>>(Status::CODE_400, "application/json");
         info->addResponse<List<Object<ErrorResponse>>>(Status::CODE_404, "application/json");
@@ -82,8 +82,8 @@ public:
     ENDPOINT_INFO(fileStatus) {
         info->summary = "Get file status";
         info->description = "Get file status from torrent";
-        info->pathParams.add<String>("infoHash").description = "Torrent info hash";
-        info->pathParams.add<String>("file").description = "File index";
+        info->pathParams["infoHash"].description = "Torrent info hash";
+        info->pathParams["file"].description = "File index";
         info->addResponse<List<Object<FileStatus>>>(Status::CODE_200, "application/json");
         info->addResponse<List<Object<ErrorResponse>>>(Status::CODE_400, "application/json");
         info->addResponse<List<Object<ErrorResponse>>>(Status::CODE_404, "application/json");

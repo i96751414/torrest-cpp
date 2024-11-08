@@ -78,12 +78,12 @@ public:
     ENDPOINT_INFO(addMagnet) {
         info->summary = "Add magnet";
         info->description = "Add magnet to the service";
-        info->queryParams.add<String>("uri").description = "The magnet URI";
-        info->queryParams.add<String>("uri").required = true;
-        info->queryParams.add<Boolean>("download").description = "Start download after adding magnet";
-        info->queryParams.add<Boolean>("download").required = false;
-        info->queryParams.add<Boolean>("ignore_duplicate").description = "Ignore if duplicate";
-        info->queryParams.add<Boolean>("ignore_duplicate").required = false;
+        info->queryParams["uri"].description = "The magnet URI";
+        info->queryParams["uri"].required = true;
+        info->queryParams["download"].description = "Start download after adding magnet";
+        info->queryParams["download"].required = false;
+        info->queryParams["ignore_duplicate"].description = "Ignore if duplicate";
+        info->queryParams["ignore_duplicate"].required = false;
         info->addResponse<Object<NewTorrentResponse>>(Status::CODE_200, "application/json");
         info->addResponse<Object<ErrorResponse>>(Status::CODE_400, "application/json");
         info->addResponse<Object<ErrorResponse>>(Status::CODE_500, "application/json");
@@ -104,10 +104,10 @@ public:
     ENDPOINT_INFO(addTorrent) {
         info->summary = "Add torrent file";
         info->description = "Add torrent file to the service";
-        info->queryParams.add<Boolean>("download").description = "Start download after adding magnet";
-        info->queryParams.add<Boolean>("download").required = false;
-        info->queryParams.add<Boolean>("ignore_duplicate").description = "Ignore if duplicate";
-        info->queryParams.add<Boolean>("ignore_duplicate").required = false;
+        info->queryParams["download"].description = "Start download after adding torrent";
+        info->queryParams["download"].required = false;
+        info->queryParams["ignore_duplicate"].description = "Ignore if duplicate";
+        info->queryParams["ignore_duplicate"].required = false;
         info->addConsumes<Object<TorrentMultipart>>("multipart/form-data");
         info->addResponse<Object<NewTorrentResponse>>(Status::CODE_200, "application/json");
         info->addResponse<Object<ErrorResponse>>(Status::CODE_400, "application/json");

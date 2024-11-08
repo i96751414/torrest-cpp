@@ -32,8 +32,8 @@ public:
     ENDPOINT_INFO(setSettings) {
         info->summary = "Set settings";
         info->description = "Set settings given the provided JSON object";
-        info->queryParams.add<Boolean>("reset").description = "Reset torrents";
-        info->queryParams.add<Boolean>("reset").required = false;
+        info->queryParams["reset"].description = "Reset torrents";
+        info->queryParams["reset"].required = false;
         info->addConsumes<oatpp::Any>("application/json");
         info->addResponse<oatpp::Any>(Status::CODE_200, "application/json");
         info->addResponse<Object<ErrorResponse>>(Status::CODE_400, "application/json");

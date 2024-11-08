@@ -1,6 +1,8 @@
 # Rest API
 
-## Version: 0.0.3
+## Version: 0.0.7
+
+C++ implementation of Torrest: a torrent streaming engine with a REST api
 
 #### Swagger
 
@@ -167,10 +169,10 @@ Add torrent file to the service.
 
 ##### Parameters
 
-| Name             | Located in | Description                        | Required | Schema  |
-|------------------|------------|------------------------------------|----------|---------|
-| download         | query      | Start download after adding magnet | No       | boolean |
-| ignore_duplicate | query      | Ignore if duplicate                | No       | boolean |
+| Name             | Located in | Description                         | Required | Schema  |
+|------------------|------------|-------------------------------------|----------|---------|
+| download         | query      | Start download after adding torrent | No       | boolean |
+| ignore_duplicate | query      | Ignore if duplicate                 | No       | boolean |
 
 ##### Responses
 
@@ -254,7 +256,7 @@ Resume a paused torrent.
 
 ##### Description
 
-Resume a paused torrent.
+Pause torrent from service.
 
 ##### Parameters
 
@@ -361,7 +363,7 @@ Get torrent items.
 
 </details>
 <details>
-<summary><code>PUT</code> <code><b>/torrents/{infoHash}/download</b></code> <code>Torrent download</code></summary>
+<summary><code>PUT</code> <code><b>/torrents/{infoHash}/download</b></code> <code>Start download</code></summary>
 
 ##### Description
 
@@ -550,3 +552,5 @@ Serve file from torrent.
 | 404  | Not Found   |
 
 </details>
+
+------------------------------------------------------------------------------------------
