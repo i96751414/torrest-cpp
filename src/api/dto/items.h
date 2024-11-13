@@ -16,8 +16,8 @@ class Items : public oatpp::DTO {
 
     FIELD(List<Object<FileInfoStatus>>, files, "Files")
 
-    static oatpp::data::mapping::type::DTOWrapper<Items> create(List<Object<FolderInfoStatus>> pFolderInfoList,
-                                                                List<Object<FileInfoStatus>> pFileInfoList) {
+    static oatpp::data::mapping::type::DTOWrapper<Items> create(const List<Object<FolderInfoStatus>> &pFolderInfoList,
+                                                                const List<Object<FileInfoStatus>> &pFileInfoList) {
         auto items = Items::createShared();
         items->folders = pFolderInfoList;
         items->files = pFileInfoList;

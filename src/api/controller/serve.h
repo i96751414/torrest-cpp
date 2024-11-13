@@ -4,11 +4,13 @@
 #include "boost/filesystem.hpp"
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/macro/component.hpp"
+#include "oatpp/web/protocol/http/outgoing/MultipartBody.hpp"
 #include "oatpp/web/server/api/ApiController.hpp"
 #include "range_parser/range_parser.hpp"
 
 #include "api/body/empty_body.h"
 #include "api/body/reader_body.h"
+#include "api/mime/multipart.h"
 #include "torrest.h"
 #include "utils/mime.h"
 
@@ -81,8 +83,15 @@ public:
 
                 headers.emplace_back(Header::CONTENT_RANGE, singleRange.content_range(file->get_size()).c_str());
             } else if (rangeCount > 1) {
-                logger->error("operation=serve, message='Multiple ranges are not supported'");
-                return createDtoResponse(Status::CODE_501, ErrorResponse::create("Multi ranges are not supported"));
+                code = Status::CODE_206;
+
+                if (isHead) {
+                    // Currently oatpp does not have a way for computing the size of a multipart response
+                    body = std::make_shared<EmptyBody>(-1);
+                } else {
+                    auto multipart = std::make_shared<Multipart>(file, range.ranges, mime.c_str());
+                    body = std::make_shared<oatpp::web::protocol::http::outgoing::MultipartBody>(multipart, "multipart/byteranges");
+                }
             }
         }
 

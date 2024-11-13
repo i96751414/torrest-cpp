@@ -40,6 +40,7 @@ set(torrest_sources
         src/bittorrent/torrent.cpp
         src/bittorrent/file.cpp
         src/bittorrent/reader.cpp
+        src/api/mime/multipart.cpp
         src/api/body/empty_body.cpp
         src/api/body/reader_body.cpp
         src/api/error_handler.cpp
