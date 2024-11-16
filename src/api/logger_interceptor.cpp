@@ -48,10 +48,12 @@ namespace torrest { namespace api {
                        ", statusCode={}",
                 startingLine.method.std_str(),
 #if TORREST_EXTENDED_CONNECTIONS
-                pRequest->getConnection()->getInputStreamContext().getProperties().get(
-                        oatpp::network::tcp::server::ConnectionProvider::ExtendedConnection::PROPERTY_PEER_ADDRESS)->c_str(),
+                *pRequest->getConnection()->getInputStreamContext().getProperties().get(
+                        oatpp::network::tcp::server::ConnectionProvider::ExtendedConnection::PROPERTY_PEER_ADDRESS),
 #endif
-                startingLine.path.std_str(), duration, statusCode);
+                startingLine.path.std_str(),
+                duration,
+                statusCode);
 
         return pResponse;
     }

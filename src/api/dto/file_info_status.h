@@ -19,8 +19,8 @@ class FileInfoStatus : public FileInfo {
         auto info = FileInfoStatus::createShared();
         info->id = pInfo.id;
         info->length = pInfo.length;
-        info->path = pInfo.path.c_str();
-        info->name = pInfo.name.c_str();
+        info->path = pInfo.path;
+        info->name = pInfo.name;
         info->status = nullptr;
         return info;
     }

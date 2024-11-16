@@ -23,8 +23,8 @@ class FileInfo : public oatpp::DTO {
         auto info = FileInfo::createShared();
         info->id = pInfo.id;
         info->length = pInfo.length;
-        info->path = pInfo.path.c_str();
-        info->name = pInfo.name.c_str();
+        info->path = pInfo.path;
+        info->name = pInfo.name;
         return info;
     }
 };

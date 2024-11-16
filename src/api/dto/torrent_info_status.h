@@ -17,8 +17,8 @@ class TorrentInfoStatus : public TorrentInfo {
 
     static oatpp::data::mapping::type::DTOWrapper<TorrentInfoStatus> create(const bittorrent::TorrentInfo &pInfo) {
         auto info = TorrentInfoStatus::createShared();
-        info->info_hash = pInfo.info_hash.c_str();
-        info->name = pInfo.name.c_str();
+        info->info_hash = pInfo.info_hash;
+        info->name = pInfo.name;
         info->size = pInfo.size;
         info->status = nullptr;
         return info;

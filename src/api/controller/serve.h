@@ -57,12 +57,12 @@ public:
 
         auto file = torrent->get_file(pFile);
         auto mime = utils::guess_mime_type(boost::filesystem::path(file->get_name()).extension().string());
-        logger->trace("operation=serve, infoHash={}, name='{}', mime='{}'", pInfoHash->c_str(), file->get_name(), mime);
+        logger->trace("operation=serve, infoHash={}, name='{}', mime='{}'", *pInfoHash, file->get_name(), mime);
 
         auto code = Status::CODE_200;
         std::shared_ptr<oatpp::web::protocol::http::outgoing::Body> body = nullptr;
         std::vector<std::pair<String, String>> headers = {
-                {Header::CONTENT_TYPE, mime.c_str()},
+                {Header::CONTENT_TYPE, mime},
                 {"Accept-Ranges",      range_parser::UNIT_BYTES}};
 
         auto rangeHeader = pRequest->getHeader(Header::RANGE);
@@ -85,7 +85,7 @@ public:
                     body = std::make_shared<ReaderBody>(reader, singleRange.length);
                 }
 
-                headers.emplace_back(Header::CONTENT_RANGE, singleRange.content_range(file->get_size()).c_str());
+                headers.emplace_back(Header::CONTENT_RANGE, singleRange.content_range(file->get_size()));
             } else if (rangeCount > 1) {
                 code = Status::CODE_206;
 
@@ -93,7 +93,7 @@ public:
                     // Currently oatpp does not have a way for computing the size of a multipart response
                     body = std::make_shared<EmptyBody>(-1);
                 } else {
-                    auto multipart = std::make_shared<Multipart>(file, range.ranges, mime.c_str());
+                    auto multipart = std::make_shared<Multipart>(file, range.ranges, mime);
                     body = std::make_shared<oatpp::web::protocol::http::outgoing::MultipartBody>(multipart, "multipart/byteranges");
                 }
             }

@@ -14,7 +14,7 @@ class NewTorrentResponse : public oatpp::DTO {
 
     static oatpp::data::mapping::type::DTOWrapper<NewTorrentResponse> create(const std::string &pInfoHash) {
         auto response = NewTorrentResponse::createShared();
-        response->info_hash = pInfoHash.c_str();
+        response->info_hash = pInfoHash;
         return response;
     }
 };
