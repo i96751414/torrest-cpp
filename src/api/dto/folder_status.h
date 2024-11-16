@@ -14,6 +14,10 @@ class FolderStatus : public oatpp::DTO {
 
     FIELD(Int64, total_done, "Total done size")
 
+    FIELD(Int64, total_wanted, "Total wanted size")
+
+    FIELD(Int64, total_wanted_done, "Total wanted done size")
+
     FIELD(Float64, progress, "Progress")
 
     FIELD(Int32, wanted_count, "Wanted files count")
