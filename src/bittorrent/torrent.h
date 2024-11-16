@@ -70,6 +70,10 @@ namespace torrest { namespace bittorrent {
         void pause();
 
         void resume();
+        
+        bool is_paused() const;
+
+        bool is_closed() const;
 
         void set_priority(libtorrent::download_priority_t pPriority);
 

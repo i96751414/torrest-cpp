@@ -151,6 +151,14 @@ namespace torrest { namespace bittorrent {
         mPaused = false;
     }
 
+    bool Torrent::is_paused() const {
+        return mPaused.load();
+    }
+
+    bool Torrent::is_closed() const {
+        return mClosed.load();
+    }
+
     void Torrent::set_priority(libtorrent::download_priority_t pPriority) {
         mLogger->debug("operation=set_priority, priority={}", to_string(pPriority));
         if (!mHasMetadata.load()) {
