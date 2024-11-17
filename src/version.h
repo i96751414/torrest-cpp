@@ -1,6 +1,6 @@
 #ifndef TORREST_VERSION_H
 #define TORREST_VERSION_H
 
-#define TORREST_VERSION "0.0.7"
+#define TORREST_VERSION "0.0.8"
 
 #endif //TORREST_VERSION_H
