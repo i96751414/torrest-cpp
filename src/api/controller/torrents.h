@@ -221,8 +221,8 @@ public:
                                 folderInfoStatus->status->total_wanted_done = fileStatus.total_done;
                                 folderInfoStatus->status->wanted_count = 1;
                             } else {
-                                folderInfoStatus->status->total_wanted = 0L;
-                                folderInfoStatus->status->total_wanted_done = 0L;
+                                folderInfoStatus->status->total_wanted = INT64_C(0);
+                                folderInfoStatus->status->total_wanted_done = INT64_C(0);
                                 folderInfoStatus->status->wanted_count = 0;
                             }
                         }
