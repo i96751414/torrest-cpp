@@ -19,7 +19,7 @@ on:
 jobs:
   cross-build:
     name: "Build cross compiler"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       max-parallel: 5
       matrix:
