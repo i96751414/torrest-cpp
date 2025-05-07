@@ -1,6 +1,6 @@
 # Rest API
 
-## Version: 0.0.8
+## Version: 0.0.9
 
 C++ implementation of Torrest: a torrent streaming engine with a REST api
 
