@@ -45,6 +45,8 @@ namespace torrest { namespace bittorrent {
 
         const std::string &get_path() const { return mPath; }
 
+        bool is_completed() const { return get_completed() == mSize; }
+
         FileInfo get_info() const;
 
         FileStatus get_status() const;

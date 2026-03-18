@@ -39,7 +39,7 @@ namespace torrest { namespace api {
 class ServeController : public oatpp::web::server::api::ApiController {
 public:
     explicit ServeController(OATPP_COMPONENT(std::shared_ptr<ObjectMapper>, objectMapper))
-            : oatpp::web::server::api::ApiController(objectMapper) {}
+            : ApiController(objectMapper) {}
 
     SERVE("HEAD", serveFileHead, Status::CODE_200, serve)
 
@@ -47,15 +47,19 @@ public:
 
     std::shared_ptr<OutgoingResponse> serve(const std::shared_ptr<IncomingRequest> &pRequest,
                                             const String &pInfoHash,
-                                            const Int32 &pFile) {
+                                            const Int32 &pFile) const {
         auto isHead = pRequest->getStartingLine().method == "HEAD";
-        auto logger = torrest::Torrest::get_instance()->get_api_logger();
+        auto logger = Torrest::get_instance()->get_api_logger();
         auto torrent = Torrest::get_instance()->get_service()->get_torrent(pInfoHash);
-        if ((torrent->is_closed() || torrent->is_paused()) && !isHead) {
-            return createDtoResponse(Status::CODE_409, ErrorResponse::create("Torrent is either paused or closed"));
+        if (!isHead && torrent->is_closed()) {
+            return createDtoResponse(Status::CODE_409, ErrorResponse::create("Torrent is closed"));
         }
 
         auto file = torrent->get_file(pFile);
+        if (!isHead && torrent->is_paused() && !file->is_completed()) {
+            return createDtoResponse(Status::CODE_409, ErrorResponse::create("Torrent is paused"));
+        }
+
         auto mime = utils::guess_mime_type(boost::filesystem::path(file->get_name()).extension().string());
         logger->trace("operation=serve, infoHash={}, name='{}', mime='{}'", *pInfoHash, file->get_name(), mime);
 

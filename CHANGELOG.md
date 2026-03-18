@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Allow playing paused torrents if file is completed.
+
 ## [v0.0.8] - 07/05/2025
 
 ### Changed
