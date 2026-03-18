@@ -23,6 +23,8 @@ namespace torrest { namespace bittorrent {
 
         std::int64_t seek(std::int64_t pOff, int pWhence);
 
+        bool nowait_read_available(std::int64_t pSize) const;
+
     private:
         std::int32_t piece_from_offset(std::int64_t pOffset) const;
 

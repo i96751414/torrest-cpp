@@ -28,11 +28,32 @@ namespace torrest { namespace bittorrent {
               mPos(0) {}
 
     std::int32_t Reader::piece_from_offset(std::int64_t pOffset) const {
-        return std::int32_t((mOffset + pOffset) / mPieceLength);
+        return static_cast<std::int32_t>((mOffset + pOffset) / mPieceLength);
     }
 
     std::int32_t Reader::piece_offset_from_offset(std::int64_t pOffset) const {
-        return std::int32_t((mOffset + pOffset) % mPieceLength);
+        return static_cast<std::int32_t>((mOffset + pOffset) % mPieceLength);
+    }
+
+    bool Reader::nowait_read_available(std::int64_t pSize) const {
+        std::lock_guard<std::mutex> lock(mMutex);
+        mTorrent->mLogger->trace("operation=is_read_available, pos={}, size={}, infoHash={}",
+            mPos, pSize, mTorrent->mInfoHash);
+
+        const auto size = std::min<std::int64_t>(pSize, mSize - mPos);
+        if (size <= 0) {
+            return true;
+        }
+
+        const auto startPiece = piece_from_offset(mPos);
+        const auto endPiece = piece_from_offset(mPos + size - 1);
+        for (auto p = startPiece; p <= endPiece; ++p) {
+            if (!mTorrent->mHandle.have_piece(libtorrent::piece_index_t(p))) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     std::int64_t Reader::read(void *pBuf, std::int64_t pSize) {
@@ -92,7 +113,7 @@ namespace torrest { namespace bittorrent {
             auto pieceData = mTorrent->read_piece(
                     libtorrent::piece_index_t(p), pieceWaitUntil);
             auto pieceBufferSize = std::min<std::int64_t>(size - n, pieceData.size);
-            memcpy((char *) pBuf + n, pieceData.buffer.get(), pieceBufferSize);
+            memcpy(static_cast<char *>(pBuf) + n, pieceData.buffer.get(), pieceBufferSize);
             n += pieceBufferSize;
         }
 #endif

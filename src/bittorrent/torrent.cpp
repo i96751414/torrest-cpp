@@ -60,7 +60,7 @@ namespace torrest { namespace bittorrent {
             if (now - it->second.read_at >= pExpiration) {
                 mPieces.erase(it++);
             } else {
-                it++;
+                ++it;
             }
         }
     }
@@ -117,8 +117,6 @@ namespace torrest { namespace bittorrent {
     void Torrent::wait_for_piece(libtorrent::piece_index_t pPiece,
                                  const boost::optional<std::chrono::time_point<std::chrono::steady_clock>> &pUntil) const {
         mLogger->trace("operation=wait_for_piece, piece={}, infoHash={}", to_string(pPiece), mInfoHash);
-        auto startTime = std::chrono::steady_clock::now();
-        std::chrono::time_point<std::chrono::steady_clock> time = std::chrono::steady_clock::now();
 
         while (!mHandle.have_piece(pPiece)) {
             if (mClosed.load()) {
