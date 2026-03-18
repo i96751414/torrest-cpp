@@ -46,7 +46,9 @@ namespace torrest { namespace api {
 
     std::shared_ptr<oatpp::data::stream::InputStream> RangeResource::openInputStream() {
         auto reader = mFile->reader();
-        reader->seek(mOffset, std::ios::beg);
+        if (reader->seek(mOffset, std::ios::beg) < 0) {
+            throw std::runtime_error("Invalid range start");
+        }
         return std::make_shared<RangeInputStream>(reader, mSize);
     }
 

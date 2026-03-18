@@ -85,7 +85,9 @@ public:
                     body = std::make_shared<EmptyBody>(singleRange.length);
                 } else {
                     auto reader = file->reader();
-                    reader->seek(singleRange.start, std::ios::beg);
+                    if (reader->seek(singleRange.start, std::ios::beg) < 0) {
+                        return createDtoResponse(Status::CODE_416, ErrorResponse::create("Invalid range start"));
+                    }
                     body = std::make_shared<ReaderBody>(reader, singleRange.length);
                 }
 
