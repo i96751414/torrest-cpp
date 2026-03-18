@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Allow playing paused torrents if file is completed.
+- Allow playing paused torrents by first checking if the required pieces are available.
 
 ## [v0.0.8] - 07/05/2025
 

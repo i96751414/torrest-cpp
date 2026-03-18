@@ -183,6 +183,33 @@ namespace torrest { namespace bittorrent {
         mBuffering = mBufferSize > 0;
     }
 
+    bool File::is_read_available(std::int64_t pOffset, std::int64_t pLength) const {
+        mLogger->trace("operation=is_read_available, index={}, offset={}, length={}",
+               to_string(mIndex), pOffset, pLength);
+
+        if (pOffset < 0 || pOffset > mSize) {
+            mLogger->error("operation=is_read_available, message='Offset out of boundaries', off={}", pOffset);
+            return false;
+        }
+
+        const auto length = std::min<std::int64_t>(pLength, mSize - pOffset);
+        if (length <= 0) {
+            return true;
+        }
+
+        const auto torrent = mTorrent.lock();
+        CHECK_TORRENT(torrent);
+
+        const auto pieces = get_pieces_indexes(pOffset, length);
+        for (auto p = pieces.first; p <= pieces.second; ++p) {
+            if (!torrent->mHandle.have_piece(p)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     std::shared_ptr<Reader> File::reader(double pReadAhead) {
         mLogger->debug("operation=reader, index={}, readAhead={}", to_string(mIndex), pReadAhead);
         auto torrent = mTorrent.lock();

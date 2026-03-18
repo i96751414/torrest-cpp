@@ -51,15 +51,11 @@ public:
         auto isHead = pRequest->getStartingLine().method == "HEAD";
         auto logger = Torrest::get_instance()->get_api_logger();
         auto torrent = Torrest::get_instance()->get_service()->get_torrent(pInfoHash);
-        if (!isHead && torrent->is_closed()) {
+        if (torrent->is_closed()) {
             return createDtoResponse(Status::CODE_409, ErrorResponse::create("Torrent is closed"));
         }
 
         auto file = torrent->get_file(pFile);
-        if (!isHead && torrent->is_paused() && !file->is_completed()) {
-            return createDtoResponse(Status::CODE_409, ErrorResponse::create("Torrent is paused"));
-        }
-
         auto mime = utils::guess_mime_type(boost::filesystem::path(file->get_name()).extension().string());
         logger->trace("operation=serve, infoHash={}, name='{}', mime='{}'", *pInfoHash, file->get_name(), mime);
 
@@ -74,6 +70,14 @@ public:
             auto range = range_parser::parse(rangeHeader, file->get_size());
             if (range.unit != range_parser::UNIT_BYTES) {
                 return createDtoResponse(Status::CODE_416, ErrorResponse::create("Invalid range"));
+            }
+
+            if (!isHead && torrent->is_paused()) {
+                for (const auto &r : range.ranges) {
+                    if (!file->is_read_available(r.start, r.length)) {
+                        return createDtoResponse(Status::CODE_409, ErrorResponse::create("Torrent is paused"));
+                    }
+                }
             }
 
             auto rangeCount = range.ranges.size();
@@ -106,6 +110,8 @@ public:
         if (body == nullptr) {
             if (isHead) {
                 body = std::make_shared<EmptyBody>(file->get_size());
+            } else if (torrent->is_paused() && !file->is_completed()) {
+                return createDtoResponse(Status::CODE_409, ErrorResponse::create("Torrent is paused"));
             } else {
                 body = std::make_shared<ReaderBody>(file->reader(), file->get_size());
             }
